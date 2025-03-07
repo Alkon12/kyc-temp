@@ -1,0 +1,29 @@
+meta {
+  name: Accept Appllication Pre Task
+  type: graphql
+  seq: 4
+}
+
+post {
+  url: {{graphqlEndpoint}}
+  body: graphql
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:graphql {
+  mutation MoveTask($taskId: ID!, $taskAction: TaskAction!, $message: String) {
+    moveTask(taskId: $taskId, taskAction: $taskAction, message: $message) 
+  }
+  
+}
+
+body:graphql:vars {
+  {
+      "taskId": "cd514004-f102-4356-9da9-478ec3efc2db",
+      "taskAction": "ACCEPT"
+  }
+}

@@ -1,0 +1,36 @@
+extend type Query {
+  getFreeSlots(slotType: String!, dateFrom: DateTime, dateTo: DateTime): [Slot]
+  getMeetings(slotType: String!, dateFrom: DateTime, dateTo: DateTime): [Slot]
+  getSlots(slotType: String!, dateFrom: DateTime, dateTo: DateTime): [Slot]
+  getDatesWithFreeSlots(slotType: String!, dateFrom: DateTime, dateTo: DateTime): [Date]
+  getUserSlots(userId: ID!, filter: SlotFilterInput): [Slot]
+  getSlotById(slotId: ID!): Slot
+}
+
+input SlotFilterInput {
+  slotType: String
+  dateFrom: DateTime
+  dateTo: DateTime
+}
+
+
+extend type Mutation {
+  populateSlots(slotType: String!, dateFrom: DateTime!, dateTo: DateTime!): [Slot]
+  confirmSlot(slotId: String!): Slot
+}
+
+type Slot {
+  id: ID!
+  slotType: String!
+  startsAt: DateTime
+  endsAt: DateTime
+  hostUserId: String
+  guestUserId: String
+  prospectId: String
+  free: Boolean!
+
+  hostUser: User
+  guestUser: User
+  prospect: Prospect
+  tasks: [Task]
+}

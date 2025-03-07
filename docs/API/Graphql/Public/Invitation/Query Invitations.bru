@@ -1,0 +1,60 @@
+meta {
+  name: Query Invitations
+  type: graphql
+  seq: 1
+}
+
+post {
+  url: {{graphqlEndpoint}}
+  body: graphql
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:graphql {
+  query Invitations {
+    invitations{
+      id
+      firstName
+      lastName
+      email
+      phoneNumber
+      hasUberAccount
+      productId
+      isOnsite
+      referrerId
+      campaignId
+      branchId
+      promotionId
+      status
+      createdAt
+      updatedAt
+      prospectId
+      quoteId
+      applicationId
+      referrer {
+        email
+        firstName
+        lastName
+      }
+      product{
+        brand
+        model
+      }
+      link
+      quote {
+        id
+      }
+      prospect {
+        id
+        prospectStatus {
+          id
+          name
+        }
+      }
+    }
+  }
+}

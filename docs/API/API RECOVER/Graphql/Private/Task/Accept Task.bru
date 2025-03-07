@@ -1,0 +1,32 @@
+meta {
+  name: Accept Task
+  type: graphql
+  seq: 4
+}
+
+post {
+  url: {{graphqlEndpoint}}
+  body: graphql
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:graphql {
+  mutation MoveTask($taskId: ID!, $taskAction: TaskAction!, $metadata: TaskMetadataInput) {
+    moveTask(taskId: $taskId, taskAction: $taskAction, metadata: $metadata) 
+  }
+  
+}
+
+body:graphql:vars {
+  {
+      "taskId": "ac239252-36de-4587-8986-a05379bf4498",
+      "taskAction": "ACCEPT",
+      "metadata": {
+        "message": "1111"
+      }
+  }
+}

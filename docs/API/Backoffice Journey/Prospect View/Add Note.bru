@@ -1,0 +1,40 @@
+meta {
+  name: Add Note
+  type: graphql
+  seq: 3
+}
+
+post {
+  url: {{graphqlEndpoint}}
+  body: graphql
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:graphql {
+  mutation prospectAddNote($prospectId: ID!, $notes: String!) {
+    prospectAddNote(prospectId: $prospectId, notes: $notes) {
+      createdAt
+      notes
+      prospectActivityType {
+        id
+        name
+      }
+      createdByUser {
+        email
+        fullName
+      }
+    }
+  }
+  
+}
+
+body:graphql:vars {
+  {
+      "prospectId": "0b981cac-4075-41fe-aa86-b103116ce063",
+      "notes": "3333 algun texto de nota"
+  }
+}

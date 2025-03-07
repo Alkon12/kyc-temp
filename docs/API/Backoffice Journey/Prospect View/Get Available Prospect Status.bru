@@ -1,0 +1,30 @@
+meta {
+  name: Get Available Prospect Status
+  type: graphql
+  seq: 7
+}
+
+post {
+  url: {{graphqlEndpoint}}
+  body: graphql
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:graphql {
+  query getAvailableProspectStatusList($prospectId: ID) {
+    getAvailableProspectStatusList(prospectId: $prospectId) {
+      id
+      name
+    }
+  }
+}
+
+body:graphql:vars {
+  {
+      "__prospectId": "0b981cac-4075-41fe-aa86-b103116ce063"
+  }
+}

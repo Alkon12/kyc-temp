@@ -1,0 +1,16 @@
+type DeviceTokenEntity {
+  id: ID!
+  userId: String!
+  token: String!
+  device: String!
+  createdAt: String!
+  updatedAt: String!
+}
+
+type Query {
+  getDeviceTokensByUser(userId: String!): [DeviceTokenEntity!]!
+}
+
+type Mutation {
+  registerDeviceToken(userId: String!, token: String!, device: String!): DeviceTokenEntity!
+}

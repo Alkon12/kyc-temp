@@ -1,0 +1,37 @@
+.button-icon {
+  background: none;
+  border: none;
+  outline: none;
+  padding: 0.3rem 1rem;
+  font-size: 0.9rem;
+  border-radius: 0.4rem;
+  margin: 0 auto;
+  width: 100%;
+  max-width: 15rem;
+  display: flex;
+  justify-content: space-around;
+
+  transition:
+    background-color 0.5s ease-in,
+    color 0.4s ease-in;
+}
+
+.style-primary {
+  background-color: #7baf45;
+  color: #ffffff;
+  &:hover {
+    background-color: #ffffff;
+    color: #7baf45;
+  }
+}
+
+.style-second {
+  background-color: #081f33;
+  color: #ffffff;
+  outline: 1px solid #ffffff70;
+  &:hover {
+    background-color: #ffffff;
+    color: #081f33;
+    outline: none;
+  }
+}

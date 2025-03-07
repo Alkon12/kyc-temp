@@ -1,0 +1,15 @@
+meta {
+  name: Document Metadata
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{host}}/api/v1/docs/documents/{{documentId}}/metadata
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}

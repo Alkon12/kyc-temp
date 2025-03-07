@@ -1,0 +1,110 @@
+extend type Query {
+  user: User!
+  authWithCredentials(email: String!, password: String, provider: String): ClientApiAuthResponse!
+  authWithUberDriver(token: String!): ClientApiAuthResponse!
+  usersByGroup(groupId: String!): [User!]
+}
+
+extend type Mutation {
+  createUser(input: CreateUserInput!): User
+  updateUserPersonalInfo(input: UpdateUserPersonalInfoInput!): Boolean
+  updateUserDriverLicenseInfo(input: UpdateUserDriverLicenseInfoInput!): Boolean
+}
+
+type Group {
+  id: String!
+  title: String!
+  users: [User]
+}
+
+type User {
+  id: ID!
+  firstName: String
+  lastName: String
+  secondLastName: String
+  email: String
+  phoneNumber: String
+  picture: String
+  rfc: String
+  curp: String
+  gender: String
+  driverLicenseNumber: String
+  driverLicenseValidity: DateTime
+  driverLicensePermanent: Boolean
+
+  uberDriverId: String
+  uberRating: String
+  uberPromoCode: String
+  uberActivationStatus: String
+  uberPartnerRole: String
+  uberEarningsRetentionActive: Boolean
+  uberCityName: String
+  uberCityCode: String
+  uberTier: String
+  uberTenureMonths: Int
+  uberLastMonthTripCount: Int
+  uberLastMonthEarnings: Int
+  
+  dob: DateTime
+
+  application: Application # for APP and BO
+  leasings: [Leasing]
+  pendingTasks: [Task] # for APP
+  quotes: [Quote]
+  applications: [Application]
+  fullName: String
+  groups: [Group]
+  assignedTasks: [Task]
+  smartItRegistry: SmartItRegistry
+
+  fullTasks: FullTasks
+}
+
+input CreateUserInput {
+  email: String!
+  firstName: String!
+  lastName: String!
+  password: String!
+  name: String
+  assignedGroups: [String!]!
+}
+
+input UpdateUserPersonalInfoInput {
+  userId: ID!
+  rfc: String!
+  curp: String!
+  firstName: String!
+  lastName: String!
+  secondLastName: String
+}
+
+input UpdateUserDriverLicenseInfoInput {
+  userId: ID!
+  driverLicenseNumber: String!
+  driverLicensePermanent: Boolean!
+  driverLicenseValidity: DateTime
+}
+
+type ClientApiAuthResponse {
+  accessToken: String!
+}
+
+type FullTasks {
+  userAssigned: [Task]!
+  userGroupsAssigned: [Task]!
+}
+
+type SmartItRegistry {
+  id: Int!
+  rfc: String
+  curp: String
+  name: String!
+  lastName: String!
+  secondLastName: String
+  userId: ID!
+  termsId: ID
+  vin: String!
+  quoteSmartItId: Int!
+  contractId: Int!
+  status: String!
+}

@@ -1,0 +1,49 @@
+overwrite: true
+schema:
+  - './src/api/graphql/base/schema.graphql'
+  - './src/api/graphql/location/schema.graphql'
+  - './src/api/graphql/application/schema.graphql'
+  - './src/api/graphql/applicationChecklist/schema.graphql'
+  - './src/api/graphql/lead/schema.graphql'
+  - './src/api/graphql/offer/schema.graphql'
+  - './src/api/graphql/product/schema.graphql'
+  - './src/api/graphql/quote/schema.graphql'
+  - './src/api/graphql/user/schema.graphql'
+  - './src/api/graphql/vehicle/schema.graphql'
+  - './src/api/graphql/paramheader/schema.graphql'
+  - './src/api/graphql/paramdetail/schema.graphql'
+  - './src/api/graphql/inventory/schema.graphql'
+  - './src/api/graphql/slot/schema.graphql'
+  - './src/api/graphql/task/schema.graphql'
+  - './src/api/graphql/leasing/schema.graphql'
+  - './src/api/graphql/person/schema.graphql'
+  - './src/api/graphql/prospect/schema.graphql'
+  - './src/api/graphql/kyc/schema.graphql'
+  - './src/api/graphql/client/schema.graphql'
+  - './src/api/graphql/test/schema.graphql'
+  - "./src/api/graphql/personRegis/schema.graphql" 
+  - "./src/api/graphql/inventorySmarIt/schema.graphql"
+  - "./src/api/graphql/personUpdate/schema.graphql"
+  - "./src/api/graphql/quoteSmarIt/schema.graphql"
+  - "./src/api/graphql/vehicleReservation/schema.graphql" 
+  - "./src/api/graphql/contract/schema.graphql"
+  - "./src/api/graphql/paymentValidation/schema.graphql"
+  - "./src/api/graphql/delivery/schema.graphql" 
+  - "./src/api/graphql/contractSigning/schema.graphql"
+  - "./src/api/graphql/pendingDocuments/schema.graphql"
+  - "./src/api/graphql/conversation/schema.graphql"
+  - "./src/api/graphql/deviceTokens/schema.graphql"
+  - "./src/api/graphql/incident/schema.graphql"
+  - "./src/api/graphql/taxPerson/schema.graphql"
+  - "./src/api/graphql/bitacora/schema.graphql"
+  - './src/api/graphql/invitation/schema.graphql'
+  
+documents: null
+generates:
+  ./src/api/graphql/app.schema.gen.ts:
+    plugins:
+      - 'typescript'
+      - 'typescript-resolvers'
+      - 'typescript-operations'
+    config:
+      maybeValue: 'T | undefined'

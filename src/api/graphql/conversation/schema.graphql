@@ -1,0 +1,45 @@
+extend type Query {
+  getConversations(userId: ID!): [Conversation]
+}
+
+type Mutation {
+  conversationSendMessage(input: SendMessageInput!): [Conversation] # TODO response prob on hold so dont return array
+}
+
+
+input SendMessageInput {
+  userId: ID!
+  conversationChannel: String!
+  content: String!
+  title: String
+}
+
+type Conversation {
+  id: ID!
+  channel: String!
+  userId: ID!
+  messages: [ConversationMessage]
+  canReply: Boolean!
+  unreadCount: Int!
+  lastActivityAt: DateTime!
+  externalLink: String!
+}
+
+type ConversationMessage {
+  id: String!
+  sender: ConversationContact!
+  content: String!
+  createdAt: DateTime
+  status: String!
+  contentType: String!
+}
+
+type ConversationContact {
+  id: String!
+  userId: ID
+  name: String!
+  type: String
+  thumbnail: String
+  phoneNumber: String
+  email: String
+}

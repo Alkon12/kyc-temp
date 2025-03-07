@@ -1,0 +1,64 @@
+meta {
+  name: Get User with Full Tasks Copy
+  type: graphql
+  seq: 4
+}
+
+post {
+  url: {{graphqlEndpoint}}
+  body: graphql
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:graphql {
+  query User {
+      user {
+        email
+        id
+        fullTasks {
+            userAssigned {
+                id
+                createdAt
+                taskTypeId
+                application {
+                    quote {
+                        scoreMark
+                    }
+                    user {
+                        fullName
+                    }
+                }
+                taskType {
+                    name
+                }
+            }
+            userGroupsAssigned {
+                id
+                createdAt
+                taskTypeId
+                applicationId
+                application {
+                    quote {
+                        scoreMark
+                    }
+                    user {
+                        fullName
+                    }
+                }
+                taskType {
+                    name
+                }
+            }
+        }
+      }
+    }
+}
+
+body:graphql:vars {
+  {
+  }
+}

@@ -1,0 +1,25 @@
+diff --git a/node_modules/next/dist/.DS_Store b/node_modules/next/dist/.DS_Store
+new file mode 100644
+index 0000000..0dbec5e
+Binary files /dev/null and b/node_modules/next/dist/.DS_Store differ
+diff --git a/node_modules/next/dist/server/lib/start-server.js b/node_modules/next/dist/server/lib/start-server.js
+index 2f0b222..221f5e3 100644
+--- a/node_modules/next/dist/server/lib/start-server.js
++++ b/node_modules/next/dist/server/lib/start-server.js
+@@ -39,6 +39,7 @@ const _appinfolog = require("./app-info-log");
+ const _turbopackwarning = require("../../lib/turbopack-warning");
+ const _trace = require("../../trace");
+ const _ispostpone = require("./router-utils/is-postpone");
++const _logger = require('pino-http')();
+ function _interop_require_default(obj) {
+     return obj && obj.__esModule ? obj : {
+         default: obj
+@@ -133,6 +134,7 @@ async function startServer(serverOptions) {
+         throw new Error("Using a self signed certificate is only supported with `next dev`.");
+     }
+     async function requestListener(req, res) {
++        _logger('REQUEST', req);
++        _logger('RESPONSE', res);
+         try {
+             if (handlersPromise) {
+                 await handlersPromise;

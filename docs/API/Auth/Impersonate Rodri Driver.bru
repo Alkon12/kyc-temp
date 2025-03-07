@@ -1,0 +1,45 @@
+meta {
+  name: Impersonate Rodri Driver
+  type: graphql
+  seq: 3
+}
+
+post {
+  url: {{host}}/api/public/graphql
+  body: graphql
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:graphql {
+  query authWithCredentials($email: String!, $password: String!) {
+    authWithCredentials(
+      email: $email,
+      password: $password,
+      provider: "IMPERSONATE"
+      ) {
+          accessToken
+    }
+  }
+}
+
+body:graphql:vars {
+  {
+      "email":"rbutta@grupoautofin.com",
+      "password":"12dd9c13-d3ac-4cea-b0b2-3459dabfbbb4"
+  }
+}
+
+script:post-response {
+  
+  
+  
+  var jsonData = res.getBody();
+  
+  if(jsonData.data) {
+  bru.setEnvVar("accessToken", jsonData.data.authWithCredentials.accessToken);
+  }
+}

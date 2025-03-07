@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Slot" ALTER COLUMN "idUser" DROP NOT NULL;

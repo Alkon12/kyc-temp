@@ -1,0 +1,19 @@
+extend type Mutation {
+  createPersonRegi(
+    Nombre: String!
+    ApellidoPaterno: String!
+    ApellidoMaterno: String!
+    NumeroCelular: String!
+    idGUID: String!
+    Email: String!
+  ): PersonRegis!
+}
+
+type PersonRegis {
+  idGUID: String!
+  Nombre: String!
+  ApellidoPaterno: String!
+  ApellidoMaterno: String!
+  NumeroCelular: String!
+  Email: String!
+}

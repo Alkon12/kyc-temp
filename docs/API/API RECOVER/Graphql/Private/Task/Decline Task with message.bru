@@ -1,0 +1,30 @@
+meta {
+  name: Decline Task with message
+  type: graphql
+  seq: 3
+}
+
+post {
+  url: {{graphqlEndpoint}}
+  body: graphql
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:graphql {
+  mutation MoveTask($taskId: ID!, $taskAction: TaskAction!, $message: String) {
+    moveTask(taskId: $taskId, taskAction: $taskAction, message: $message) 
+  }
+  
+}
+
+body:graphql:vars {
+  {
+      "taskId": "b946a156-5920-4576-8a1d-fc1278ee5853" ,
+      "taskAction": "DECLINE",
+      "message": "la foto está muy oscura"
+  }
+}

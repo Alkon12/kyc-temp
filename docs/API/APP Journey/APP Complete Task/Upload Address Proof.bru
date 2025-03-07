@@ -1,0 +1,20 @@
+meta {
+  name: Upload Address Proof
+  type: http
+  seq: 15
+}
+
+post {
+  url: {{host}}/api/v1/content/upload/address-proof
+  body: multipartForm
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:multipart-form {
+  document: @file(/Users/vargas/Downloads/documents/comprobante_domicilio_cdmx.pdf)
+  taskId: a3d024b7-2a3b-4c14-8d0b-1f2af5bf7dee
+}

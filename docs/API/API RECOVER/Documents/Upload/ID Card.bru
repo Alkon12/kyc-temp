@@ -1,0 +1,21 @@
+meta {
+  name: ID Card
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{host}}/api/v1/docs/upload/idcard
+  body: multipartForm
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:multipart-form {
+  document: @file(postman-cloud:///1eee2ea9-eeab-42b0-a583-c94d09113240)
+  taskID: b771c85a-70ca-4495-bfe7-0f06553d251e
+  ~: 
+}

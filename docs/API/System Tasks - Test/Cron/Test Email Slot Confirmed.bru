@@ -1,0 +1,29 @@
+meta {
+  name: Test Email Slot Confirmed
+  type: graphql
+  seq: 4
+}
+
+post {
+  url: {{graphqlEndpoint}}
+  body: graphql
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:graphql {
+  mutation confirmSlot($slotId: String!) {
+    confirmSlot(slotId: $slotId) {
+      id
+    }
+  }
+}
+
+body:graphql:vars {
+  {
+      "slotId":"1111"
+  }
+}

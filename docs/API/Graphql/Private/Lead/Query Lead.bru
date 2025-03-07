@@ -1,0 +1,35 @@
+meta {
+  name: Query Lead
+  type: graphql
+  seq: 2
+}
+
+post {
+  url: {{graphqlEndpoint}}
+  body: graphql
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:graphql {
+  query Lead($leadId: ID!, $leadId2: ID!) {
+    leadById(leadId: $leadId) {
+      email
+      name
+    }
+    leadById(leadId: $leadId2) {
+      email
+      name
+    }
+  }
+}
+
+body:graphql:vars {
+  {
+      "leadId": "6a3c327d-3e14-4ff3-b812-6ed72b31a315" ,
+      "leadId2": "6a3c327d-3e14-4ff3-b812-6ed72b31a316" 
+  }
+}

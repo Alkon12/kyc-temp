@@ -1,0 +1,22 @@
+meta {
+  name: Create document
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{host}}/api/v1/docs/upload
+  body: multipartForm
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:multipart-form {
+  document: @file()
+  title: 
+  tags: 
+  application_id: 
+}

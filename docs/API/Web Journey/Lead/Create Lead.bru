@@ -1,0 +1,32 @@
+meta {
+  name: Create Lead
+  type: graphql
+  seq: 1
+}
+
+post {
+  url: {{graphqlPublicEndpoint}}
+  body: graphql
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:graphql {
+  mutation CreateLead($input: CreateLeadInput!) {
+    createLead(input: $input) 
+  }
+}
+
+body:graphql:vars {
+  {
+      "input": {
+          "email": "created.lead.2@grupoautofin.com",
+          "firstName": "Created",
+          "lastName": "Lead 3",
+          "phoneNumber": "34434332"
+      } 
+  }
+}

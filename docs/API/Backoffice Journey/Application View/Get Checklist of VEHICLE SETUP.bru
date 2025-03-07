@@ -1,0 +1,123 @@
+meta {
+  name: Get Checklist of VEHICLE SETUP
+  type: graphql
+  seq: 6
+}
+
+post {
+  url: {{graphqlEndpoint}}
+  body: graphql
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:graphql {
+  query applicationChecklist($applicationId: ID!, $parentChecklistId: String) {
+        applicationChecklist(applicationId: $applicationId, parentChecklistId: $parentChecklistId) {
+          id
+          checklistId
+          startedAt
+          completedAt
+          dismissible
+          isActive
+          isPending
+          isStarted
+          isCompleted
+          isDismissed
+          childs {
+              checklistId
+              tasks {
+                  id
+                  message
+                  applicationId
+                  taskType {
+                      name
+                  }
+                  optional
+                  taskTypeId
+                  createdAt
+                  acceptedAt
+                  declinedAt
+                  dismissedAt
+                  assignedUser {
+                      email
+                      picture
+                  }
+                  assignedGroups{
+                      title
+                  }
+                  acceptedByUser {
+                      email
+                      fullName
+                      picture
+                  }
+                  declinedByUser {
+                      email
+                      fullName
+                      picture
+                  }
+                  dismissedByUser {
+                      email
+                      fullName
+                      picture
+                  }
+              }
+          }
+          checklist {
+              name
+          }
+          tasks {
+              id
+              done
+              message
+              taskTypeId
+              applicationId
+              quoteId
+              productId
+              offerId
+              optional
+              taskType {
+                  name
+              }
+              createdAt
+              acceptedAt
+              declinedAt
+              dismissedAt
+              customData
+              assignedUser {
+                  email
+                  fullName
+                  picture
+              }
+              assignedGroups{
+                  title
+              }
+              acceptedByUser {
+                  email
+                  fullName
+                  picture
+              }
+              declinedByUser {
+                  email
+                  fullName
+                  picture
+              }
+              dismissedByUser {
+                  email
+                  fullName
+                  picture
+              }
+          }
+        }
+      }
+}
+
+body:graphql:vars {
+  {
+      "applicationId": "776ac727-dfb5-4fdb-8cc7-a63a145b82ae" ,
+      "parentChecklistId": "VEHICLE_SETUP"
+  }
+}

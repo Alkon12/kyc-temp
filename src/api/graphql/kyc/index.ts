@@ -1,0 +1,1 @@
+export { default as KycSchema } from './schema.graphql'

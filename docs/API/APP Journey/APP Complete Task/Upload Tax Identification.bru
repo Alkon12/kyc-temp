@@ -1,0 +1,20 @@
+meta {
+  name: Upload Tax Identification
+  type: http
+  seq: 16
+}
+
+post {
+  url: {{host}}/api/v1/content/upload/tax-identification
+  body: multipartForm
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:multipart-form {
+  document: @file(/Users/vargas/Downloads/documents/2017-03-01 22562_20250120_042403.pdf)
+  taskId: f0d79da0-571d-4a87-895a-20d1038c9283
+}

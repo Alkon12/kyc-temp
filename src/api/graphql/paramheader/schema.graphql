@@ -1,0 +1,10 @@
+extend type Query {
+  findParamHeaderByIdParam(id: String!): ParamHeader
+}
+
+type ParamHeader {
+  id: ID!
+  description: String!
+  createdAt: DateTime
+  paramDetails: [ParamDetail]
+}

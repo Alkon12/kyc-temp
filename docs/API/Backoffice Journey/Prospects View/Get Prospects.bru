@@ -1,0 +1,72 @@
+meta {
+  name: Get Prospects
+  type: graphql
+  seq: 1
+}
+
+post {
+  url: {{graphqlEndpoint}}
+  body: graphql
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:graphql {
+  query getProspects($filters: GetProspectsFilters) {
+      getProspects(filters: $filters){
+        id
+        friendlyId
+        userId
+        prospectStatusId
+        createdAt
+        updatedAt
+      	lastActivityAt
+      	lastActivityUser {
+          fullName
+        }
+        activeApplication {
+          id
+          contractId
+          quoteSmartItId
+          hasDriverEngaged
+          hasKycFinished
+        }
+        prospectStatus {
+          name
+        }
+        user {
+          email
+          fullName
+        }
+        supportUser {
+          email
+          fullName
+        }
+        quotes {
+          id
+        }
+        applications {
+          id
+          contractId
+          quoteSmartItId
+        }
+        activity {
+          createdAt
+        }
+  
+        lastQuote {
+          id
+          createdAt
+          scoreMark
+        }
+        quoteCount
+        prospectStatus {
+          id
+          name
+        }
+      }
+    }
+}

@@ -1,0 +1,10 @@
+extend type Mutation {
+  reserveVehicle(taskId: ID!, input: ReserveVehicleInput!): Vehicle
+  assignTrackerDeviceToVehicle(taskId: ID!, trackerDeviceId: String!): Vehicle
+  assignTrackerDeviceSimToVehicle(taskId: ID!, trackerDeviceSim: String!): Vehicle
+}
+
+input ReserveVehicleInput {
+  vin: String!
+  contractId: String!
+}

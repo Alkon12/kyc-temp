@@ -1,0 +1,43 @@
+meta {
+  name: Get User Slots
+  type: graphql
+  seq: 2
+}
+
+post {
+  url: {{graphqlEndpoint}}
+  body: graphql
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:graphql {
+  query getUserSlots($userId: ID!, $filter: SlotFilterInput){
+      getUserSlots (userId: $userId, filter: $filter){
+          id
+          slotType
+          startsAt
+          endsAt
+          hostUser {
+              id
+              email
+          }
+          guestUser{
+              id
+              email
+          }
+      }
+  }
+}
+
+body:graphql:vars {
+  {
+    "userId": "be48b6ef-b090-4b48-b8aa-1edc854f5e7f",
+    "filter": {
+      "slotType":"KYC_MEET"
+    }
+  }
+}

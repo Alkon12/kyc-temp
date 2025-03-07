@@ -1,0 +1,66 @@
+meta {
+  name: Get Invitation
+  type: graphql
+  seq: 2
+}
+
+post {
+  url: {{graphqlPublicEndpoint}}
+  body: graphql
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:graphql {
+  query Invitation($invitationId: ID!) {
+    invitationById(invitationId: $invitationId) {
+     	id
+      firstName
+      lastName
+      email
+      phoneNumber
+      hasUberAccount
+      productId
+      isOnsite
+      referrerId
+      campaignId
+      branchId
+      promotionId
+      status
+      createdAt
+      updatedAt
+      prospectId
+      quoteId
+      applicationId
+      referrer {
+        email
+        firstName
+        lastName
+      }
+      product{
+        brand
+        model
+      }
+      link
+      quote {
+        id
+      }
+      prospect {
+        id
+        prospectStatus {
+          id
+          name
+        }
+      }
+    }
+  }
+}
+
+body:graphql:vars {
+  {
+      "invitationId": "0b6128bf-3769-448b-96f9-f38dd4ff3d54"
+  }
+}

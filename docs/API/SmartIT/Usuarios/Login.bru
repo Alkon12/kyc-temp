@@ -1,0 +1,27 @@
+meta {
+  name: Login
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{smartitEndpoint}}/api/UberArrendo/usuarios/login
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+      "username": "ACabañas77",
+      "password": "ACabanas07",
+      "secret":"dd8b5b17-a4df-41a5-94e5-36460eb65f71"
+  }
+}
+
+script:post-response {
+  var jsonData = res.getBody();
+  
+  if(jsonData) {
+  bru.setEnvVar("smartitToken", jsonData.token);
+  }
+}

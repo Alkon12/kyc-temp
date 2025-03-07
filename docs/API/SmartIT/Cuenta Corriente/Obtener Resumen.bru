@@ -1,0 +1,19 @@
+meta {
+  name: Obtener Resumen
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{smartitEndpoint}}/api/UberArrendo/cuentacorriente/contratos/{{aIdContrato}}/resumen-cuenta
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{smartitToken}}
+}
+
+vars:pre-request {
+  aIdContrato: 4
+}

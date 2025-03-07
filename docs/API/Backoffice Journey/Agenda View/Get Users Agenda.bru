@@ -1,0 +1,43 @@
+meta {
+  name: Get Users Agenda
+  type: graphql
+  seq: 2
+}
+
+post {
+  url: {{graphqlEndpoint}}
+  body: graphql
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:graphql {
+  query getUserSlots($userId: ID!, $filter: SlotFilterInput) {
+    getUserSlots(userId: $userId, filter: $filter) { 
+      id
+      slotType
+      startsAt    
+      endsAt
+      hostUser {
+        	id
+          email
+      }
+      guestUser {
+        	id
+          email
+      }
+    }
+  }
+}
+
+body:graphql:vars {
+  {
+      "userId": "88ac3b63-d091-4d8b-b73d-14b15fc05153",
+      "filter": {
+        "slotType": "KYC_MEET"
+      }
+  }
+}

@@ -1,0 +1,20 @@
+meta {
+  name: Upload Drivers License Reverse
+  type: http
+  seq: 13
+}
+
+post {
+  url: {{host}}/api/v1/content/upload/drivers-license-reverse
+  body: multipartForm
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:multipart-form {
+  document: @file(/Users/vargas/Downloads/documents/2025-01-20 Licencia_20250120_042336.jpg20250120_042336.pdf)
+  taskId: 26276b0c-558c-4c75-9c3b-3addb2ec7fb5
+}

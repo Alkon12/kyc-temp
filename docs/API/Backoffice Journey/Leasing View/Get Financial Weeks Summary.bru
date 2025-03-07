@@ -1,0 +1,37 @@
+meta {
+  name: Get Financial Weeks Summary
+  type: graphql
+  seq: 7
+}
+
+post {
+  url: {{graphqlEndpoint}}
+  body: graphql
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:graphql {
+  query leasingFinancialWeeklySummary($leasingId: ID!, $weekNumber: Int) {
+    leasingFinancialWeeklySummary(leasingId: $leasingId, weekNumber: $weekNumber) {
+      weekNumber
+      startDate
+      endDate
+      cutDate
+      weeklyFeeAmount
+      behaviorFineAmount
+      otherFinesAmount
+      previousUnpaidAmount
+      interestsAmount
+    }
+  }
+}
+
+body:graphql:vars {
+  {
+      "leasingId": "63c42ab6-7944-47be-9a3a-0688ed73446c"
+  }
+}

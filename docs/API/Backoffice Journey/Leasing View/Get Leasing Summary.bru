@@ -1,0 +1,44 @@
+meta {
+  name: Get Leasing Summary
+  type: graphql
+  seq: 9
+}
+
+post {
+  url: {{graphqlEndpoint}}
+  body: graphql
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:graphql {
+  query leasingSummary($leasingId: ID!, $weekNumber: Int!) {
+    leasingSummary(leasingId: $leasingId, weekNumber: $weekNumber) {
+      contractNumber
+      lastUpdate
+      weekNumber
+      startDate
+      endDate
+      baseServiceAmount
+      usage
+      usagePenalty
+      usagePenaltyAmount
+      expensesAmount
+      totalAmount
+      uberEarningsGross
+      earningsProgress
+      previousExpensesAmount
+      previousExpensesDueDate
+    }
+  }
+}
+
+body:graphql:vars {
+  {
+      "leasingId": "63c42ab6-7944-47be-9a3a-0688ed73446c",
+      "weekNumber": 3
+  }
+}

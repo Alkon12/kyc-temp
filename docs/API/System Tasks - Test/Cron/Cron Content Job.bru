@@ -1,0 +1,11 @@
+meta {
+  name: Cron Content Job
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{host}}/api/v1/content/queue
+  body: multipartForm
+  auth: none
+}

@@ -1,0 +1,234 @@
+image: atlassian/default-image:4
+
+clone:
+  depth: full
+
+options:
+  docker: true
+  size: 2x
+
+pipelines:
+  tags:
+    test-*:
+      - step:
+          name: Build Docker image on release
+          deployment: test
+          script:
+            - echo GRAPHQL_URL="${GRAPHQL_URL}"  > .env
+            - echo NEXTAUTH_URL="${NEXTAUTH_URL}" >> .env
+            - echo NEXTAUTH_SECRET="${NEXTAUTH_SECRET}" >> .env
+            - echo NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME="${NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}" >> .env
+            - echo CLOUDINARY_API_KEY="${CLOUDINARY_API_KEY}" >> .env
+            - echo CLOUDINARY_API_SECRET="${CLOUDINARY_API_SECRET}">> .env
+            - echo CLOUDINARY_FOLDER="${CLOUDINARY_FOLDER}">> .env
+            - echo DATABASE_URL="${DATABASE_URL}" >> .env
+            - echo UBER_DB_DATABASE_NAME="${UBER_DB_DATABASE_NAME}" >> .env
+            - echo UBER_DB_USERNAME="${UBER_DB_USERNAME}" >> .env
+            - echo UBER_DB_PASSWORD="${UBER_DB_PASSWORD}" >> .env
+            - echo UBER_CLIENT_ID="${UBER_CLIENT_ID}" >> .env
+            - echo UBER_CLIENT_SECRET="${UBER_CLIENT_SECRET}" >> .env
+            - echo UBER_CLIENT_SCOPE="${UBER_CLIENT_SCOPE}" >> .env
+            - echo GOOGLE_CLIENT_ID="${GOOGLE_CLIENT_ID}" >> .env
+            - echo GOOGLE_CLIENT_SECRET="${GOOGLE_CLIENT_SECRET}" >> .env
+            - echo GITHUB_ID="${GITHUB_ID}" >> .env
+            - echo GITHUB_SECRET= "${GITHUB_SECRET}" >> .env
+            - echo EXTERNAL_API_JWT_PRIVATE_KEY= "${EXTERNAL_API_JWT_PRIVATE_KEY}" >> .env
+            - echo EXTERNAL_API_JWT_PUBLIC_KEY= "${EXTERNAL_API_JWT_PUBLIC_KEY}" >> .env
+            - echo NEXT_PUBLIC_CHATWOOT_URL="${NEXT_PUBLIC_CHATWOOT_URL}" >> .env
+            - echo NEXT_PUBLIC_CHATWOOT_API_URL="${NEXT_PUBLIC_CHATWOOT_API_URL}" >> .env
+            - echo NEXT_PUBLIC_CHATWOOT_WEBSITE_TOKEN="${NEXT_PUBLIC_CHATWOOT_WEBSITE_TOKEN}" >> .env
+            - echo NEXT_PUBLIC_CHATBOT_URL="${NEXT_PUBLIC_CHATBOT_URL}" >> .env
+            - echo NEXT_PUBLIC_CHATBOT_API_KEY="${NEXT_PUBLIC_CHATBOT_API_KEY}" >> .env
+            - echo SCORING_NODERED_V1_URL= "${SCORING_NODERED_V1_URL}" >> .env
+            - echo SCORING_NODERED_V2_URL= "${SCORING_NODERED_V2_URL}" >> .env
+            - echo PAPERLESS_URL= "${PAPERLESS_URL}" >> .env
+            - echo PAPERLESS_API_TOKEN= "${PAPERLESS_API_TOKEN}" >> .env
+            - echo NEXT_PUBLIC_SMART_IT_LOGIN_URL= "${NEXT_PUBLIC_SMART_IT_LOGIN_URL}" >> .env
+            - echo NEXT_PUBLIC_SMART_IT_LOGIN_API_SECRET_KEY= "${NEXT_PUBLIC_SMART_IT_LOGIN_API_SECRET_KEY}" >> .env
+            - echo JITSI_URL= "${JITSI_URL}" >> .env
+            - echo SMARTIT_URL= "${SMARTIT_URL}" >> .env
+            - echo NEXT_PUBLIC_GRAPHQL_URL= "${NEXT_PUBLIC_GRAPHQL_URL}" >> .env
+            - echo NEXT_PUBLIC_GRAPHQL_PUBLIC_URL= "${NEXT_PUBLIC_GRAPHQL_PUBLIC_URL}" >> .env
+            - echo SMARTIT_PERSONA_URL= "${SMARTIT_PERSONA_URL}" >> .env
+            - echo SMARTIT_PERSONA_SECRET_KEY= "${SMARTIT_PERSONA_SECRET_KEY}" >> .env
+            - echo UBER_PARTNER_TOKEN= "${UBER_PARTNER_TOKEN}" >> .env
+            - echo DEFAULT_SYSTEM_USER_ID= "${DEFAULT_SYSTEM_USER_ID}" >> .env
+            - echo NEXT_PUBLIC_WEBSITE_TOKEN= "${NEXT_PUBLIC_WEBSITE_TOKEN}" >> .env
+            - echo NEXT_PUBLIC_URL_SMARTIT= "${NEXT_PUBLIC_URL_SMARTIT}" >> .env
+            - echo TRACKER_GRAPHILE_URL= "${TRACKER_GRAPHILE_URL}" >> .env
+            - echo ALARM_GRAPHILE_URL= "${ALARM_GRAPHILE_URL}" >> .env
+            - echo ANALYTICS_GRAPHILE_URL= "${ANALYTICS_GRAPHILE_URL}" >> .env
+            - echo FINANCIAL_SMARTIT_URL= "${FINANCIAL_SMARTIT_URL}" >> .env
+            - echo IMPERSONATE_MASTER_KEY= "${IMPERSONATE_MASTER_KEY}" >> .env
+            - echo GOOGLE_TAG_MANAGER="${GOOGLE_TAG_MANAGER}" >> .env
+            - echo SMARTIT_LOGIN_URL= "${SMARTIT_LOGIN_URL}" >> .env
+            - echo SMARTIT_LOGIN_API_SECRET_KEY= "${SMARTIT_LOGIN_API_SECRET_KEY}" >> .env
+            - echo SMARTIT_API_SECRET_KEY= "${SMARTIT_API_SECRET_KEY}" >> .env
+            - echo .env
+            - docker login -u ${DOCKERHUB_USERNAME} -p ${DOCKERHUB_PASSWORD}
+            - docker build -t afllopez/uber:${BITBUCKET_TAG} --build-arg RELEASE_VERSION=$BITBUCKET_TAG .
+            - docker push afllopez/uber:${BITBUCKET_TAG}
+          services:
+            - docker
+      - step:
+          name: Deploy Test
+          script:
+            - sed -i "s|{{image}}|afllopez/uber:$BITBUCKET_TAG|g" .kube/default/base/uber-deployment.yaml
+            - pipe: atlassian/kubectl-run:3.8.0
+              variables:
+                KUBE_CONFIG: $KUBECONFIG
+                KUBECTL_COMMAND: 'apply'
+                RESOURCE_PATH: '.kube/default/testing/'
+                KUBECTL_APPLY_ARGS: '-k'
+                KUBECTL_ARGS:
+                  - '--context=default'
+    dev-*:
+      - step:
+          name: Build Docker image on release
+          deployment: dev
+          script:
+            - echo GRAPHQL_URL="${GRAPHQL_URL}"  > .env
+            - echo NEXTAUTH_URL="${NEXTAUTH_URL}" >> .env
+            - echo NEXTAUTH_SECRET="${NEXTAUTH_SECRET}" >> .env
+            - echo NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME="${NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}" >> .env
+            - echo CLOUDINARY_API_KEY="${CLOUDINARY_API_KEY}" >> .env
+            - echo CLOUDINARY_API_SECRET="${CLOUDINARY_API_SECRET}">> .env
+            - echo CLOUDINARY_FOLDER="${CLOUDINARY_FOLDER}">> .env
+            - echo DATABASE_URL="${DATABASE_URL}" >> .env
+            - echo UBER_DB_DATABASE_NAME="${UBER_DB_DATABASE_NAME}" >> .env
+            - echo UBER_DB_USERNAME="${UBER_DB_USERNAME}" >> .env
+            - echo UBER_DB_PASSWORD="${UBER_DB_PASSWORD}" >> .env
+            - echo UBER_CLIENT_ID="${UBER_CLIENT_ID}" >> .env
+            - echo UBER_CLIENT_SECRET="${UBER_CLIENT_SECRET}" >> .env
+            - echo UBER_CLIENT_SCOPE="${UBER_CLIENT_SCOPE}" >> .env
+            - echo GOOGLE_CLIENT_ID="${GOOGLE_CLIENT_ID}" >> .env
+            - echo GOOGLE_CLIENT_SECRET="${GOOGLE_CLIENT_SECRET}" >> .env
+            - echo GITHUB_ID="${GITHUB_ID}" >> .env
+            - echo GITHUB_SECRET= "${GITHUB_SECRET}" >> .env
+            - echo EXTERNAL_API_JWT_PRIVATE_KEY= "${EXTERNAL_API_JWT_PRIVATE_KEY}" >> .env
+            - echo EXTERNAL_API_JWT_PUBLIC_KEY= "${EXTERNAL_API_JWT_PUBLIC_KEY}" >> .env
+            - echo NEXT_PUBLIC_CHATWOOT_URL="${NEXT_PUBLIC_CHATWOOT_URL}" >> .env
+            - echo NEXT_PUBLIC_CHATWOOT_API_URL="${NEXT_PUBLIC_CHATWOOT_API_URL}" >> .env
+            - echo NEXT_PUBLIC_CHATWOOT_WEBSITE_TOKEN="${NEXT_PUBLIC_CHATWOOT_WEBSITE_TOKEN}" >> .env
+            - echo NEXT_PUBLIC_CHATBOT_URL="${NEXT_PUBLIC_CHATBOT_URL}" >> .env
+            - echo NEXT_PUBLIC_CHATBOT_API_KEY="${NEXT_PUBLIC_CHATBOT_API_KEY}" >> .env
+            - echo SCORING_NODERED_V1_URL= "${SCORING_NODERED_V1_URL}" >> .env
+            - echo SCORING_NODERED_V2_URL= "${SCORING_NODERED_V2_URL}" >> .env
+            - echo PAPERLESS_URL= "${PAPERLESS_URL}" >> .env
+            - echo PAPERLESS_API_TOKEN= "${PAPERLESS_API_TOKEN}" >> .env
+            - echo NEXT_PUBLIC_SMART_IT_LOGIN_URL= "${NEXT_PUBLIC_SMART_IT_LOGIN_URL}" >> .env
+            - echo NEXT_PUBLIC_SMART_IT_LOGIN_API_SECRET_KEY= "${NEXT_PUBLIC_SMART_IT_LOGIN_API_SECRET_KEY}" >> .env
+            - echo JITSI_URL= "${JITSI_URL}" >> .env
+            - echo SMARTIT_URL= "${SMARTIT_URL}" >> .env
+            - echo NEXT_PUBLIC_GRAPHQL_URL= "${NEXT_PUBLIC_GRAPHQL_URL}" >> .env
+            - echo NEXT_PUBLIC_GRAPHQL_PUBLIC_URL= "${NEXT_PUBLIC_GRAPHQL_PUBLIC_URL}" >> .env
+            - echo SMARTIT_PERSONA_URL= "${SMARTIT_PERSONA_URL}" >> .env
+            - echo SMARTIT_PERSONA_SECRET_KEY= "${SMARTIT_PERSONA_SECRET_KEY}" >> .env
+            - echo UBER_PARTNER_TOKEN= "${UBER_PARTNER_TOKEN}" >> .env
+            - echo DEFAULT_SYSTEM_USER_ID= "${DEFAULT_SYSTEM_USER_ID}" >> .env
+            - echo NEXT_PUBLIC_WEBSITE_TOKEN= "${NEXT_PUBLIC_WEBSITE_TOKEN}" >> .env
+            - echo NEXT_PUBLIC_URL_SMARTIT= "${NEXT_PUBLIC_URL_SMARTIT}" >> .env
+            - echo TRACKER_GRAPHILE_URL= "${TRACKER_GRAPHILE_URL}" >> .env
+            - echo ALARM_GRAPHILE_URL= "${ALARM_GRAPHILE_URL}" >> .env
+            - echo ANALYTICS_GRAPHILE_URL= "${ANALYTICS_GRAPHILE_URL}" >> .env
+            - echo FINANCIAL_SMARTIT_URL= "${FINANCIAL_SMARTIT_URL}" >> .env
+            - echo IMPERSONATE_MASTER_KEY= "${IMPERSONATE_MASTER_KEY}" >> .env
+            - echo GOOGLE_TAG_MANAGER="${GOOGLE_TAG_MANAGER}" >> .env
+            - echo SMARTIT_LOGIN_URL= "${SMARTIT_LOGIN_URL}" >> .env
+            - echo SMARTIT_LOGIN_API_SECRET_KEY= "${SMARTIT_LOGIN_API_SECRET_KEY}" >> .env
+            - echo SMARTIT_API_SECRET_KEY= "${SMARTIT_API_SECRET_KEY}" >> .env
+            - echo .env
+            - docker login -u ${DOCKERHUB_USERNAME} -p ${DOCKERHUB_PASSWORD}
+            - docker build -t afllopez/uber:${BITBUCKET_TAG} --build-arg RELEASE_VERSION=$BITBUCKET_TAG .
+            - docker push afllopez/uber:${BITBUCKET_TAG}
+          services:
+            - docker
+      - step:
+          name: Deploy Dev
+          script:
+            - sed -i "s|{{image}}|afllopez/uber:$BITBUCKET_TAG|g" .kube/default/base/uber-deployment.yaml
+            - pipe: atlassian/kubectl-run:3.8.0
+              variables:
+                KUBE_CONFIG: $KUBECONFIG
+                KUBECTL_COMMAND: 'apply'
+                RESOURCE_PATH: '.kube/default/dev/'
+                KUBECTL_APPLY_ARGS: '-k'
+                KUBECTL_ARGS:
+                  - '--context=default'
+    prod-*:
+      - step:
+          name: Build Docker image on release
+          deployment: Production
+          script:
+            - echo GRAPHQL_URL="${GRAPHQL_URL}"  > .env
+            - echo NEXTAUTH_URL="${NEXTAUTH_URL}" >> .env
+            - echo NEXTAUTH_SECRET="${NEXTAUTH_SECRET}" >> .env
+            - echo NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME="${NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}" >> .env
+            - echo CLOUDINARY_API_KEY="${CLOUDINARY_API_KEY}" >> .env
+            - echo CLOUDINARY_API_SECRET="${CLOUDINARY_API_SECRET}">> .env
+            - echo CLOUDINARY_FOLDER="${CLOUDINARY_FOLDER}">> .env
+            - echo DATABASE_URL="${DATABASE_URL}" >> .env
+            - echo UBER_DB_DATABASE_NAME="${UBER_DB_DATABASE_NAME}" >> .env
+            - echo UBER_DB_USERNAME="${UBER_DB_USERNAME}" >> .env
+            - echo UBER_DB_PASSWORD="${UBER_DB_PASSWORD}" >> .env
+            - echo UBER_CLIENT_ID="${UBER_CLIENT_ID}" >> .env
+            - echo UBER_CLIENT_SECRET="${UBER_CLIENT_SECRET}" >> .env
+            - echo UBER_CLIENT_SCOPE="${UBER_CLIENT_SCOPE}" >> .env
+            - echo GOOGLE_CLIENT_ID="${GOOGLE_CLIENT_ID}" >> .env
+            - echo GOOGLE_CLIENT_SECRET="${GOOGLE_CLIENT_SECRET}" >> .env
+            - echo GITHUB_ID="${GITHUB_ID}" >> .env
+            - echo GITHUB_SECRET= "${GITHUB_SECRET}" >> .env
+            - echo EXTERNAL_API_JWT_PRIVATE_KEY= "${EXTERNAL_API_JWT_PRIVATE_KEY}" >> .env
+            - echo EXTERNAL_API_JWT_PUBLIC_KEY= "${EXTERNAL_API_JWT_PUBLIC_KEY}" >> .env
+            - echo NEXT_PUBLIC_CHATWOOT_URL="${NEXT_PUBLIC_CHATWOOT_URL}" >> .env
+            - echo NEXT_PUBLIC_CHATWOOT_API_URL="${NEXT_PUBLIC_CHATWOOT_API_URL}" >> .env
+            - echo NEXT_PUBLIC_CHATWOOT_WEBSITE_TOKEN="${NEXT_PUBLIC_CHATWOOT_WEBSITE_TOKEN}" >> .env
+            - echo NEXT_PUBLIC_CHATBOT_URL="${NEXT_PUBLIC_CHATBOT_URL}" >> .env
+            - echo NEXT_PUBLIC_CHATBOT_API_KEY="${NEXT_PUBLIC_CHATBOT_API_KEY}" >> .env
+            - echo SCORING_NODERED_V1_URL= "${SCORING_NODERED_V1_URL}" >> .env
+            - echo SCORING_NODERED_V2_URL= "${SCORING_NODERED_V2_URL}" >> .env
+            - echo PAPERLESS_URL= "${PAPERLESS_URL}" >> .env
+            - echo PAPERLESS_API_TOKEN= "${PAPERLESS_API_TOKEN}" >> .env
+            - echo NEXT_PUBLIC_SMART_IT_LOGIN_URL= "${NEXT_PUBLIC_SMART_IT_LOGIN_URL}" >> .env
+            - echo NEXT_PUBLIC_SMART_IT_LOGIN_API_SECRET_KEY= "${NEXT_PUBLIC_SMART_IT_LOGIN_API_SECRET_KEY}" >> .env
+            - echo JITSI_URL= "${JITSI_URL}" >> .env
+            - echo SMARTIT_URL= "${SMARTIT_URL}" >> .env
+            - echo NEXT_PUBLIC_GRAPHQL_URL= "${NEXT_PUBLIC_GRAPHQL_URL}" >> .env
+            - echo NEXT_PUBLIC_GRAPHQL_PUBLIC_URL= "${NEXT_PUBLIC_GRAPHQL_PUBLIC_URL}" >> .env
+            - echo SMARTIT_PERSONA_URL= "${SMARTIT_PERSONA_URL}" >> .env
+            - echo SMARTIT_PERSONA_SECRET_KEY= "${SMARTIT_PERSONA_SECRET_KEY}" >> .env
+            - echo UBER_PARTNER_TOKEN= "${UBER_PARTNER_TOKEN}" >> .env
+            - echo DEFAULT_SYSTEM_USER_ID= "${DEFAULT_SYSTEM_USER_ID}" >> .env
+            - echo NEXT_PUBLIC_WEBSITE_TOKEN= "${NEXT_PUBLIC_WEBSITE_TOKEN}" >> .env
+            - echo NEXT_PUBLIC_URL_SMARTIT= "${NEXT_PUBLIC_URL_SMARTIT}" >> .env
+            - echo TRACKER_GRAPHILE_URL= "${TRACKER_GRAPHILE_URL}" >> .env
+            - echo ALARM_GRAPHILE_URL= "${ALARM_GRAPHILE_URL}" >> .env
+            - echo ANALYTICS_GRAPHILE_URL= "${ANALYTICS_GRAPHILE_URL}" >> .env
+            - echo FINANCIAL_SMARTIT_URL= "${FINANCIAL_SMARTIT_URL}" >> .env
+            - echo GOOGLE_TAG_MANAGER="${GOOGLE_TAG_MANAGER}" >> .env
+            - echo IMPERSONATE_MASTER_KEY= "${IMPERSONATE_MASTER_KEY}" >> .env
+            - echo NEXT_PUBLIC_SMART_IT_LOGIN_URL= "${NEXT_PUBLIC_SMART_IT_LOGIN_URL}" >> .env
+            - echo NEXT_PUBLIC_SMART_IT_LOGIN_API_SECRET_KEY= "${NEXT_PUBLIC_SMART_IT_LOGIN_API_SECRET_KEY}" >> .env
+            - echo SMARTIT_API_SECRET_KEY= "${SMARTIT_API_SECRET_KEY}" >> .env
+
+            - docker login -u ${DOCKERHUB_USERNAME} -p ${DOCKERHUB_PASSWORD}
+            - docker build -t afllopez/uber:${BITBUCKET_TAG} --build-arg RELEASE_VERSION=$BITBUCKET_TAG .
+            - docker push afllopez/uber:${BITBUCKET_TAG}
+          services:
+            - docker
+      - step:
+          name: Deploy Production
+          script:
+            - sed -i "s|{{image}}|afllopez/uber:$BITBUCKET_TAG|g" .kube/default/base_prod/web-autofinrent-deployment.yaml
+            - pipe: atlassian/kubectl-run:3.8.0
+              variables:
+                KUBE_CONFIG: $KUBECONFIG_PROD
+                KUBECTL_COMMAND: 'apply'
+                RESOURCE_PATH: '.kube/default/prod/'
+                KUBECTL_APPLY_ARGS: '-k'
+                KUBECTL_ARGS:
+                  - '--context=default'
+definitions:
+  services:
+    docker:
+      memory: 4096

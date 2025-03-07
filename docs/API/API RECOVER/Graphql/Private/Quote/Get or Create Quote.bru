@@ -1,0 +1,47 @@
+meta {
+  name: Get or Create Quote
+  type: graphql
+  seq: 4
+}
+
+post {
+  url: {{graphqlEndpoint}}
+  body: graphql
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:graphql {
+  mutation GetOrCreateQuote($userId: ID!) {
+      getOrCreateQuote(userId: $userId) {
+        id
+        scoringComplete
+        scoringError
+        scoreResolution
+        scoreMark
+        offers {
+            weeklyPrice
+            leasingPeriod
+            expiresAt
+            product {
+              id
+              title
+              brand
+              model
+              year
+              series
+              picture
+            }
+        }
+      }
+    }
+}
+
+body:graphql:vars {
+  {
+      "userId": "dd8b5b17-a4df-41a5-94e5-36460eb65f71" 
+  }
+}

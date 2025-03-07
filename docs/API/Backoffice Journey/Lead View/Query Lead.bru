@@ -1,0 +1,34 @@
+meta {
+  name: Query Lead
+  type: graphql
+  seq: 1
+}
+
+post {
+  url: {{graphqlEndpoint}}
+  body: graphql
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:graphql {
+  query Lead($leadId: ID!) {
+    leadById(leadId: $leadId) {
+      id
+      email
+      firstName
+      lastName
+      phoneNumber
+      hasUberAccount
+    }
+  }
+}
+
+body:graphql:vars {
+  {
+      "leadId": "dd0eb79d-21aa-4dc4-8629-13c3855202c3"
+  }
+}

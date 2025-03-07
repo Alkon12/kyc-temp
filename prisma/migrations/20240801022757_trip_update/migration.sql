@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "Trip" ALTER COLUMN "distance" DROP NOT NULL,
+ALTER COLUMN "duration" DROP NOT NULL;

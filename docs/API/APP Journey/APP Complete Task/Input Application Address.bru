@@ -1,0 +1,42 @@
+meta {
+  name: Input Application Address
+  type: graphql
+  seq: 10
+}
+
+post {
+  url: {{graphqlEndpoint}}
+  body: graphql
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:graphql {
+  mutation setKycAddress($taskId: ID!, $input: SetKycAddressInput!) {
+    setKycAddress(taskId: $taskId, input: $input) {
+      id
+      street
+    }
+  }
+}
+
+body:graphql:vars {
+  { 
+      "taskId": "1a6319d0-bf3f-4310-ba2f-b77694321d2c",
+      "input": {    
+          "street": "AV. SAN ANTONIO",
+          "extNumber": "129 D503",
+          "intNumber": "",
+          "zipCode": "01180",
+          "district": "SAN PEDRO DE LOS PINOS",
+          "city": "ALVARO OBREGÓN",
+          "state": "CIUDAD DE MÉXICO",
+          "country": "MÉXICO",
+          "latitude": "19.3929894",
+          "longitude": "-99.2018432"
+      }
+  }
+}

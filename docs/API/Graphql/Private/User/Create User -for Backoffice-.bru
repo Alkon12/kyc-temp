@@ -1,0 +1,39 @@
+meta {
+  name: Create User -for Backoffice-
+  type: graphql
+  seq: 4
+}
+
+post {
+  url: {{graphqlEndpoint}}
+  body: graphql
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:graphql {
+  mutation CreateUser($input: CreateUserInput!) {
+    createUser(input: $input) {
+      email
+      id
+    }
+  }
+}
+
+body:graphql:vars {
+  {
+      "input": {
+          "email": "created.bo.1@grupoautofin.com",
+          "firstName": "Created",
+          "lastName": "BO Name 1",
+          "password": "1234",
+          "assignedGroups": [
+              "BACKOFFICE_APPLICATIONS",
+              "BACKOFFICE_LEADS"
+          ]
+      } 
+  }
+}

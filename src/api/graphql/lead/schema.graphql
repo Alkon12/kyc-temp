@@ -1,0 +1,68 @@
+extend type Query {
+  leads: [Lead]
+  activeLeads: [Lead]
+  leadById(leadId: ID!): Lead!
+  leadOverview: LeadOverview!
+}
+
+extend type Mutation {
+  createLead(input: CreateLeadInput!): Boolean
+  setLeadStatus(id: ID!, status: String!): Boolean
+}
+
+input CreateLeadInput {
+  email: String
+  phoneNumber: String
+  firstName: String
+  lastName: String
+  contactype: String
+  supportUserId: ID
+  visitAppointmentAt: DateTime
+}
+
+type Lead {
+  id: ID!
+  name: String
+  firstName: String
+  lastName: String
+  email: String
+  contactype: String
+  isBot: Boolean
+  hasUberAccount: Boolean
+  browserName: String
+  browserVersion: String
+  deviceModel: String
+  deviceType: String
+  deviceVendor: String
+  engineName: String
+  engineVersion: String
+  countryCode: String
+  location: Location
+  status: LeadStatus
+  phoneNumber: String
+  createdAt: DateTime
+  updatedAt: DateTime
+  supportUserId: ID
+  visitAppointmentAt: DateTime
+  
+  supportUser: User
+}
+
+enum LeadStatus {
+  ARRIVED
+  CONTACTED
+  DISMISSED
+  CONVERTED
+}
+
+type LeadOverview {
+  withUberAccount: LeadOverviewCountRefine!
+  withoutUberAccount: LeadOverviewCountRefine!
+}
+
+type LeadOverviewCountRefine {
+  arrived: Int!
+  beingManaged: Int!
+  dismissed: Int!
+  converted: Int!
+}

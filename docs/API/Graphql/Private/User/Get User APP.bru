@@ -1,0 +1,50 @@
+meta {
+  name: Get User APP
+  type: graphql
+  seq: 2
+}
+
+post {
+  url: {{graphqlEndpoint}}
+  body: graphql
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:graphql {
+  query User {
+    user {
+      email
+      id
+      firstName
+      fullName
+      pendingTasks {
+          id
+          taskTypeId
+          message
+      }
+      application {
+        id
+        quote {
+          scoringComplete
+          scoreMark
+          scoreResolution
+        }
+        checklist {
+          completed
+          checklist {
+              name
+          }
+        }
+      }
+    }
+  }
+}
+
+body:graphql:vars {
+  {
+  }
+}

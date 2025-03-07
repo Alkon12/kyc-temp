@@ -1,0 +1,37 @@
+meta {
+  name: Get Daily Summary
+  type: graphql
+  seq: 5
+}
+
+post {
+  url: {{graphqlEndpoint}}
+  body: graphql
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:graphql {
+  query leasingDailySummary($leasingId: ID!, $date: String!) {
+    leasingDailySummary(leasingId: $leasingId, date: $date) {
+      trips
+      tripsDailyDistance
+      tripsDailyScoring
+      tripsEndOdometer
+      uberDailyDistance
+      uberFare
+      uberTrips
+      uberUsage
+    }
+  }
+}
+
+body:graphql:vars {
+  {
+      "leasingId": "63c42ab6-7944-47be-9a3a-0688ed73446c",
+      "date":"2024-05-29"
+  }
+}

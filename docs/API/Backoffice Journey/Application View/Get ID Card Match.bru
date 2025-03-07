@@ -1,0 +1,41 @@
+meta {
+  name: Get ID Card Match
+  type: graphql
+  seq: 4
+}
+
+post {
+  url: {{graphqlEndpoint}}
+  body: graphql
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:graphql {
+  query kycIdentificationCardMatch($applicationId: ID!) {
+    kycIdentificationCardMatch(applicationId: $applicationId) {
+      verdict
+      parsed {
+          firstName
+          middleName
+          lastName
+          addressStreetName
+          addressHouseNumber
+          addressNeighborhood
+          addressPostalCode
+          addressCity
+          addressState
+          dob
+      }
+    }
+  }
+}
+
+body:graphql:vars {
+  {
+      "applicationId": "df9559b5-bc5e-42a1-bdb6-c87f042c6e61" 
+  }
+}

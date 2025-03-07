@@ -1,0 +1,39 @@
+extend type Query {
+  applicationChecklist(applicationId: ID!, parentChecklistId: String): [ApplicationChecklist!]
+}
+
+extend type Mutation {
+  dismissApplicationChecklist(applicationChecklistId: ID!, message: String): ApplicationChecklist!
+}
+
+type ApplicationChecklist {
+  id: String!
+  applicationId: String!
+  checklistId: String!
+  completedAt: DateTime
+  startedAt: DateTime
+  dismissible: Boolean!
+  order: Int
+
+  # not part of entity
+  isActive: Boolean
+  isPending: Boolean
+  isStarted: Boolean
+  isCompleted: Boolean
+  isDismissed: Boolean
+  fullTasks: [Task]
+
+  parent: ApplicationChecklist
+  application: Application
+  checklist: Checklist
+  childs: [ApplicationChecklist]
+  tasks: [Task]
+}
+
+type Checklist {
+  id: String!
+  name: String!
+  order: Int
+  parent: Checklist
+  childs: [Checklist]
+}

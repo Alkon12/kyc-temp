@@ -1,0 +1,1 @@
+export { default as DeliverySchema } from './schema.graphql';

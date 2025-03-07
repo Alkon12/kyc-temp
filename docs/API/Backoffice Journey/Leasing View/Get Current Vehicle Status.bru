@@ -1,0 +1,47 @@
+meta {
+  name: Get Current Vehicle Status
+  type: graphql
+  seq: 2
+}
+
+post {
+  url: {{graphqlEndpoint}}
+  body: graphql
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:graphql {
+  query currentVehicleStatus($leasingId: ID!) {
+    currentVehicleStatus(leasingId: $leasingId) {
+      tracker {
+          currentOdometer
+          status
+          motion
+          ignition
+          speed
+          lastLat
+          lastLon
+          lastUpdate
+          lastConnection
+        
+        	weeksSumDistance
+          drivingScore
+          totalEvents
+          totalTrips
+        
+        	uberWeeksUsage
+  				uberWeeksSumDistance
+      }
+    }
+  }
+}
+
+body:graphql:vars {
+  {
+      "leasingId": "63c42ab6-7944-47be-9a3a-0688ed73446c" 
+  }
+}

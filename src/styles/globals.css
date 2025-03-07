@@ -1,0 +1,255 @@
+@font-face {
+  font-family: 'Roboto-bold';
+  src:
+    url('../fonts/Roboto-Bold.woff2') format('woff2'),
+    url('../fonts/Roboto-Bold.woff') format('woff');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Roboto';
+  src:
+    url('../fonts/Roboto-Regular.woff2') format('woff2'),
+    url('../fonts/Roboto-Regular.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+body {
+  font-family: 'Roboto';
+  color: #6d6e71 !important;
+}
+
+.slick-next:before,
+.slick-prev:before {
+  font-size: 35px !important;
+}
+
+.bg-transparente {
+  background-color: transparent !important;
+  position: absolute;
+  width: 100%;
+}
+
+.contenido {
+  padding: 80px 0;
+}
+
+.bg-rent {
+  background-image: url('/images/nav.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.verde-rent {
+  color: #7baf45 !important;
+}
+
+.btn-outline-success {
+  color: #7baf45 !important;
+  border-color: #7baf45 !important;
+}
+
+.btn-success {
+  color: #fff;
+  background-color: #7baf45 !important;
+  border-color: #7baf45 !important;
+}
+
+.btn-success:hover {
+  color: #7baf45 !important;
+  background-color: #ffffff !important;
+  border-color: #7baf45 !important;
+}
+
+.btn-outline-success:hover {
+  color: #ffffff;
+  border-color: #7baf45 !important;
+  background-color: #7baf45 !important;
+}
+
+.carousel-caption {
+  margin-bottom: 5%;
+  font-size: 37px;
+  line-height: 40px;
+}
+
+.titulos {
+  font-size: 40px;
+}
+
+strong {
+  font-family: 'Roboto-bold';
+}
+
+.tarjeta {
+  min-height: 400px;
+}
+
+.incluye {
+  /* background-image: url('/images/bg-parallax.jpg'); */
+  background: radial-gradient(
+    circle,
+    rgba(19, 72, 126, 1) 21%,
+    rgba(19, 72, 126, 1) 33%,
+    rgba(1, 31, 55, 1) 66%,
+    rgba(1, 31, 55, 1) 100%
+  );
+  background-size: cover;
+  background-attachment: fixed;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.pagetitle {
+  /* background: linear-gradient(to bottom, #032a49 1%, #104477 42%, #207cca 76%, #104477 76%, #ffffff 76%, #ffffff 100%); */
+  background: radial-gradient(
+    circle,
+    rgba(19, 72, 126, 1) 21%,
+    rgba(19, 72, 126, 1) 33%,
+    rgba(1, 31, 55, 1) 66%,
+    rgba(1, 31, 55, 1) 100%
+  );
+  padding: 20px;
+}
+
+.pagetitle h4 {
+  font-size: 50px;
+}
+
+.pagetitle h3 {
+  font-size: 60px;
+}
+
+.iconos {
+  border: solid 1px #0574d8;
+}
+
+.bg-pasos {
+  background-image: url('/images/bg-line.png');
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+#footer {
+  padding: 70px;
+  background-color: #081f33 !important;
+}
+
+#footer .logo {
+  width: 35%;
+}
+
+.logo-header {
+  width: 100%;
+}
+
+.navbar-light .navbar-toggler-icon {
+  background-image: url('/images/rayas.png');
+}
+
+.carousel-caption {
+  text-align: left;
+}
+
+.carousel-caption button {
+  padding: 15px 25px;
+}
+
+.tarjeta-precio {
+  border-radius: 10px;
+  padding: 25px;
+  background-color: #081f33;
+}
+
+@media only screen and (max-width: 600px) {
+  .logo-header {
+    width: 60%;
+  }
+
+  #footer {
+    padding: 25px;
+    font-size: 12px;
+  }
+
+  #footer .logo {
+    width: 70%;
+  }
+
+  .carousel-caption {
+    margin-bottom: -13%;
+    font-size: 15px;
+    line-height: 20px;
+  }
+
+  .titulos {
+    font-size: 27px;
+  }
+
+  .carousel-caption button {
+    padding: 5px 5px;
+    width: 140px;
+  }
+}
+
+.mobile-carousel {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  /* Mostrar el carrusel en dispositivos móviles */
+  .mobile-carousel {
+    display: block;
+  }
+
+  /* Ocultar las tarjetas en dispositivos móviles */
+  .desktop-cards {
+    display: none;
+  }
+}
+
+@media (min-width: 769px) {
+  /* Mostrar las tarjetas en dispositivos de escritorio */
+  .desktop-cards {
+    display: block;
+  }
+
+  /* Ocultar el carrusel en dispositivos de escritorio */
+  .mobile-carousel {
+    display: none;
+  }
+}
+
+.img-fluid {
+  max-width: 100%;
+  height: auto;
+}
+
+.w-50 {
+  width: 50% !important;
+}
+
+.w-68 {
+  width: 68% !important;
+}
+
+.mt-5 {
+  margin-top: 3rem !important;
+}
+
+.modal-open {
+  overflow: hidden;
+}
+
+h3,
+h4,
+p {
+  color: #6d6e71 !important;
+}
+a {
+  text-decoration: none;
+}

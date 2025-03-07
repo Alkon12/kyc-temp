@@ -1,0 +1,38 @@
+meta {
+  name: Get Application Info for Card
+  type: graphql
+  seq: 3
+}
+
+post {
+  url: {{graphqlEndpoint}}
+  body: graphql
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:graphql {
+  query applicationById($applicationId: ID!) {
+    applicationById(applicationId: $applicationId) {
+      identificationCard {
+          thumbnailUrl        
+      }
+      user {
+          email
+          fullName
+          uberCityName
+          dob
+          phoneNumber
+      }
+    }
+  }
+}
+
+body:graphql:vars {
+  {
+      "applicationId": "e12d8db8-5e00-443b-b95d-21e1ba51d6af" 
+  }
+}

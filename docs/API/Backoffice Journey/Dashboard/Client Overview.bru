@@ -1,0 +1,26 @@
+meta {
+  name: Client Overview
+  type: graphql
+  seq: 4
+}
+
+post {
+  url: {{graphqlEndpoint}}
+  body: graphql
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:graphql {
+  query ClientOverview {
+    clientOverview{
+          byActivity {
+              withDebt
+              withoutDebt
+          }
+    }
+  }
+}

@@ -1,0 +1,41 @@
+meta {
+  name: Update Status
+  type: graphql
+  seq: 4
+}
+
+post {
+  url: {{graphqlEndpoint}}
+  body: graphql
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:graphql {
+  mutation prospectUpdateStatus($prospectId: ID!, $prospectStatusId: String!, $notes: String) {
+    prospectUpdateStatus(prospectId: $prospectId, prospectStatusId: $prospectStatusId, notes: $notes) {
+      createdAt
+      notes
+      prospectActivityType {
+        id
+        name
+      }
+      createdByUser {
+        email
+        fullName
+      }
+    }
+  }
+  
+}
+
+body:graphql:vars {
+  {
+      "prospectId": "249ab06d-7496-4521-b52f-b0e8b442c9e7",
+      "prospectStatusId": "APPLICATION_KYC_AWAITING_MEET",
+      "notes": "nota del 222"
+  }
+}

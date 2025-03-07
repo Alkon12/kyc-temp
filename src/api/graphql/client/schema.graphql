@@ -1,0 +1,12 @@
+extend type Query {
+  clientOverview: ClientOverview!
+}
+
+type ClientOverview {
+  byActivity: ClientsByActivity!
+}
+
+type ClientsByActivity {
+  withDebt: Int!
+  withoutDebt: Int!
+}

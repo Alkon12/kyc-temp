@@ -1,0 +1,40 @@
+extend type Query {
+  offerById(offerId: ID!): Offer
+}
+
+type Offer {
+  id: ID!
+  quoteId: ID!
+  weeklyPrice: Int
+  leasingPeriod: Int
+  createdAt: DateTime
+  updatedAt: DateTime
+  expiresAt: DateTime
+
+  scoringResolution: String
+  scoringMark: String
+  scoringVerdict: String
+  scoringBrief: String
+  scoringAnalysis: String
+  scoringDetails: String
+  
+  scoringDetailsParsed: [OfferScoringDetail]
+  product: Product
+}
+
+
+type OfferScoringDetail {
+  key: String
+  name: String
+  rank: String
+  type: String
+  unit: String
+  value: String
+}
+
+enum ScoringResolution {
+  APPROVE
+  REJECT
+  BACKOFFICE_REVIEW
+  MANAGER_REVIEW
+}

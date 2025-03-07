@@ -1,0 +1,37 @@
+meta {
+  name: Get Weekly Summary
+  type: graphql
+  seq: 6
+}
+
+post {
+  url: {{graphqlEndpoint}}
+  body: graphql
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:graphql {
+  query leasingWeeklySummary($leasingId: ID!, $weekNumber: Int!) {
+    leasingWeeklySummary(leasingId: $leasingId, weekNumber: $weekNumber) {
+      trips
+      tripsWeeklyDistance
+      tripsWeeklyScoring
+      tripsWeeklyEndOdometer
+      uberWeeklyDistance
+      uberFares
+      uberTrips
+      uberUsage
+    }
+  }
+}
+
+body:graphql:vars {
+  {
+      "leasingId": "63c42ab6-7944-47be-9a3a-0688ed73446c",
+      "weekNumber":25
+  }
+}

@@ -1,0 +1,7 @@
+type Mutation {
+  generateDelivery(idsmartIt: String!, IdContrato: String!): DeliveryEntity
+}
+
+type DeliveryEntity {
+  Id: String
+}

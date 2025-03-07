@@ -1,0 +1,42 @@
+meta {
+  name: Get Quotes By User
+  type: graphql
+  seq: 2
+}
+
+post {
+  url: {{graphqlEndpoint}}
+  body: graphql
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:graphql {
+  query quotesByUser($userId: ID!) {
+    quotesByUser(userId: $userId) { 
+      id
+      scoringComplete
+      scoringEngine    
+      scoreResolution
+      scoreMark
+      createdAt
+      isRecent
+      isActive
+      isExpired
+      scoreDetails {
+          segmentId
+          segmentResult
+          segmentName
+      }
+    }
+  }
+}
+
+body:graphql:vars {
+  {
+      "userId": "b7b8bb0d-dc3e-412c-a4e3-7d9e0fa2f79b"
+  }
+}

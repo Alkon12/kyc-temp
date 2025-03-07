@@ -1,0 +1,6 @@
+type ParamDetail {
+  id: ID!
+  value: String!
+  idParam: String!
+  createdAt: DateTime
+}

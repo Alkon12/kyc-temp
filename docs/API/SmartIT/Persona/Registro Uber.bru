@@ -1,0 +1,15 @@
+meta {
+  name: Registro Uber
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{smartitEndpoint}}/api/UberArrendo/registro-uber
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{smartitToken}}
+}

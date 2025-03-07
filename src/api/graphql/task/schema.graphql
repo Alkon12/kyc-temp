@@ -1,0 +1,142 @@
+extend type Query {
+  taskById(taskId: ID!): Task
+  taskTypes: [TaskType]
+}
+
+extend type Mutation {
+  moveTask(taskId: ID!, taskAction: TaskAction!, metadata: TaskMetadataInput): Boolean!
+}
+
+input TaskMetadataInput {
+  message: String
+  slotId: String
+  referencia: String
+  idcliente: Int
+}
+
+type Task {
+  id: ID!
+  taskTypeId: ID!
+  message: String
+  dismissible: Boolean!
+  expiresAt: DateTime
+  flaggedAt: DateTime
+  relevance: Int
+  assignedUserId: ID
+  offerId: ID
+  quoteId: ID
+  applicationId: ID
+  leasingId: ID
+  vehicleId: ID
+  productId: ID
+  slotId: ID
+  acceptedAt: DateTime
+  declinedAt: DateTime
+  dismissedAt: DateTime
+  done: Boolean!
+  createdAt: DateTime
+  updatedAt: DateTime
+  customData: String # we keep it as json stringified (string) since graphql wont recognnize inner keys of the object otherwise
+  optional: Boolean!
+  
+  
+  notes: String
+
+  taskType: TaskType
+  assignedUser: User
+  acceptedByUser: User
+  declinedByUser: User
+  dismissedByUser: User
+  offer: Offer
+  assignedGroups: [Group]
+  quote: Quote
+  application: Application
+  applicationChecklist: ApplicationChecklist
+  leasing: Leasing
+  vehicle: Vehicle
+  product: Product
+  slot: Slot
+  originTask: Task
+  originatedTasks: [Task],
+}
+
+enum TaskAction {
+  ACCEPT
+  DECLINE
+  DISMISS
+}
+
+type TaskType {
+  id: String!
+  name: String!
+  tasks: [Task]
+  assignedGroups: [Group]
+}
+
+type TaskTypeGroup {
+  taskTypeId: String! # TaskTypeId
+  groupId: String!
+
+  taskType: TaskType
+  group: Group
+}
+
+enum TaskTypeId {
+  APPLICATION_BACKOFFICE_APPROVAL
+  APPLICATION_MANAGER_APPROVAL
+  KYC_SELFIE_PICTURE_UPLOAD
+  KYC_SELFIE_PICTURE_JOB
+  KYC_SELFIE_PICTURE_VERIFICATION
+  KYC_DRIVERS_LICENSE_UPLOAD
+  KYC_DRIVERS_LICENSE_JOB
+  KYC_DRIVERS_LICENSE_REVERSE_UPLOAD
+  KYC_DRIVERS_LICENSE_REVERSE_JOB
+  KYC_DRIVERS_LICENSE_VERIFICATION
+  KYC_IDENTIFICATION_CARD_UPLOAD
+  KYC_IDENTIFICATION_CARD_JOB
+  KYC_IDENTIFICATION_CARD_REVERSE_UPLOAD
+  KYC_IDENTIFICATION_CARD_REVERSER_JOB
+  KYC_IDENTIFICATION_CARD_VERIFICATION
+  KYC_INCOME_STATEMENT_UPLOAD
+  KYC_INCOME_STATEMENT_JOB
+  KYC_INCOME_STATEMENT_VERIFICATION
+  KYC_INACTIVITY_STATEMENT_UPLOAD
+  KYC_INACTIVITY_STATEMENT_JOB
+  KYC_INACTIVITY_STATEMENT_VERIFICATION
+  KYC_TAX_IDENTIFICATION_UPLOAD
+  KYC_TAX_IDENTIFICATION_JOB
+  KYC_TAX_IDENTIFICATION_VERIFICATION
+  KYC_ADDRESS_INPUT
+  KYC_ADDRESS_PROOF_UPLOAD
+  KYC_ADDRESS_PROOF_JOB
+  KYC_INACTIVITY_STATEMENT_INPUT
+  KYC_ADDRESS_VERIFICATION
+  KYC_MEET_PICK_DATE
+  KYC_MEET_CONFIRM_DATE
+  KYC_MEET_CANCEL_DATE
+  KYC_MEET_HOST_INVITATION
+  KYC_MEET_GUEST_INVITATION
+  KYC_MEET_CHECKIN
+  KYC_MEET_ADDRESS_MATCH
+  PAYMENT_CHECKOUT
+  PAYMENT_RECONCILIATION
+  PAYMENT_VALIDATION
+  KYC_FINAL_APPROVAL
+  DELIVERY_DATE
+  PENDING_DOCUMENTS
+  VEHICLE_INVENTORY_RESERVE
+  VEHICLE_INVENTORY_RELEASE
+  VEHICLE_TRACKER_INSTALLATION
+  VEHICLE_TRACKER_SIM
+  VEHICLE_TITLE
+  VEHICLE_AUTHORIZATION
+  VEHICLE_ASSURANCE
+  VEHICLE_STREET_TAG_INSTALLATION
+  UBER_VEHICLE_REGISTRATION
+  UBER_DRIVER_CONTRACT
+  VEHICLE_HANDOFF_PICK_DATE
+  VEHICLE_HANDOFF_CONFIRM_DATE
+  VEHICLE_HANDOFF_CANCEL_DATE
+  VEHICLE_HANDOFF_CHECKIN
+  LEASING_CONTRACT_SIGNATURE
+}

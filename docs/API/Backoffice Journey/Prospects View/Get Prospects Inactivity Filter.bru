@@ -1,0 +1,67 @@
+meta {
+  name: Get Prospects Inactivity Filter
+  type: graphql
+  seq: 2
+}
+
+post {
+  url: {{graphqlEndpoint}}
+  body: graphql
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:graphql {
+  query getProspects($filters: GetProspectsFilters) {
+      getProspects(filters: $filters){
+        id
+        friendlyId
+        userId
+        prospectStatusId
+        createdAt
+        updatedAt
+        prospectStatus {
+          name
+        }
+        user {
+          email
+          fullName
+        }
+        supportUser {
+          email
+          fullName
+        }
+        quotes {
+          id
+        }
+        applications {
+          id
+        }
+        activity {
+          createdAt
+        }
+  
+        lastQuote {
+          id
+          createdAt
+          scoreMark
+        }
+        quoteCount
+        prospectStatus {
+          id
+          name
+        }
+      }
+    }
+}
+
+body:graphql:vars {
+  {
+    "filters": {    
+  
+    }
+  }
+}

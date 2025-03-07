@@ -1,0 +1,56 @@
+meta {
+  name: Get Tracker Trips
+  type: graphql
+  seq: 10
+}
+
+post {
+  url: {{graphqlEndpoint}}
+  body: graphql
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:graphql {
+  query trackerTrips($leasingId: ID!, $date: String!) {
+    trackerTrips(leasingId: $leasingId, date: $date) {
+      tripId
+      averageSpeed
+      date
+      deviceId
+      deviceName
+      distance
+      duration
+      startAddress
+      startLat
+      startLon
+      startOdometer
+      startTime  
+      endAddress
+      endLat
+      endLon
+      endOdometer
+      endTime
+      maxSpeed     
+      score {
+        contextScore
+        distance
+        drivingScore
+        drivingScoreContextualized
+        totalEvents
+        validPositions
+        events
+      }
+    }
+  }
+}
+
+body:graphql:vars {
+  {
+      "leasingId": "63c42ab6-7944-47be-9a3a-0688ed73446c",
+      "date": "2024/06/24"
+  }
+}

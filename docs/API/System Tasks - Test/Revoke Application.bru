@@ -1,0 +1,28 @@
+meta {
+  name: Revoke Application
+  type: graphql
+  seq: 1
+}
+
+post {
+  url: {{graphqlEndpoint}}
+  body: graphql
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:graphql {
+  mutation revokeApplication($applicationId: ID!) {
+    revokeApplication(applicationId: $applicationId) 
+  }
+  
+}
+
+body:graphql:vars {
+  {
+      "applicationId": "8a7cdb94-a680-4da4-a3b5-63e8984204a6" 
+  }
+}

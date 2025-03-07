@@ -1,0 +1,32 @@
+meta {
+  name: Get Week Debt Voucher
+  type: graphql
+  seq: 8
+}
+
+post {
+  url: {{graphqlEndpoint}}
+  body: graphql
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:graphql {
+  query leasingFinancialDebtVoucher($leasingId: ID!, $weekNumber: Int!) {
+    leasingFinancialDebtVoucher(leasingId: $leasingId, weekNumber: $weekNumber) {
+      code
+      amount
+      validUntil
+    }
+  }
+}
+
+body:graphql:vars {
+  {
+      "leasingId": "63c42ab6-7944-47be-9a3a-0688ed73446c",
+      "weekNumber": 3
+  }
+}

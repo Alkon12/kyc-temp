@@ -1,0 +1,35 @@
+meta {
+  name: Get Trips By Date Range
+  type: graphql
+  seq: 3
+}
+
+post {
+  url: {{graphqlEndpoint}}
+  body: graphql
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:graphql {
+  query tripsByDate($leasingId: ID!, $from: String!, $to: String!) {
+    tripsByDate(leasingId: $leasingId, from: $from, to: $to) {
+      id
+      duration
+      fareAmount
+      distance
+      acceptedAt
+    }
+  }
+}
+
+body:graphql:vars {
+  {
+      "leasingId": "63c42ab6-7944-47be-9a3a-0688ed73446c" ,
+      "from":  "2024-07-26",
+      "to":  "2024-08-01"
+  }
+}

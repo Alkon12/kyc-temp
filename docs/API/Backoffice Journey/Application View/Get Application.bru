@@ -1,0 +1,89 @@
+meta {
+  name: Get Application
+  type: graphql
+  seq: 1
+}
+
+post {
+  url: {{graphqlEndpoint}}
+  body: graphql
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:graphql {
+  query GetApplication($applicationId: ID!) {
+    applicationById(applicationId: $applicationId) {
+      id
+      friendlyId
+      identificationCard {
+          viewUrl
+          downloadUrl
+          thumbnailUrl
+          previewUrl
+          metadata {
+              size
+              originalFilename
+          }
+      }
+      driversLicense {
+          thumbnailUrl
+      }
+      user {
+          email
+          phoneNumber
+          picture
+          id
+          firstName
+          fullName
+          uberDriverId
+          uberRating
+          uberActivationStatus
+          uberPartnerRole
+          uberEarningsRetentionActive        
+      }
+      quote {
+          createdAt
+          expiresAt
+          scoringComplete
+          scoreMark
+          scoreResolution
+      }
+      offer {
+          weeklyPrice
+          leasingPeriod
+      }
+      product {
+          brand
+          model
+          picture
+      }
+      tasks {
+          id
+          taskTypeId
+          message
+          dismissible
+          expiresAt
+          flaggedAt
+          relevance
+          acceptedAt
+          declinedAt
+          dismissedAt
+          done
+          createdAt
+          taskType {
+              name
+          }
+      }
+    }
+  }
+}
+
+body:graphql:vars {
+  {
+      "applicationId": "388daecc-1754-4fa3-8414-5a2e9404883f" 
+  }
+}

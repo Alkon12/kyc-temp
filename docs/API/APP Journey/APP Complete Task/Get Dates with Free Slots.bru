@@ -1,0 +1,30 @@
+meta {
+  name: Get Dates with Free Slots
+  type: graphql
+  seq: 4
+}
+
+post {
+  url: {{graphqlEndpoint}}
+  body: graphql
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:graphql {
+  query getDatesWithFreeSlots($slotType: String!, $dateFrom: DateTime, $dateTo: DateTime) {
+    getDatesWithFreeSlots(slotType: $slotType, dateFrom: $dateFrom, dateTo: $dateTo) 
+  }
+  
+}
+
+body:graphql:vars {
+  {
+      "slotType":"KYC_MEET",
+      "dateFrom": "2024-07-10",
+      "dateTo": "2024-07-25"
+  }
+}

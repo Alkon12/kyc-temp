@@ -1,0 +1,28 @@
+meta {
+  name: Task types
+  type: graphql
+  seq: 1
+}
+
+post {
+  url: {{graphqlEndpoint}}
+  body: graphql
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:graphql {
+  query TaskTypes {
+    taskTypes {
+      id
+      name
+      assignedGroups {
+          id
+          title  
+      }
+    }
+  }
+}

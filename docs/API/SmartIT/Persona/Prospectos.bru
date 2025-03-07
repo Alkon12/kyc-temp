@@ -1,0 +1,15 @@
+meta {
+  name: Prospectos
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{smartitEndpoint}}/api/UberArrendo/prospectos
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{smartitToken}}
+}

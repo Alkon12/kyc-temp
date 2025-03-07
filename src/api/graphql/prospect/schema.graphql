@@ -1,0 +1,108 @@
+extend type Query {
+  prospectOverview: ProspectOverview!
+  getProspects(filters: GetProspectsFilters): [Prospect]
+  prospectByUserId(userId: ID!): Prospect
+  prospectById(prospectId: ID!): Prospect
+  prospectActivity(prospectId: ID!): [ProspectActivity]
+  getAvailableProspectStatusList(prospectId: ID): [ProspectStatus]
+}
+
+input GetProspectsFilters {
+  tags: [String!]
+  search: String
+  supportUserId: [ID!]
+  withApplication: Boolean
+  withQuotes: Boolean
+  withoutAssignedSupportUser: Boolean
+  inactivityInHours: Int
+}
+
+extend type Mutation {
+  prospectUpdateStatus(prospectId: ID!, prospectStatusId: String!, notes: String): [ProspectActivity]
+  prospectAddNote(prospectId: ID!, notes: String!): [ProspectActivity]
+  prospectReassignSupportUser(prospectId: ID!, supportUserId: ID!, notes: String): [ProspectActivity]
+}
+
+type ProspectOverview {
+  byQuoteScoringMark: ProspectCountByScoringMark!
+  bySituation: ProspectSituationCount!
+}
+
+type ProspectSituationCount {
+  recent: Int!
+  active: Int!
+  expired: Int!
+}
+
+
+
+type ProspectCountByScoringMark {
+  A: Int
+  B: Int
+  C: Int
+  D: Int
+  E: Int
+  F: Int
+  NoScore: Int
+}
+
+
+type Prospect {
+  id: ID!
+  friendlyId: String
+  userId: ID!
+  supportUserId: ID
+  prospectStatusId: String!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  activeApplicationId: ID
+  lastActivityAt: DateTime!
+  lastActivityUserId: ID
+  
+  activeApplication: Application
+  prospectStatus: ProspectStatus
+  user: User
+  supportUser: User
+  lastActivityUser: User
+  quotes: [Quote]
+  applications: [Application]
+  activity: [ProspectActivity]
+  invitations: [Invitation]
+  
+  # derived fields
+  lastQuote: Quote
+  quoteCount: Int!
+  
+}
+
+type ProspectStatus {
+  id: String!
+  name: String!
+  order: Int
+  manualAssignable: Boolean!
+
+  prospects: [Prospect]
+}
+
+type ProspectActivity {
+  id: String!
+  prospectId: ID!
+  prospectActivityTypeId: String!
+  notes: String
+  createdByUserId: ID
+  createdAt: DateTime!
+  prospectStatusId: String!
+  
+  prospectActivityType: ProspectActivityType
+  createdByUser: User
+  prospects: [Prospect]
+  prospectStatus: ProspectStatus
+}
+
+
+type ProspectActivityType {
+  id: String!
+  name: String!
+
+  prospectActivity: [ProspectActivity]
+}

@@ -1,0 +1,20 @@
+meta {
+  name: Upload Document ID
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{host}}/api/v1/content/upload/identification-card
+  body: multipartForm
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:multipart-form {
+  document: @file(/Users/vargas/Downloads/documents/2025-01-20 INE_20250120_042305.jpg20250120_042305.pdf)
+  taskId: 0595df4e-98e5-463a-a0cc-375d227a9ff0
+}

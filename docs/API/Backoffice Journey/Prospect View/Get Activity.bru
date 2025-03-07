@@ -1,0 +1,38 @@
+meta {
+  name: Get Activity
+  type: graphql
+  seq: 6
+}
+
+post {
+  url: {{graphqlEndpoint}}
+  body: graphql
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:graphql {
+  query prospectActivity($prospectId: ID!) {
+    prospectActivity(prospectId: $prospectId) {
+      createdAt
+      notes
+      prospectActivityType {
+        id
+        name
+      }
+      createdByUser {
+        email
+        fullName
+      }
+    }
+  }
+}
+
+body:graphql:vars {
+  {
+      "prospectId": "0b981cac-4075-41fe-aa86-b103116ce063"
+  }
+}

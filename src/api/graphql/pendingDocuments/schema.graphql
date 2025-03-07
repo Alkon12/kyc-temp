@@ -1,0 +1,10 @@
+type PendingDocuments {
+    Id: Int
+    Descripcion: String
+    TieneDocumentos: Boolean
+    Subcategorias: [PendingDocuments]
+}
+
+type Query {
+    fetchPendingDocuments(numeroDeSerie: String!): [PendingDocuments]
+}

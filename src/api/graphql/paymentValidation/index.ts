@@ -1,0 +1,1 @@
+export { default as PaymentValidationSchema } from './schema.graphql';

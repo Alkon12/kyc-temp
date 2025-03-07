@@ -1,0 +1,81 @@
+extend type Query {
+  invitations: [Invitation]
+  myInvitations: [Invitation]
+  activeInvitations: [Invitation]
+  invitationById(invitationId: ID!): Invitation!
+  invitationOverview: InvitationOverview!
+}
+
+extend type Mutation {
+  createInvitation(input: CreateInvitationInput!): Invitation!
+  setInvitationStatus(id: ID!, status: String!): Boolean
+  acceptInvitation(userId: ID!, invitationId: ID): Invitation!
+}
+
+input CreateInvitationInput {
+  email: String
+  phoneNumber: String
+  firstName: String
+  lastName: String
+  hasUberAccount: Boolean
+  productId: String
+  isOnsite: Boolean
+  referrerId: String
+  campaignId: String
+  branchId: String
+  promotionId: String
+  comments: String
+}
+
+type Invitation {
+  id: ID!
+  firstName: String
+  lastName: String
+  email: String
+  phoneNumber: String
+  hasUberAccount: Boolean
+  productId: String
+  isOnsite: Boolean
+  referrerId: String
+  campaignId: String
+  branchId: String
+  promotionId: String
+  status: InvitationStatus
+  comments: String
+  prospectId: ID
+  quoteId: ID
+  applicationId: ID
+  createdAt: DateTime
+  updatedAt: DateTime
+
+  link: String
+
+  referrer: User
+  product: Product,
+  quote: Quote,
+  prospect: Prospect,
+  application: Application
+  # branch: Branch,
+  # campaign: Campaign,
+  # promotion: Promotion,
+  # referrer: Referrer,
+}
+
+enum InvitationStatus {
+  CREATED
+  SENT
+  ACCEPTED
+  EXPIRED
+}
+
+type InvitationOverview {
+  withUberAccount: InvitationOverviewCountRefine!
+  withoutUberAccount: InvitationOverviewCountRefine!
+}
+
+type InvitationOverviewCountRefine {
+  created: Int!
+  sent: Int!
+  accepted: Int!
+  expired: Int!
+}

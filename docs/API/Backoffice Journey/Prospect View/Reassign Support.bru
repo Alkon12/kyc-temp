@@ -1,0 +1,44 @@
+meta {
+  name: Reassign Support
+  type: graphql
+  seq: 9
+}
+
+post {
+  url: {{graphqlEndpoint}}
+  body: graphql
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:graphql {
+  mutation prospectReassignSupportUser($prospectId: ID!, $supportUserId: ID!, $notes: String) {
+      prospectReassignSupportUser(prospectId: $prospectId, supportUserId: $supportUserId, notes: $notes) {
+        createdAt
+        notes
+        prospectActivityType {
+          id
+          name
+        }
+        createdByUser {
+          email
+          fullName
+        }
+        prospectStatus {
+          id
+          name
+        }
+      }
+    }
+}
+
+body:graphql:vars {
+  {
+      "prospectId": "249ab06d-7496-4521-b52f-b0e8b442c9e7",
+      "supportUserId": "5faaa08f-d393-4c7f-9735-723cb42bc199",
+      "notes": "reasignando al bo2"
+  }
+}

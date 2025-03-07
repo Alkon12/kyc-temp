@@ -1,0 +1,36 @@
+meta {
+  name: APP Auth with Uber Driver Token
+  type: graphql
+  seq: 2
+}
+
+post {
+  url: {{host}}/api/public/graphql
+  body: graphql
+  auth: none
+}
+
+body:graphql {
+  query AuthWithUberDriver($token: String!) {
+    authWithUberDriver(token: $token) {
+      accessToken
+    }
+  }
+}
+
+body:graphql:vars {
+  {
+      "token":"eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI3OTBjNzQwZi1lNjk3LTQ1MzEtODg3Ni01NTQzNWU1YjhjNjIiLCJlbWFpbCI6ImFsZWphbmRyb3Zhcmdhc2NAZ21haWwuY29tIn0.JVQE_2F4QCjkvIGD2kUv5sif-UW8trTdg52vd8Ca7wJyor0ChBLWavrkQq83nfX21ejjDATCHZYs4DYjpTJuuEa6MKe-NDGFXTUL_O5sipUwP4LiS9-T8syOIe-KB_yzFcRc40nTnqfZuw_cjcd4R95Z8FaE_hLYTx-_kikuYjA03_bqaHnDdgdy9N8GdFRczcVybwQAlaebot2lPCzZ0huvYd92Wic_qSqmO_MgeEP3LOaKHCuiyxyTU4Ex4e63zaw0RVG8k0950CdY5yHIVWeIyiVMwysdqkkJ9GScSn4RVlUaKY2bQhp81aen9lWQhCA2BT2vovI6tfPpGiPPBQ"
+  }
+}
+
+script:post-response {
+  
+  
+  
+  var jsonData = res.getBody();
+  
+  if(jsonData.data) {
+  bru.setEnvVar("accessToken", jsonData.data.authWithUberDriver.accessToken);
+  }
+}

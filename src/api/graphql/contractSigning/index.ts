@@ -1,0 +1,1 @@
+export { default as ContractSigningSchema } from './schema.graphql';

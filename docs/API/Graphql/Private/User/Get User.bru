@@ -1,0 +1,80 @@
+meta {
+  name: Get User
+  type: graphql
+  seq: 1
+}
+
+post {
+  url: {{graphqlEndpoint}}
+  body: graphql
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:graphql {
+  query User {
+    user {
+      email
+      id
+      firstName
+      fullName
+      application {
+        id
+        checklist {
+          completed
+          checklist {
+              name
+          }
+        }
+      }
+      pendingTasks {
+          id
+          taskTypeId
+          message
+      }
+      assignedTasks {
+          id
+          taskTypeId
+          message
+          done
+      }
+      quotes {
+          scoringComplete
+          scoreMark
+          scoreResolution
+          offers {
+              weeklyPrice
+              leasingPeriod
+              product {
+                  brand
+                  model
+                  picture
+              }
+          }
+      }
+      applications {
+        currentStep
+        title
+        id
+        checklist {
+          completed
+          checklist {
+              name
+          }
+        }
+      }
+      groups {
+          id
+          title
+      }
+    }
+  }
+}
+
+body:graphql:vars {
+  {
+  }
+}

@@ -1,0 +1,34 @@
+meta {
+  name: Lead Overview
+  type: graphql
+  seq: 1
+}
+
+post {
+  url: {{graphqlEndpoint}}
+  body: graphql
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:graphql {
+  query LeadOverview {
+    leadOverview{
+          withUberAccount{
+              arrived
+              beingManaged
+              dismissed
+              converted
+          }
+          withoutUberAccount{
+              arrived
+              beingManaged
+              dismissed
+              converted
+          }
+    }
+  }
+}

@@ -1,0 +1,22 @@
+meta {
+  name: Profile Picture
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{host}}/api/v1/docs/upload/profile-picture
+  body: multipartForm
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:multipart-form {
+  document: @file()
+  applicationID: 
+  taskID: 
+  ~: 
+}

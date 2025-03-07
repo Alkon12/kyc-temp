@@ -1,0 +1,19 @@
+meta {
+  name: Get documents for an Application
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host}}/api/v1/docs/applications/?id=4ee83aa6-6ab6-4d84-9a62-2f4fc817dd2f
+  body: none
+  auth: bearer
+}
+
+params:query {
+  id: 4ee83aa6-6ab6-4d84-9a62-2f4fc817dd2f
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
