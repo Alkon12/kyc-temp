@@ -1,1 +1,0 @@
-export { default as QuoteSmartItSchema } from './schema.graphql';

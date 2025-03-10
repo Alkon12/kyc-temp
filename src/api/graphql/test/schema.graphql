@@ -1,7 +1,0 @@
-extend type Mutation {
-  sendNotification(userId: ID!, input: SendNotificationInput!): Boolean
-}
-
-input SendNotificationInput {
-  channel: String!
-}

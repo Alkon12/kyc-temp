@@ -1,2 +1,0 @@
--- AlterTable
-ALTER TABLE "Task" ALTER COLUMN "data" SET DATA TYPE TEXT;

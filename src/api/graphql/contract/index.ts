@@ -1,1 +1,0 @@
-export { default as ContractSchema } from './schema.graphql';

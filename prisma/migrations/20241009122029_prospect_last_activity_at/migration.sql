@@ -1,2 +1,0 @@
--- AlterTable
-ALTER TABLE "Prospect" ADD COLUMN     "lastActivityAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;

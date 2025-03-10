@@ -1,1 +1,0 @@
-export { default as PersonUpdateSchema } from './schema.graphql';

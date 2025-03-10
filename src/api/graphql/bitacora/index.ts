@@ -1,1 +1,0 @@
-export { default as BitacoraSchema } from './schema.graphql';

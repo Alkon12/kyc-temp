@@ -1,1 +1,0 @@
-export { default as IncidentSchema } from './schema.graphql'

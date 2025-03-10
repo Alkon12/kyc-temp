@@ -1,5 +1,0 @@
-type Location {
-  id: ID!
-  name: String!
-  order: Int
-}

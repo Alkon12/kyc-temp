@@ -1,7 +1,6 @@
 import { DTO } from '@domain/kernel/DTO'
 import { NumberValue } from '@domain/shared/NumberValue'
 import { StringValue } from '@domain/shared/StringValue'
-import { UUID } from '@domain/shared/UUID'
 import { UserEntity } from '@domain/user/models/UserEntity'
 import { UserId } from '@domain/user/models/UserId'
 import { NextRequest } from 'next/server'

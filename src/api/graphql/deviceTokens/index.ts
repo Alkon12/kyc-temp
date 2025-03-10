@@ -1,1 +1,0 @@
-export { default as DeviceTokenSchema } from './schema.graphql';
