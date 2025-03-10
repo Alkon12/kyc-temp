@@ -4,8 +4,10 @@ import container from '@infrastructure/inversify.config'
 import merge from 'lodash.merge'
 import { BaseSchema } from '@api/graphql/base'
 import { UserSchema } from '@api/graphql/user'
+import { TestSchema } from '@api/graphql/test'
 import { ApolloLoggingPlugin } from './ApolloLoggingPlugin'
 import { UserResolvers } from '@api/graphql/user/UserResolvers'
+import { TestResolvers } from '@api/graphql/test/TestResolvers'
 
 @injectable()
 export class ApolloServer {
@@ -32,11 +34,13 @@ export class ApolloServer {
 
     const mergedTypeDefs = [BaseSchema].concat([
       UserSchema,
+      TestSchema,
     ])
     const mergedResolvers = merge(
       [],
       [
         container.get(UserResolvers).build(),
+        container.get(TestResolvers).build(),
       ],
     )
 

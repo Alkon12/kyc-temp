@@ -1,0 +1,17 @@
+meta {
+  name: Query Test
+  type: graphql
+  seq: 1
+}
+
+post {
+  url: {{graphqlPublicEndpoint}}
+  body: graphql
+  auth: none
+}
+
+body:graphql {
+  query test {
+    test
+  }
+}

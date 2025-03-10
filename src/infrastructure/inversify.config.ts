@@ -14,6 +14,7 @@ import { AuthService } from '@/application/service/AuthService'
 import { ExternalAuthService } from '@/application/service/ExternalAuthService'
 import { ExternalApiAuthJWT } from './auth/externalApiAuth/ExternalApiAuthJWT'
 import { ConsoleLogger } from './ConsoleLogger'
+import { TestResolvers } from '@api/graphql/test/TestResolvers'
 ``
 
 const container = new Container()
@@ -22,6 +23,7 @@ container.bind(ApolloServer).toSelf().inSingletonScope()
 
 // Resolvers
 container.bind(UserResolvers).toSelf()
+container.bind(TestResolvers).toSelf()
 
 // Services
 container.bind<LoggingService>(DI.LoggingService).to(ConsoleLogger).inSingletonScope()
