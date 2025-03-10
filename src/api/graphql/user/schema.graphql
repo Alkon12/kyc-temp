@@ -1,14 +1,12 @@
 extend type Query {
   user: User!
   authWithCredentials(email: String!, password: String, provider: String): ClientApiAuthResponse!
-  authWithUberDriver(token: String!): ClientApiAuthResponse!
   usersByGroup(groupId: String!): [User!]
 }
 
 extend type Mutation {
   createUser(input: CreateUserInput!): User
   updateUserPersonalInfo(input: UpdateUserPersonalInfoInput!): Boolean
-  updateUserDriverLicenseInfo(input: UpdateUserDriverLicenseInfoInput!): Boolean
 }
 
 type Group {
@@ -25,39 +23,8 @@ type User {
   email: String
   phoneNumber: String
   picture: String
-  rfc: String
-  curp: String
-  gender: String
-  driverLicenseNumber: String
-  driverLicenseValidity: DateTime
-  driverLicensePermanent: Boolean
-
-  uberDriverId: String
-  uberRating: String
-  uberPromoCode: String
-  uberActivationStatus: String
-  uberPartnerRole: String
-  uberEarningsRetentionActive: Boolean
-  uberCityName: String
-  uberCityCode: String
-  uberTier: String
-  uberTenureMonths: Int
-  uberLastMonthTripCount: Int
-  uberLastMonthEarnings: Int
   
-  dob: DateTime
-
-  application: Application # for APP and BO
-  leasings: [Leasing]
-  pendingTasks: [Task] # for APP
-  quotes: [Quote]
-  applications: [Application]
-  fullName: String
   groups: [Group]
-  assignedTasks: [Task]
-  smartItRegistry: SmartItRegistry
-
-  fullTasks: FullTasks
 }
 
 input CreateUserInput {
@@ -78,33 +45,6 @@ input UpdateUserPersonalInfoInput {
   secondLastName: String
 }
 
-input UpdateUserDriverLicenseInfoInput {
-  userId: ID!
-  driverLicenseNumber: String!
-  driverLicensePermanent: Boolean!
-  driverLicenseValidity: DateTime
-}
-
 type ClientApiAuthResponse {
   accessToken: String!
-}
-
-type FullTasks {
-  userAssigned: [Task]!
-  userGroupsAssigned: [Task]!
-}
-
-type SmartItRegistry {
-  id: Int!
-  rfc: String
-  curp: String
-  name: String!
-  lastName: String!
-  secondLastName: String
-  userId: ID!
-  termsId: ID
-  vin: String!
-  quoteSmartItId: Int!
-  contractId: Int!
-  status: String!
 }
