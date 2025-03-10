@@ -1,31 +1,18 @@
 import { NextAuthOptions, User } from 'next-auth'
 import { PrismaAdapter } from '@next-auth/prisma-adapter'
 import prisma from '@client/providers/PrismaClient'
-import UberProvider from '@infrastructure/auth/nextAuth/providers/uber'
 import CredentialsProvider from 'next-auth/providers/credentials'
-import { credentials } from '@infrastructure/auth/nextAuth/providers/credentials'
+import { authCredentialsAuthorize, credentials } from '@infrastructure/auth/nextAuth/providers/credentials'
 import { JWT } from 'next-auth/jwt'
 import { UnauthorizedError } from '@domain/error'
 import * as jose from 'jose'
-import { authSmartITAuthorize } from './providers/smartit'
 
 export const nextAuthOptions: NextAuthOptions = {
   providers: [
-    /*CredentialsProvider({
-      name: 'smartit',
-      credentials: smartitCredentials,
-      authorize: authSmnartItsAuthorize
-    }),*/
     CredentialsProvider({
       name: 'credentials',
       credentials: credentials,
-      authorize: authSmartITAuthorize,
-      //authorize: authWithSmartIT
-    }),
-
-    UberProvider({
-      clientId: process.env.UBER_CLIENT_ID as string,
-      clientSecret: process.env.UBER_CLIENT_SECRET as string,
+      authorize: authCredentialsAuthorize,
     }),
   ],
   pages:{

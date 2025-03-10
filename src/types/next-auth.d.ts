@@ -11,12 +11,6 @@ declare module 'next-auth' {
       | 'lastName'
       | 'phoneNumber'
       | 'picture'
-      | 'uberDriverId'
-      | 'uberRating'
-      | 'uberPromoCode'
-      | 'uberActivationStatus'
-      | 'uberPartnerRole'
-      | 'uberEarningsRetentionActive'
     > {}
 
   interface Account extends AccountModel {}
