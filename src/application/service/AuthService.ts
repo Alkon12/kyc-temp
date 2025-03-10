@@ -17,7 +17,6 @@ export type AuthToken = {
 
   user?: DTO<UserEntity>
   groups?: string[]
-  tokenSmartIt?: string;
 }
 
 export interface JWT extends Record<string, unknown> {}

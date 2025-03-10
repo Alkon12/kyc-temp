@@ -11,7 +11,6 @@ import { randomBytes, scryptSync } from 'crypto'
 import { AuthCredentialsArgs, ExternalAuthService } from '@/application/service/ExternalAuthService'
 import { AuthProvider } from '@domain/shared/AuthProvider'
 import authWithDatabase from './AuthWithDatabase'
-import authWithSmartIT from './AuthWithSmartIT'
 import { StringValue } from '@domain/shared/StringValue'
 import impersonateUser from './ImpersonateUser'
 import { LoggingModule, type LoggingService } from '@/application/service/LoggingService'
@@ -129,14 +128,6 @@ export class ExternalApiAuthJWT implements ExternalAuthService {
   }
 
   authWithCredentials(provider: AuthProvider, credentials: AuthCredentialsArgs): Promise<AuthAccessToken> {
-    if (provider.sameValueAs(AuthProvider.SMARTIT)) {
-      if (!credentials.password) {
-        throw new ValidationError('Password is required for this type of auth')
-      }
-
-      return authWithSmartIT(credentials.email, credentials.password)
-    }
-
     if (provider.sameValueAs(AuthProvider.DATABASE)) {
       if (!credentials.password) {
         throw new ValidationError('Password is required for this type of auth')

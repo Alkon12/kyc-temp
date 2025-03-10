@@ -6,15 +6,12 @@ export const generateAuthAccessToken = async (user: UserEntity): Promise<AuthAcc
   const tokenIssued = Math.floor(Date.now() / 1000)
   const tokenExpire = tokenIssued + 60 * 60 * 24 * 7
 
-  const tokenSmartIt = user.props.idSmartIt ? user.props.idSmartIt.toString() : undefined;
-  
   const token: AuthToken = {
     sub: user.getId().toDTO(),
-    name: user.getName().toDTO(),
+    name: user.getFirstName()?.toDTO() ?? '',
     email: user.getEmail()?.toDTO(),
     exp: tokenExpire,
     iat: tokenIssued,
-    tokenSmartIt: tokenSmartIt
   }
 
   const jwtPrivateKey = (process.env.EXTERNAL_API_JWT_PRIVATE_KEY as string).replace(/\\n/g, '\n')

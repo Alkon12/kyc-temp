@@ -3,22 +3,20 @@ import { DI } from '@infrastructure'
 import { DTO } from '@domain/kernel/DTO'
 import { UserEntity } from '@domain/user/models/UserEntity'
 import type UserRepository from '@domain/user/UserRepository'
-import AbstractUserService, { AuthServiceResponse } from '@domain/user/UserService'
+import AbstractUserService from '@domain/user/UserService'
 import { Email } from '@domain/shared/Email'
 import { UserId } from '@domain/user/models/UserId'
 import { CreateUserArgs } from '@domain/user/interfaces/CreateUserArgs'
 import { UserFactory } from '@domain/user/UserFactory'
 import { StringValue } from '@domain/shared/StringValue'
 import { AuthAccessToken, type AuthService, AuthToken } from '@/application/service/AuthService'
-import { ForbiddenError, UnauthorizedError, UnexpectedError } from '@domain/error'
+import { UnexpectedError } from '@domain/error'
 import jwt from 'jsonwebtoken'
-import { UberDriverAuthTokenInput } from '@domain/user/interfaces/UberDriverAuthTokenInput'
 import { AuthProvider } from '@domain/shared/AuthProvider'
 import { type ExternalAuthService } from '@/application/service/ExternalAuthService'
 import { GroupId } from '@domain/user/models/GroupId'
-import { UpdateUserPersonalInfoArgs } from '@domain/user/interfaces/UpdateUserPersonalInfoArgs'
 import { BooleanValue } from '@domain/shared/BooleanValue'
-import { UpdateUserDriverLicenseArgs } from '@domain/user/interfaces/UpdateUserDriverLicenseArgs'
+import { UpdateUserPersonalInfoArgs } from '@domain/user/interfaces/UpdateUserPersonalInfoArgs'
 
 @injectable()
 export class UserService implements AbstractUserService {
@@ -45,14 +43,12 @@ export class UserService implements AbstractUserService {
   }
 
   async getByName(name: StringValue): Promise<UserEntity | null> {
-    // Bridge Smart IT
     const user = await this._userRepository.getByName(name)
     return user
   }
 
   async authWithCredentials(email: Email, password?: StringValue, provider?: AuthProvider): Promise<AuthAccessToken> {
-    // defaulting SmartIT
-    const useProvider = provider ? provider : AuthProvider.SMARTIT
+    const useProvider = provider ?? AuthProvider.DATABASE
 
     const credentials = {
       email,
@@ -60,31 +56,6 @@ export class UserService implements AbstractUserService {
     }
 
     return this._externalAuthService.authWithCredentials(useProvider, credentials)
-  }
-
-  async authWithUberDriver(token: StringValue): Promise<AuthServiceResponse> {
-    const publicKey = (process.env.EXTERNAL_API_JWT_PUBLIC_KEY as string).replace(/\\n/g, '\n')
-    const decodedToken = jwt.verify(token.toDTO(), publicKey, {
-      algorithms: ['RS256'],
-    })
-
-    if (!decodedToken) {
-      throw new UnauthorizedError('Access Token invalid')
-    }
-
-    const dataFromToken = decodedToken as unknown as DTO<UberDriverAuthTokenInput>
-
-    const user = await this._userRepository.findByEmail(new Email(dataFromToken.email))
-    if (!user) {
-      throw new ForbiddenError(`User not found with Email ${dataFromToken.email}`)
-    }
-
-    const accessToken = await this._generateToken(user)
-
-    return {
-      accessToken,
-      user,
-    }
   }
 
   async create(props: CreateUserArgs): Promise<UserEntity> {
@@ -95,7 +66,6 @@ export class UserService implements AbstractUserService {
       firstName: props.firstName,
       lastName: props.lastName,
       hashedPassword,
-      name: props.name ? props.name : undefined, // Bridge Smart IT TODO: Add unique User Prop
     })
 
     return this._userRepository.create(prepareUser, props.assignedGroups)
@@ -113,7 +83,6 @@ export class UserService implements AbstractUserService {
 
     const token: AuthToken = {
       sub: user.getId().toDTO(),
-      name: user.getName().toDTO(),
       email: user.getEmail()?.toDTO(),
       picture: user.getPicture()?.toDTO(),
       iat: tokenIssued,
@@ -134,27 +103,10 @@ export class UserService implements AbstractUserService {
 
   async updatePersonalInfo(props: UpdateUserPersonalInfoArgs): Promise<BooleanValue> {
 
-    //TODO: UPDATE SMARTIT PERSON
-
     return this._userRepository.updatePersonalInfo(
       props.userId, 
-      props.rfc,
-      props.curp,
       props.firstName,
       props.lastName,
-      props.secondLastName
-    )
-  }
-
-  async updateDriverLicenseInfo(props: UpdateUserDriverLicenseArgs): Promise<BooleanValue> {
-
-    //TODO: UPDATE SMARTIT PERSON
-
-    return this._userRepository.updateDriverLicenseInfo(
-      props.userId, 
-      props.driverLicenseNumber,
-      props.driverLicensePermanent,
-      props.driverLicenseValidity
     )
   }
 

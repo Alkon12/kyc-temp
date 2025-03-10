@@ -3,7 +3,6 @@
 import React, { ButtonHTMLAttributes, FC } from 'react'
 import { Route } from '@/types/next-route'
 import Link from 'next/link'
-import Loading from './Loading'
 
 export interface ButtonProps {
   className?: string
@@ -58,7 +57,6 @@ const Button: FC<ButtonProps> = ({
   if (!!href) {
     return (
       <Link href={href} className={`${CLASSES} `} onClick={onClick} type={type}>
-        {loading && <Loading />}
         {children || `This is Link`}
       </Link>
     )
@@ -66,7 +64,6 @@ const Button: FC<ButtonProps> = ({
 
   return (
     <button disabled={disabled || loading} className={`${CLASSES}`} onClick={onClick} type={type}>
-      {loading && <Loading />}
       {children || `Button default`}
     </button>
   )

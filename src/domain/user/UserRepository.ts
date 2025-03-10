@@ -25,17 +25,8 @@ export default interface UserRepository {
   ): Promise<BooleanValue>
   updatePersonalInfo(
     userId: UserId,
-    rfc: StringValue,
-    curp: StringValue,
     firstName: StringValue,
     lastName: StringValue,
-    secondLastName?: StringValue
-  ): Promise<BooleanValue>
-  updateDriverLicenseInfo(
-    userId: UserId,
-    driverLicenseNumber: StringValue,
-    driverLicensePermanent: BooleanValue,
-    driverLicenseValidity?: DateTimeValue,
   ): Promise<BooleanValue>
   getAccount(userId: UserId, type: AccountType, provider: AccountProvider): Promise<AccountEntity | null>
   save(quote: UserEntity): Promise<UserEntity>

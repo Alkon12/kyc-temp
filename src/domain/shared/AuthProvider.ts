@@ -3,7 +3,6 @@ import { ValueObject } from '@domain/kernel/ValueObject'
 
 export const AUTH_PROVIDERS = {
   DATABASE: 'DATABASE',
-  SMARTIT: 'SMARTIT',
   IMPERSONATE: 'IMPERSONATE',
 }
 
@@ -21,6 +20,5 @@ export class AuthProvider extends ValueObject<'AuthProvider', string> {
   }
 
   static DATABASE = new AuthProvider(AUTH_PROVIDERS.DATABASE)
-  static SMARTIT = new AuthProvider(AUTH_PROVIDERS.SMARTIT)
   static IMPERSONATE = new AuthProvider(AUTH_PROVIDERS.IMPERSONATE)
 }

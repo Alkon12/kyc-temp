@@ -1,4 +1,3 @@
-import { ValidationError } from '@domain/error/ValidationError'
 import { ValueObject } from '@domain/kernel/ValueObject'
 import { isPossiblePhoneNumber, CountryCode as LibCountryCode, parsePhoneNumber } from 'libphonenumber-js'
 import { CountryCode } from './CountryCode'

@@ -15,7 +15,6 @@ import { AccountProvider } from '@domain/user/models/AccountProvider'
 import { AccountEntity } from '@domain/user/models/AccountEntity'
 import { AccountFactory } from '@domain/user/AccountFactory'
 import { GroupId } from '@domain/user/models/GroupId'
-import { DateTimeValue } from '@domain/shared/DateTime'
 
 @injectable()
 export class PrismaUserRepository implements UserRepository {
@@ -49,29 +48,9 @@ export class PrismaUserRepository implements UserRepository {
         id: userId.toDTO(),
       },
       include: {
-        quotes: {
-          include: {
-            offers: {
-              include: {
-                product: true,
-              },
-            },
-          },
-        },
-        applications: true,
         groups: {
           include: {
             group: true,
-          },
-        },
-        assignedTasks: true,
-        leasings: {
-          include: {
-            vehicle: {
-              include: {
-                product: true,
-              },
-            },
           },
         },
       },
@@ -114,25 +93,14 @@ export class PrismaUserRepository implements UserRepository {
     try {
       user = await prisma.user.findFirst({
         where: {
-          name: name.toDTO(),
+          firstName: name.toDTO(),
         },
         include: {
-          quotes: {
-            include: {
-              offers: {
-                include: {
-                  product: true,
-                },
-              },
-            },
-          },
-          applications: true,
           groups: {
             include: {
               group: true,
             },
           },
-          assignedTasks: true,
         },
       })
     } catch (ex) {
@@ -153,16 +121,8 @@ export class PrismaUserRepository implements UserRepository {
     const createdUser = await prisma.user.create({
       data: {
         ...user.toDTO(),
-        lead: undefined,
-        location: undefined,
-        groups: undefined, // TODO add real groups
+        groups: undefined,
         accounts: undefined,
-        quotes: undefined,
-        offers: undefined,
-        applications: undefined,
-        leasings: undefined,
-        assignedTasks: undefined,
-        audit: undefined,
       },
     })
 
@@ -238,11 +198,8 @@ export class PrismaUserRepository implements UserRepository {
 
   async updatePersonalInfo(
     userId: UserId,
-    rfc: StringValue,
-    curp: StringValue,
     firstName: StringValue,
     lastName: StringValue,
-    secondLastName?: StringValue
   ): Promise<BooleanValue> {
     try {
       const user = await this.getById(userId)
@@ -251,44 +208,8 @@ export class PrismaUserRepository implements UserRepository {
       }
 
       let updateData = {
-        rfc: rfc.toDTO(),
-        curp: curp.toDTO(),
         firstName: firstName.toDTO(),
         lastName: lastName.toDTO(),
-        secondLastName: secondLastName ? secondLastName.toDTO() : undefined,
-        gender: curp.toDTO().charAt(10) === 'H' ? "Hombre" : curp.toDTO().charAt(10) === 'M' ? 'Mujer' : 'No binario'
-      }      
-
-      await prisma.user.update({
-        where: {
-          id: user.getId().toDTO(),
-        },
-        data: updateData,
-      })
-
-      return new BooleanValue(true)
-    } catch (e) {
-      console.error(e)
-      return new BooleanValue(false)
-    }
-  }
-
-  async updateDriverLicenseInfo(
-    userId: UserId,
-    driverLicenseNumber: StringValue,
-    driverLicensePermanent: BooleanValue,
-    driverLicenseValidity?: DateTimeValue
-  ): Promise<BooleanValue> {
-    try {
-      const user = await this.getById(userId)
-      if (!user) {
-        throw new NotFoundError(`Account not found for User Id ${userId.toDTO()}`)
-      }
-
-      let updateData = {
-        driverLicenseNumber: driverLicenseNumber.toDTO(),
-        driverLicensePermanent: driverLicensePermanent.toDTO(),
-        driverLicenseValidity: driverLicenseValidity ? driverLicenseValidity.toDTO() : undefined,
       }      
 
       await prisma.user.update({
@@ -312,16 +233,8 @@ export class PrismaUserRepository implements UserRepository {
       },
       data: {
         ...user.toDTO(),
-        lead: undefined,
-        location: undefined,
         groups: undefined, // TODO add real groups
         accounts: undefined,
-        quotes: undefined,
-        offers: undefined,
-        applications: undefined,
-        leasings: undefined,
-        assignedTasks: undefined,
-        audit: undefined,
       },
       include: {},
     })
@@ -334,15 +247,6 @@ export class PrismaUserRepository implements UserRepository {
       where: {},
       include: {
         accounts: true,
-        // leasings: {
-        //   include: {
-        //     vehicle: {
-        //       include: {
-        //         product: true
-        //       }
-        //     }
-        //   }
-        // },
       },
     })
 
