@@ -12,10 +12,6 @@ export const GROUPS = [
     id: 'BACKOFFICE',
     title: 'Backoffice',
   },
-  {
-    id: 'DRIVER',
-    title: 'Driver',
-  },
 ]
 
 async function main() {

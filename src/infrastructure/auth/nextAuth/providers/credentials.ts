@@ -10,8 +10,6 @@ export async function authCredentialsAuthorize(
   credentials: Record<'email' | 'password', string> | undefined,
   req: Pick<RequestInternal, 'body' | 'query' | 'headers' | 'method'>,
 ) {
-  console.log('88888 NEXTAUTH PROVIDER CREDENTIALS')
-
   if (!credentials?.email || !credentials?.password) {
     throw new Error('Invalid credentials')
   }
