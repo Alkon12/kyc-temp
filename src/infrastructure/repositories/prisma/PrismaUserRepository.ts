@@ -86,37 +86,6 @@ export class PrismaUserRepository implements UserRepository {
     return users.map((u) => UserFactory.fromDTO(convertPrismaToDTO<UserEntity>(u)))
   }
 
-  async getByName(name: StringValue): Promise<UserEntity | null> {
-    console.log('[UserRent] - getByName', name.toDTO())
-    // TODO: Fix Add a Unique Smart IT username prop
-    let user = null
-    try {
-      user = await prisma.user.findFirst({
-        where: {
-          firstName: name.toDTO(),
-        },
-        include: {
-          groups: {
-            include: {
-              group: true,
-            },
-          },
-        },
-      })
-    } catch (ex) {
-      // Logs any posible DB error
-      console.log('[[UserRent - Prisma] [ERROR]', ex)
-      throw ex
-    }
-
-    console.log('[UserRent - Prisma]', user)
-    if (!user) {
-      return null
-    }
-
-    return UserFactory.fromDTO(convertPrismaToDTO<UserEntity>(user))
-  }
-
   async create(user: UserEntity, assignedGroups: GroupId[]): Promise<UserEntity> {
     const createdUser = await prisma.user.create({
       data: {

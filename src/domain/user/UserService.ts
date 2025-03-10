@@ -20,7 +20,7 @@ export default abstract class AbstractUserService {
   abstract getByGroup(groupId: GroupId): Promise<UserEntity[]>
   abstract getAll(): Promise<UserEntity[]>
   abstract getSystemUser(): Promise<UserEntity>
-  abstract getByName(name: StringValue): Promise<UserEntity | null>
+
   abstract authWithCredentials(email: Email, password?: StringValue, provider?: AuthProvider): Promise<AuthAccessToken>
   abstract create(props: CreateUserArgs): Promise<UserEntity>
   abstract updatePersonalInfo(props: UpdateUserPersonalInfoArgs): Promise<BooleanValue>

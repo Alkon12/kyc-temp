@@ -24,23 +24,25 @@ UBER_DB_PASSWORD=
 or if you want to execute it as deamon, without printing the logs in the terminal
 `docker compose up -d`
 
+libraries
 ```shell
 yarn install
 ```
 
-and to apply pending migrations to any dev, use
-
+db structure
 ```shell
 yarn prisma migrate deploy
 ```
 
-Ref https://www.prisma.io/docs/orm/prisma-migrate/workflows/development-and-production#production-and-testing-environments
+db base data
+```shell
+yarn prisma db seed
+```
 
-## run
-
-### Update schemas
-
+generate/update graphql schema
+```shell
 yarn graphql
+```
 
 ### execute
 
@@ -48,34 +50,7 @@ yarn graphql
 yarn dev
 ```
 
-o
-
-```
-npm run dev
-```
-
-## DB changes migration
-
-yarn prisma generate DB from the schema
-
-```shell
-yarn prisma db push
-```
-
-```shell
-yarn prisma db seed
-```
-
-when playing with struct use
-
-```shell
-yarn prisma db push
-```
-
-Ref https://www.prisma.io/docs/orm/prisma-migrate/workflows/prototyping-your-schema
-
-but then, alway make migrations, so after making any schema change, generate new migration
-
+### structure changes
 ```shell
 yarn prisma migrate dev --name migration_name
 ```

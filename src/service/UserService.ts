@@ -42,11 +42,6 @@ export class UserService implements AbstractUserService {
     return this._userRepository.getByGroup(groupId)
   }
 
-  async getByName(name: StringValue): Promise<UserEntity | null> {
-    const user = await this._userRepository.getByName(name)
-    return user
-  }
-
   async authWithCredentials(email: Email, password?: StringValue, provider?: AuthProvider): Promise<AuthAccessToken> {
     const useProvider = provider ?? AuthProvider.DATABASE
 

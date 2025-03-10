@@ -1,13 +1,17 @@
 meta {
-  name: BO Auth with Credentials Email-Pass
+  name: Impersonate Rodri
   type: graphql
-  seq: 1
+  seq: 3
 }
 
 post {
   url: {{host}}/api/public/graphql
   body: graphql
-  auth: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
 }
 
 body:graphql {
@@ -15,7 +19,7 @@ body:graphql {
     authWithCredentials(
       email: $email,
       password: $password,
-      provider: "DATABASE"
+      provider: "IMPERSONATE"
       ) {
           accessToken
     }
@@ -24,7 +28,7 @@ body:graphql {
 
 body:graphql:vars {
   {
-      "email":"backoffice.application.1@grupoautofin.com",
+      "email":"bo1@grupoautofin.com",
       "password":"1234"
   }
 }

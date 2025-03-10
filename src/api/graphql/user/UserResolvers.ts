@@ -35,7 +35,6 @@ export class UserResolvers {
       },
       User: {
         groups: this.userGroups,
-        fullName: this.userFullName,
       },
     }
   }

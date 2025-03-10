@@ -15,7 +15,6 @@ export default interface UserRepository {
   getById(userId: UserId): Promise<UserEntity>
   getByGroup(groupId: GroupId): Promise<UserEntity[]>
   getAll(): Promise<UserEntity[]>
-  getByName(name: StringValue): Promise<UserEntity | null>
   create(user: UserEntity, assignedGroups: GroupId[]): Promise<UserEntity>
   updateAccountTokens(
     userId: UserId,
