@@ -37,7 +37,8 @@ const config: Config = {
   setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
 
   preset: 'ts-jest',
-  testEnvironment: 'node',
+  // testEnvironment: 'node',
+  testEnvironment: 'jsdom', // Use jsdom for testing React components
   setupFiles: ['./src/infrastructure/inversify.config.ts'],
 }
 
