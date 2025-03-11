@@ -8,13 +8,13 @@ import { UserResolvers } from '@api/graphql/user/UserResolvers'
 import type UserRepository from '@domain/user/UserRepository'
 import { PrismaUserRepository } from './repositories/prisma/PrismaUserRepository'
 import AbstractUserService from '@domain/user/UserService'
-import { UserService } from '@service/UserService'
 import { NextAuthService } from './auth/nextAuth/NextAuthService'
 import { AuthService } from '@/application/service/AuthService'
 import { ExternalAuthService } from '@/application/service/ExternalAuthService'
 import { ExternalApiAuthJWT } from './auth/externalApiAuth/ExternalApiAuthJWT'
 import { ConsoleLogger } from './ConsoleLogger'
 import { TestResolvers } from '@api/graphql/test/TestResolvers'
+import { UserService } from '@service/UserService'
 ``
 
 const container = new Container()

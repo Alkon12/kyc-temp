@@ -24,6 +24,7 @@ const config: Config = {
   transform: {
     '^.+\\.(ts|tsx)?$': 'ts-jest',
     '^.+\\.(js|jsx)$': 'babel-jest',
+     "\\.(gql|graphql)$": "@graphql-tools/jest-transform"
   },
   setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
 

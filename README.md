@@ -1,30 +1,12 @@
-# Uber
+# KYC
 
-## install
+## Install
 
-(copy from .env.example)
-.env
+Copy .env.example to .env and fill the variables
 
-```js
-DATABASE_URL=
-NEXTAUTH_SECRET=
+`docker compose up` (or `docker compose up -d` to execute as deamon)
 
-GITHUB_ID=
-GITHUB_SECRET=
-
-GOOGLE_CLIENT_ID=
-GOOGLE_CLIENT_SECRET=323232
-
-UBER_DB_DATABASE_NAME=uber
-UBER_DB_USERNAME=admin
-UBER_DB_PASSWORD=
-```
-
-`docker compose up`
-or if you want to execute it as deamon, without printing the logs in the terminal
-`docker compose up -d`
-
-libraries
+Install libraries
 ```shell
 yarn install
 ```
@@ -44,15 +26,23 @@ generate/update graphql schema
 yarn graphql
 ```
 
-### execute
+### Execute
 
+run local server
 ```shell
 yarn dev
 ```
 
-### structure changes
+### Touch
+
+when modifying prisma.schema, then create a migration for those changes
 ```shell
 yarn prisma migrate dev --name migration_name
+```
+
+build
+```shell
+yarn dev
 ```
 
 ## tools
