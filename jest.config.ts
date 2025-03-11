@@ -19,13 +19,21 @@ const config: Config = {
     '@app': ['src/app'],
     '@app/*': ['src/app/*'],
     '@client/*': ['src/client/*'],
+    "@service": ["src/service"],
+    "@service/*": ["src/service/*"],
+    "@styles": ["src/styles"],
+    "@styles/*": ["src/styles/*"],
     '@/*': ['src/*'],
+    
   }),
   transform: {
     '^.+\\.(ts|tsx)?$': 'ts-jest',
     '^.+\\.(js|jsx)$': 'babel-jest',
      "\\.(gql|graphql)$": "@graphql-tools/jest-transform"
   },
+  transformIgnorePatterns: [
+    '/node_modules/(?!jose)/'
+  ],
   setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
 
   preset: 'ts-jest',
