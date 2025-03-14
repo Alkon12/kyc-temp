@@ -44,6 +44,7 @@
     "@next/third-parties": "^15.2.1",
     "@prisma/adapter-pg": "^6.4.1",
     "@prisma/client": "^6.4.1",
+    "@tailwindcss/postcss": "^4.0.14",
     "@types/jest": "^29.5.14",
     "@types/node": "22.13.10",
     "@types/react": "^19.0.10",
@@ -83,6 +84,7 @@
     "pino": "^9.6.0",
     "pino-http": "^10.4.0",
     "pino-pretty": "^13.0.0",
+    "postcss": "^8.5.3",
     "query-string": "^9.1.1",
     "rc-slider": "^11.1.8",
     "react": "19.0.0",
@@ -99,6 +101,7 @@
     "sharp": "^0.33.5",
     "slick-carousel": "^1.8.1",
     "swr": "^2.3.3",
+    "tailwindcss": "^4.0.14",
     "ts-jest": "^29.2.6",
     "zustand": "^5.0.3"
   },
