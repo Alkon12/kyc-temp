@@ -32,14 +32,15 @@ const config: Config = {
      "\\.(gql|graphql)$": "@graphql-tools/jest-transform"
   },
   transformIgnorePatterns: [
-    '/node_modules/(?!jose)/'
+    '/node_modules/(?!(jose))/'
   ],
   setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
 
   preset: 'ts-jest',
   // testEnvironment: 'node',
   testEnvironment: 'jsdom', // Use jsdom for testing React components
-  setupFiles: ['./src/infrastructure/inversify.config.ts'],
+  // Commenting out setupFiles to avoid loading the entire application dependencies when testing domain models
+  // setupFiles: ['./src/infrastructure/inversify.config.ts'],
 }
 
 export default config
