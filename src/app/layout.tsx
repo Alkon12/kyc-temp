@@ -1,7 +1,7 @@
 import '@/styles/globals.css'
 import { ReactNode } from 'react'
-
 import { Poppins } from 'next/font/google'
+import Providers from "./providers";
 
 const poppins = Poppins({
   subsets: ['latin'],
@@ -23,7 +23,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   return (
     <html lang="es-MX" className={poppins.className}>
       <body>
-        <main className="flex-grow">{children}</main>        
+        <Providers>{children}</Providers>
       </body>
     </html>
   )
