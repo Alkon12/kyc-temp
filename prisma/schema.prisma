@@ -23,6 +23,11 @@ model User {
   
   groups UserGroup[]
   accounts Account[]
+  // Relaciones para el back office:
+  userRoles        UserRole[]
+  kycVerificationsAssigned KycVerification[] @relation("AssignedUser")
+  documentsReviewed       Document[]
+  activityLogs     ActivityLog[]
 }
 
 model Account {
@@ -62,4 +67,200 @@ model UserGroup {
   assignedBy String?
 
   @@id([userId, groupId])
+}
+
+model Company {
+  id          String   @id @default(uuid())
+  companyName String
+  apiKey      String   @unique
+  status      String   @default("active")
+  callbackUrl String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  userRoles            UserRole[]
+  kycVerifications     KycVerification[]
+  verificationSettings VerificationSetting[]
+}
+
+model Role {
+  id          String   @id @default(uuid())
+  roleName    String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+  
+  rolePermissions RolePermission[]
+  userRoles       UserRole[]
+}
+
+model Permission {
+  id             String   @id @default(uuid())
+  permissionName String   @unique
+  description    String?
+  createdAt      DateTime @default(now())
+  
+  rolePermissions RolePermission[]
+}
+
+model RolePermission {
+  roleId       String
+  permissionId String
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+}
+
+model UserRole {
+  userId    String
+  roleId    String
+  companyId String
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role    Role    @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@id([userId, roleId, companyId])
+}
+
+model KycVerification {
+  id                  String   @id @default(uuid())
+  externalReferenceId String?
+  companyId           String
+  status              String   @default("pending")
+  riskLevel           String?
+  priority            Int      @default(0)
+  verificationType    String
+  assignedTo          String?  // Referencia al User que lo asigna/revisa
+  notes               String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  completedAt         DateTime?
+
+  company       Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  assignedUser  User?       @relation("AssignedUser", fields: [assignedTo], references: [id])
+  kycPersons    KycPerson[]
+  facetecResults FacetecResult[]
+  documents     Document[]
+  activityLogs  ActivityLog[]
+  externalVerifications ExternalVerification[]
+  verificationWorkflows VerificationWorkflow[]
+
+  @@index([companyId], name: "idx_kyc_verifications_company")
+  @@index([status], name: "idx_kyc_verifications_status")
+}
+
+model KycPerson {
+  id             String   @id @default(uuid())
+  verificationId String
+  firstName      String?
+  lastName       String?
+  dateOfBirth    DateTime?
+  nationality    String?
+  documentNumber String?
+  documentType   String?
+  email          String?
+  phone          String?
+  address        String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  kycVerification KycVerification @relation(fields: [verificationId], references: [id], onDelete: Cascade)
+}
+
+model FacetecResult {
+  id                    String   @id @default(uuid())
+  verificationId        String
+  sessionId             String
+  matchLevel            Decimal  @db.Decimal(5,2)
+  livenessScore         Decimal  @db.Decimal(5,2)
+  confidenceScore       Decimal  @db.Decimal(5,2)
+  faceScanSecurityLevel String
+  auditTrailImage       String?
+  lowQualityAuditTrailImage String?
+  fullResponse          Json
+  manualReviewRequired  Boolean  @default(false)
+  manualReviewReason    String?
+  createdAt             DateTime @default(now())
+
+  kycVerification       KycVerification @relation(fields: [verificationId], references: [id], onDelete: Cascade)
+
+  @@index([verificationId], name: "idx_facetec_results_verification")
+}
+
+model Document {
+  id                 String   @id @default(uuid())
+  verificationId     String
+  documentType       String
+  filePath           String
+  fileName           String
+  fileSize           Int?
+  mimeType           String?
+  verificationStatus String   @default("pending")
+  ocrData            Json?
+  reviewerId         String?
+  reviewNotes        String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  kycVerification    KycVerification @relation(fields: [verificationId], references: [id], onDelete: Cascade)
+  reviewer           User?           @relation(fields: [reviewerId], references: [id])
+  
+  @@index([verificationId], name: "idx_documents_verification")
+}
+
+model ActivityLog {
+  id             String   @id @default(uuid())
+  userId         String
+  verificationId String?
+  action         String
+  description    String?
+  ipAddress      String?
+  userAgent      String?
+  createdAt      DateTime @default(now())
+
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kycVerification KycVerification? @relation(fields: [verificationId], references: [id])
+
+  @@index([verificationId], name: "idx_activity_logs_verification")
+  @@index([userId], name: "idx_activity_logs_user")
+}
+
+model VerificationSetting {
+  id                    String   @id @default(uuid())
+  companyId             String
+  facetecMatchThreshold Decimal  @default(80.00) @db.Decimal(5,2)
+  requiredDocuments     Json?
+  autoApprovalRules     Json?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+}
+
+model ExternalVerification {
+  id               String   @id @default(uuid())
+  verificationId   String
+  provider         String
+  verificationType String
+  requestData      Json?
+  responseData     Json?
+  status           String?
+  createdAt        DateTime @default(now())
+
+  kycVerification  KycVerification @relation(fields: [verificationId], references: [id], onDelete: Cascade)
+}
+
+model VerificationWorkflow {
+  id               String   @id @default(uuid())
+  verificationId   String
+  currentStep      String
+  stepStatus       String
+  nextStep         String?
+  stepRequirements Json?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  kycVerification  KycVerification @relation(fields: [verificationId], references: [id], onDelete: Cascade)
 }

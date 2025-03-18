@@ -23,19 +23,21 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
+  
     const result = await signIn("credentials", {
       email,
       password,
-      redirect: false, // Evita que NextAuth redirija automáticamente
+      redirect: false, // Importante: No redirigir automáticamente
     });
-
+  
     if (result?.error) {
       setError("Credenciales incorrectas");
     } else {
-      router.push("/"); // Redirige al dashboard después del login
+      // 🔹 Asegurar que la sesión se actualice antes de redirigir
+      window.location.href = "/";
     }
   };
+  
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-100">
