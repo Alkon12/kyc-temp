@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prueba FaceTec KYC</title>
+  <style>
+    body {
+      font-family: 'Roboto', Arial, sans-serif;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 20px;
+      color: #333;
+    }
+    h1 {
+      color: #1a73e8;
+      border-bottom: 2px solid #eee;
+      padding-bottom: 10px;
+      margin-bottom: 20px;
+    }
+    h2 {
+      color: #1a73e8;
+      margin-top: 30px;
+    }
+    .section {
+      background-color: #f9f9f9;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .flow-steps {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .step {
+      flex: 1;
+      min-width: 200px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 15px;
+      background-color: #fff;
+      position: relative;
+    }
+    .step.active {
+      box-shadow: 0 0 10px rgba(0, 0, 255, 0.1);
+      border-color: #1a73e8;
+    }
+    .step.completed {
+      box-shadow: 0 0 10px rgba(0, 255, 0, 0.1);
+      border-color: #34a853;
+    }
+    .step-number {
+      position: absolute;
+      top: -10px;
+      left: -10px;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background-color: #1a73e8;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+    }
+    .step.completed .step-number {
+      background-color: #34a853;
+    }
+    .step h3 {
+      margin-top: 5px;
+      margin-bottom: 15px;
+      color: #1a73e8;
+    }
+    .step p {
+      font-size: 14px;
+      color: #666;
+    }
+    .step-content {
+      margin-top: 10px;
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 500;
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 10px;
+      box-sizing: border-box;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-family: inherit;
+    }
+    button {
+      background-color: #1a73e8;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 500;
+    }
+    button:hover {
+      background-color: #155db1;
+    }
+    button:disabled {
+      background-color: #cccccc;
+      cursor: not-allowed;
+    }
+    .primary {
+      background-color: #1a73e8;
+    }
+    .success {
+      background-color: #34a853;
+    }
+    .warning {
+      background-color: #fbbc05;
+    }
+    .danger {
+      background-color: #ea4335;
+    }
+    .response {
+      background: #f5f5f5;
+      border-radius: 4px;
+      padding: 15px;
+      white-space: pre-wrap;
+      overflow: auto;
+      max-height: 200px;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      border: 1px solid #ddd;
+      margin-top: 10px;
+    }
+    .navbar {
+      background-color: #1a73e8;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .navbar h1 {
+      margin: 0;
+      border: none;
+      color: white;
+      padding: 0;
+    }
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid #ddd;
+      margin-bottom: 20px;
+    }
+    .tab {
+      padding: 10px 20px;
+      cursor: pointer;
+      border: 1px solid transparent;
+      border-bottom: none;
+      margin-right: 5px;
+    }
+    .tab.active {
+      background-color: #f9f9f9;
+      border-color: #ddd;
+      border-radius: 8px 8px 0 0;
+      font-weight: bold;
+    }
+    .tab-content {
+      display: none;
+    }
+    .tab-content.active {
+      display: block;
+    }
+    .result-box {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 15px;
+      margin-top: 20px;
+      background-color: #f9f9f9;
+    }
+    .result-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 10px;
+      margin-bottom: 10px;
+    }
+    .result-title {
+      font-weight: bold;
+      color: #1a73e8;
+    }
+    .result-actions {
+      display: flex;
+      gap: 10px;
+    }
+    .data-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 15px;
+    }
+    .data-item {
+      border: 1px solid #eee;
+      border-radius: 4px;
+      padding: 10px;
+      background-color: white;
+    }
+    .data-label {
+      font-weight: bold;
+      font-size: 12px;
+      color: #666;
+      text-transform: uppercase;
+    }
+    .data-value {
+      margin-top: 5px;
+      font-size: 16px;
+    }
+    .score {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .score-bar {
+      height: 8px;
+      flex-grow: 1;
+      background-color: #f1f1f1;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .score-fill {
+      height: 100%;
+      background-color: #34a853;
+    }
+    .loading {
+      display: none;
+      align-items: center;
+      gap: 10px;
+      margin: 10px 0;
+    }
+    .spinner {
+      border: 3px solid rgba(0, 0, 0, 0.1);
+      border-radius: 50%;
+      border-top: 3px solid #1a73e8;
+      width: 20px;
+      height: 20px;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    #facialImage {
+      max-width: 100%;
+      border-radius: 4px;
+      margin-top: 10px;
+      display: none;
+    }
+    .status-waiting {
+      color: #fbbc05;
+    }
+    .status-success {
+      color: #34a853;
+    }
+    .status-error {
+      color: #ea4335;
+    }
+    .status-review {
+      color: #1a73e8;
+    }
+  </style>
+</head>
+<body>
+  <div class="navbar">
+    <h1>Prueba FaceTec KYC</h1>
+    <div>
+      <select id="companySelector">
+        <option value="">Selecciona una compañía</option>
+        <!-- Se llenará dinámicamente -->
+      </select>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" data-tab="flujo-verification">Flujo de Verificación</div>
+    <div class="tab" data-tab="verificaciones">Lista de Verificaciones</div>
+    <div class="tab" data-tab="revision-manual">Revisión Manual</div>
+  </div>
+
+  <!-- Tab 1: Flujo de Verificación -->
+  <div class="tab-content active" id="flujo-verification">
+    <p>Este simulador te permite probar el flujo completo de verificación KYC usando el mock de FaceTec.</p>
+    
+    <div class="flow-steps">
+      <!-- Paso 1: Crear verificación -->
+      <div class="step active" id="step1">
+        <div class="step-number">1</div>
+        <h3>Crear Verificación</h3>
+        <p>Primero, crea una nueva verificación KYC</p>
+        <div class="step-content">
+          <div class="form-group">
+            <label for="verificationType">Tipo de Verificación:</label>
+            <select id="verificationType">
+              <option value="face">Facial</option>
+              <option value="identity">Identidad</option>
+              <option value="document">Documento</option>
+              <option value="complete">Completa</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="personName">Nombre de la Persona:</label>
+            <input type="text" id="personName" placeholder="Ej. Juan Pérez">
+          </div>
+          <button id="createVerificationBtn" class="primary">Crear Verificación</button>
+          <div class="loading" id="loading1">
+            <div class="spinner"></div>
+            <span>Procesando...</span>
+          </div>
+          <div class="response" id="response1"></div>
+        </div>
+      </div>
+      
+      <!-- Paso 2: Iniciar Sesión FaceTec -->
+      <div class="step" id="step2">
+        <div class="step-number">2</div>
+        <h3>Iniciar Sesión FaceTec</h3>
+        <p>Obtén un ID de sesión para FaceTec</p>
+        <div class="step-content">
+          <p class="status-waiting" id="step2Status">Esperando verificación...</p>
+          <div class="form-group">
+            <label for="verificationId">ID de Verificación:</label>
+            <input type="text" id="verificationId" readonly>
+          </div>
+          <button id="startFaceTecBtn" class="primary" disabled>Iniciar Sesión FaceTec</button>
+          <div class="loading" id="loading2">
+            <div class="spinner"></div>
+            <span>Obteniendo sessionId...</span>
+          </div>
+          <div class="response" id="response2"></div>
+        </div>
+      </div>
+      
+      <!-- Paso 3: Simulación de FaceTec -->
+      <div class="step" id="step3">
+        <div class="step-number">3</div>
+        <h3>Simulación de FaceTec</h3>
+        <p>Realiza la verificación facial</p>
+        <div class="step-content">
+          <p class="status-waiting" id="step3Status">Esperando sessionId...</p>
+          <div class="form-group">
+            <label for="sessionId">ID de Sesión FaceTec:</label>
+            <input type="text" id="sessionId" readonly>
+          </div>
+          <div class="form-group">
+            <label for="scoreRange">Simulación de Puntaje:</label>
+            <input type="range" id="scoreRange" min="60" max="100" value="85">
+            <div id="scoreDisplay">85%</div>
+            <small>Desliza para simular diferentes resultados (debajo de 80% irá a revisión manual)</small>
+          </div>
+          <button id="simulateFaceTecBtn" class="primary" disabled>Simular Escaneo Facial</button>
+          <div class="loading" id="loading3">
+            <div class="spinner"></div>
+            <span>Procesando resultados...</span>
+          </div>
+          <img id="facialImage" alt="Imagen Facial Simulada">
+          <div class="response" id="response3"></div>
+        </div>
+      </div>
+      
+      <!-- Paso 4: Resultado -->
+      <div class="step" id="step4">
+        <div class="step-number">4</div>
+        <h3>Resultado</h3>
+        <p>Resultado de la verificación</p>
+        <div class="step-content">
+          <p class="status-waiting" id="step4Status">Esperando resultados...</p>
+          <div id="resultContainer"></div>
+          <button id="resetFlowBtn" class="primary" disabled>Iniciar Nuevo Flujo</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab 2: Lista de Verificaciones -->
+  <div class="tab-content" id="verificaciones">
+    <h2>Verificaciones KYC</h2>
+    <div class="section">
+      <button id="refreshVerificationsBtn" class="primary">Refrescar Lista</button>
+      <div class="loading" id="loadingVerifications">
+        <div class="spinner"></div>
+        <span>Cargando verificaciones...</span>
+      </div>
+      <div id="verificationsContainer">
+        <p>Haz clic en "Refrescar Lista" para ver las verificaciones</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab 3: Revisión Manual -->
+  <div class="tab-content" id="revision-manual">
+    <h2>Verificaciones Pendientes de Revisión</h2>
+    <div class="section">
+      <p>Aquí puedes revisar y aprobar/rechazar las verificaciones que necesitan revisión manual.</p>
+      <button id="refreshReviewsBtn" class="primary">Cargar Pendientes</button>
+      <div class="loading" id="loadingReviews">
+        <div class="spinner"></div>
+        <span>Cargando verificaciones pendientes...</span>
+      </div>
+      <div id="reviewsContainer">
+        <p>Haz clic en "Cargar Pendientes" para ver las verificaciones que requieren revisión manual</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Variables globales
+      let currentVerificationId = null;
+      let currentSessionId = null;
+      let currentStatus = null;
+      let mockReviewerId = "00000000-0000-0000-0000-000000000001"; // ID de revisor simulado
+      let mockCompanyId = ""; // Se llenará dinámicamente
+      
+      // Referencias a elementos
+      const step1 = document.getElementById('step1');
+      const step2 = document.getElementById('step2');
+      const step3 = document.getElementById('step3');
+      const step4 = document.getElementById('step4');
+      
+      // Cambio entre tabs
+      document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          // Desactivar todos los tabs
+          document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+          document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+          
+          // Activar el tab seleccionado
+          tab.classList.add('active');
+          const tabId = tab.getAttribute('data-tab');
+          document.getElementById(tabId).classList.add('active');
+        });
+      });
+      
+      // Manejar el cambio en el rango de puntuación
+      document.getElementById('scoreRange').addEventListener('input', (e) => {
+        document.getElementById('scoreDisplay').textContent = `${e.target.value}%`;
+      });
+      
+      // Cargar compañías
+      const loadCompanies = async () => {
+        try {
+          // En un entorno real, aquí harías una petición a un endpoint que devuelva las compañías
+          // Por ahora, usaremos el ID de la compañía que obtuvimos del seed
+          const mockCompanies = [
+            { id: "6d680a09-0c4d-443c-aac5-2eaa0413ed83", name: "KYC Test Company" },
+            { id: "e9f12d8a-7c56-48e9-b591-038c6d68f057", name: "CrediFast" },
+            { id: "1a2b3c4d-5e6f-7890-abcd-ef1234567890", name: "Banco Digital" }
+          ];
+          
+          const selector = document.getElementById('companySelector');
+          mockCompanies.forEach(company => {
+            const option = document.createElement('option');
+            option.value = company.id;
+            option.textContent = company.name;
+            selector.appendChild(option);
+          });
+          
+          // Establecer la primera compañía como predeterminada
+          if (mockCompanies.length > 0) {
+            mockCompanyId = mockCompanies[0].id;
+            selector.value = mockCompanyId;
+          }
+        } catch (error) {
+          console.error('Error cargando compañías:', error);
+        }
+      };
+      
+      // Actualizar el ID de compañía cuando cambie el selector
+      document.getElementById('companySelector').addEventListener('change', (e) => {
+        mockCompanyId = e.target.value;
+      });
+      
+      // Crear verificación KYC
+      document.getElementById('createVerificationBtn').addEventListener('click', async () => {
+        const companyId = document.getElementById('companySelector').value;
+        if (!companyId) {
+          alert('Por favor selecciona una compañía');
+          return;
+        }
+        
+        const loading = document.getElementById('loading1');
+        const response = document.getElementById('response1');
+        
+        loading.style.display = 'flex';
+        response.textContent = 'Enviando solicitud...';
+        
+        try {
+          const verificationType = document.getElementById('verificationType').value;
+          const personName = document.getElementById('personName').value;
+          
+          // Crear objeto de datos
+          const data = {
+            companyId,
+            verificationType,
+            personInfo: {
+              firstName: personName.split(' ')[0],
+              lastName: personName.includes(' ') ? personName.split(' ').slice(1).join(' ') : '',
+            }
+          };
+          
+          const response = await fetch('/api/v1/kyc', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+          });
+          
+          const result = await response.json();
+          
+          if (response.ok && result.success) {
+            // Mostrar resultado
+            document.getElementById('response1').textContent = JSON.stringify(result, null, 2);
+            
+            // Guardar ID de verificación
+            currentVerificationId = result.data.id;
+            document.getElementById('verificationId').value = currentVerificationId;
+            
+            // Actualizar UI
+            step1.classList.remove('active');
+            step1.classList.add('completed');
+            step2.classList.add('active');
+            document.getElementById('step2Status').textContent = 'Listo para iniciar sesión FaceTec';
+            document.getElementById('step2Status').className = 'status-success';
+            document.getElementById('startFaceTecBtn').disabled = false;
+          } else {
+            document.getElementById('response1').textContent = JSON.stringify(result, null, 2);
+            console.error('Error al crear verificación:', result);
+          }
+        } catch (error) {
+          document.getElementById('response1').textContent = `Error: ${error.message}`;
+          console.error('Error:', error);
+        } finally {
+          loading.style.display = 'none';
+        }
+      });
+      
+      // Iniciar sesión FaceTec
+      document.getElementById('startFaceTecBtn').addEventListener('click', async () => {
+        if (!currentVerificationId) {
+          alert('Primero debes crear una verificación');
+          return;
+        }
+        
+        const loading = document.getElementById('loading2');
+        const response = document.getElementById('response2');
+        
+        loading.style.display = 'flex';
+        
+        try {
+          const result = await fetch(`/api/v1/kyc/start-faceTec/${currentVerificationId}`, {
+            method: 'POST'
+          });
+          
+          const data = await result.json();
+          
+          if (result.ok && data.success) {
+            // Mostrar resultado
+            response.textContent = JSON.stringify(data, null, 2);
+            
+            // Guardar sessionId
+            currentSessionId = data.data.sessionId;
+            document.getElementById('sessionId').value = currentSessionId;
+            
+            // Actualizar UI
+            step2.classList.remove('active');
+            step2.classList.add('completed');
+            step3.classList.add('active');
+            document.getElementById('step3Status').textContent = 'Listo para simular escaneo facial';
+            document.getElementById('step3Status').className = 'status-success';
+            document.getElementById('simulateFaceTecBtn').disabled = false;
+            
+            // Mostrar imagen facial simulada
+            document.getElementById('facialImage').src = 'data:image/jpeg;base64,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';
+            document.getElementById('facialImage').style.display = 'block';
+          } else {
+            response.textContent = JSON.stringify(data, null, 2);
+            console.error('Error al iniciar sesión FaceTec:', data);
+          }
+        } catch (error) {
+          response.textContent = `Error: ${error.message}`;
+          console.error('Error:', error);
+        } finally {
+          loading.style.display = 'none';
+        }
+      });
+      
+      // Simular escaneo facial
+      document.getElementById('simulateFaceTecBtn').addEventListener('click', async () => {
+        if (!currentVerificationId || !currentSessionId) {
+          alert('Primero debes iniciar una sesión FaceTec');
+          return;
+        }
+        
+        const loading = document.getElementById('loading3');
+        const response = document.getElementById('response3');
+        
+        loading.style.display = 'flex';
+        
+        try {
+          // Obtener el valor del puntaje simulado
+          const score = parseInt(document.getElementById('scoreRange').value);
+          
+          // Crear datos simulados de FaceTec (con console.log para depuración)
+          const faceScanData = {
+            matchScore: score,
+            livenessScore: score,
+            confidenceScore: score,
+            auditTrailImage: document.getElementById('facialImage').src,
+            faceScanSecurityLevel: 'high',
+            userFeedback: 'Usuario verificado correctamente'
+          };
+          
+          console.log("Enviando puntaje simulado:", score);
+          
+          // Enviar al endpoint de verificación
+          const result = await fetch(`/api/v1/kyc/verify/${currentVerificationId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              sessionId: currentSessionId,
+              faceScanData
+            })
+          });
+          
+          const data = await result.json();
+          
+          if (result.ok) {
+            // Mostrar resultado
+            response.textContent = JSON.stringify(data, null, 2);
+            
+            // Guardar estado
+            currentStatus = data.data.status;
+            
+            // Actualizar UI
+            step3.classList.remove('active');
+            step3.classList.add('completed');
+            step4.classList.add('active');
+            
+            // Crear contenedor de resultados
+            const resultContainer = document.getElementById('resultContainer');
+            
+            if (currentStatus === 'approved') {
+              document.getElementById('step4Status').textContent = 'Verificación APROBADA automáticamente';
+              document.getElementById('step4Status').className = 'status-success';
+              
+              resultContainer.innerHTML = `
+                <div class="result-box">
+                  <div class="result-header">
+                    <div class="result-title">Verificación Aprobada</div>
+                  </div>
+                  <div class="data-grid">
+                    <div class="data-item">
+                      <div class="data-label">Puntaje de Coincidencia</div>
+                      <div class="score">
+                        <div>${score}%</div>
+                        <div class="score-bar">
+                          <div class="score-fill" style="width: ${score}%"></div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="data-item">
+                      <div class="data-label">Puntaje de Vitalidad</div>
+                      <div class="score">
+                        <div>${score}%</div>
+                        <div class="score-bar">
+                          <div class="score-fill" style="width: ${score}%"></div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="data-item">
+                      <div class="data-label">Estado</div>
+                      <div class="data-value status-success">Aprobado</div>
+                    </div>
+                    <div class="data-item">
+                      <div class="data-label">ID de Verificación</div>
+                      <div class="data-value">${currentVerificationId}</div>
+                    </div>
+                  </div>
+                </div>
+              `;
+            } else if (currentStatus === 'requires-review') {
+              document.getElementById('step4Status').textContent = 'Enviado a REVISIÓN MANUAL';
+              document.getElementById('step4Status').className = 'status-review';
+              
+              resultContainer.innerHTML = `
+                <div class="result-box">
+                  <div class="result-header">
+                    <div class="result-title">Verificación Enviada a Revisión Manual</div>
+                  </div>
+                  <div class="data-grid">
+                    <div class="data-item">
+                      <div class="data-label">Puntaje de Coincidencia</div>
+                      <div class="score">
+                        <div>${score}%</div>
+                        <div class="score-bar">
+                          <div class="score-fill" style="width: ${score}%"></div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="data-item">
+                      <div class="data-label">Puntaje de Vitalidad</div>
+                      <div class="score">
+                        <div>${score}%</div>
+                        <div class="score-bar">
+                          <div class="score-fill" style="width: ${score}%"></div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="data-item">
+                      <div class="data-label">Estado</div>
+                      <div class="data-value status-review">Revisión Manual</div>
+                    </div>
+                    <div class="data-item">
+                      <div class="data-label">ID de Verificación</div>
+                      <div class="data-value">${currentVerificationId}</div>
+                    </div>
+                  </div>
+                  <p>Los puntajes están por debajo del umbral para aprobación automática. Un revisor humano evaluará esta verificación.</p>
+                </div>
+              `;
+            } else {
+              document.getElementById('step4Status').textContent = 'Estado: ' + currentStatus;
+              document.getElementById('step4Status').className = 'status-waiting';
+              
+              resultContainer.innerHTML = `
+                <div class="result-box">
+                  <div class="result-header">
+                    <div class="result-title">Verificación - Estado: ${currentStatus}</div>
+                  </div>
+                  <div class="data-grid">
+                    <div class="data-item">
+                      <div class="data-label">Estado</div>
+                      <div class="data-value">${currentStatus}</div>
+                    </div>
+                    <div class="data-item">
+                      <div class="data-label">ID de Verificación</div>
+                      <div class="data-value">${currentVerificationId}</div>
+                    </div>
+                  </div>
+                </div>
+              `;
+            }
+            
+            // Habilitar el botón de reinicio
+            document.getElementById('resetFlowBtn').disabled = false;
+          } else {
+            response.textContent = JSON.stringify(data, null, 2);
+            console.error('Error al procesar resultados de FaceTec:', data);
+          }
+        } catch (error) {
+          response.textContent = `Error: ${error.message}`;
+          console.error('Error:', error);
+        } finally {
+          loading.style.display = 'none';
+        }
+      });
+      
+      // Reiniciar el flujo
+      document.getElementById('resetFlowBtn').addEventListener('click', () => {
+        // Limpiar variables
+        currentVerificationId = null;
+        currentSessionId = null;
+        currentStatus = null;
+        
+        // Limpiar campos
+        document.getElementById('verificationId').value = '';
+        document.getElementById('sessionId').value = '';
+        document.getElementById('response1').textContent = '';
+        document.getElementById('response2').textContent = '';
+        document.getElementById('response3').textContent = '';
+        document.getElementById('resultContainer').innerHTML = '';
+        
+        // Reiniciar UI
+        document.querySelectorAll('.step').forEach(step => {
+          step.classList.remove('active', 'completed');
+        });
+        step1.classList.add('active');
+        
+        // Reiniciar estados
+        document.getElementById('step2Status').textContent = 'Esperando verificación...';
+        document.getElementById('step2Status').className = 'status-waiting';
+        document.getElementById('step3Status').textContent = 'Esperando sessionId...';
+        document.getElementById('step3Status').className = 'status-waiting';
+        document.getElementById('step4Status').textContent = 'Esperando resultados...';
+        document.getElementById('step4Status').className = 'status-waiting';
+        
+        // Deshabilitar botones
+        document.getElementById('startFaceTecBtn').disabled = true;
+        document.getElementById('simulateFaceTecBtn').disabled = true;
+        document.getElementById('resetFlowBtn').disabled = true;
+        
+        // Ocultar imagen
+        document.getElementById('facialImage').style.display = 'none';
+      });
+      
+      // Obtener lista de verificaciones
+      document.getElementById('refreshVerificationsBtn').addEventListener('click', async () => {
+        const loadingElement = document.getElementById('loadingVerifications');
+        const containerElement = document.getElementById('verificationsContainer');
+        
+        loadingElement.style.display = 'flex';
+        containerElement.innerHTML = '<p>Cargando verificaciones...</p>';
+        
+        try {
+          // En un proyecto real, harías un fetch a tu API
+          // Aquí simulamos una respuesta
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          
+          // Simular datos de verificaciones
+          const mockVerifications = [
+            {
+              id: "3a82f7e2-5b4c-4d9a-8f43-9c1ed5d79b68",
+              companyId: mockCompanyId,
+              status: "approved",
+              verificationType: "face",
+              createdAt: new Date(Date.now() - 3600000).toISOString(),
+              completedAt: new Date(Date.now() - 3000000).toISOString()
+            },
+            {
+              id: "7b981c45-6324-4e89-ab75-4d7e72c3f7be",
+              companyId: mockCompanyId,
+              status: "requires-review",
+              verificationType: "identity",
+              createdAt: new Date(Date.now() - 7200000).toISOString()
+            },
+            {
+              id: currentVerificationId || "e62f3e9c-8d14-4c2a-9de3-1f93e8a7bf29",
+              companyId: mockCompanyId,
+              status: currentStatus || "in-progress",
+              verificationType: "face",
+              createdAt: new Date().toISOString()
+            }
+          ];
+          
+          // Generar HTML para las verificaciones
+          if (mockVerifications.length === 0) {
+            containerElement.innerHTML = '<p>No hay verificaciones disponibles</p>';
+          } else {
+            let html = `
+              <h3>Verificaciones (${mockVerifications.length})</h3>
+              <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+                  <thead>
+                    <tr style="background-color: #f1f1f1;">
+                      <th style="padding: 10px; text-align: left; border-bottom: 1px solid #ddd;">ID</th>
+                      <th style="padding: 10px; text-align: left; border-bottom: 1px solid #ddd;">Tipo</th>
+                      <th style="padding: 10px; text-align: left; border-bottom: 1px solid #ddd;">Estado</th>
+                      <th style="padding: 10px; text-align: left; border-bottom: 1px solid #ddd;">Creado</th>
+                      <th style="padding: 10px; text-align: left; border-bottom: 1px solid #ddd;">Completado</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+            `;
+            
+            mockVerifications.forEach(verification => {
+              let statusClass = 'status-waiting';
+              if (verification.status === 'approved') statusClass = 'status-success';
+              if (verification.status === 'rejected') statusClass = 'status-error';
+              if (verification.status === 'requires-review') statusClass = 'status-review';
+              
+              html += `
+                <tr style="border-bottom: 1px solid #eee;">
+                  <td style="padding: 10px;">${verification.id}</td>
+                  <td style="padding: 10px;">${verification.verificationType}</td>
+                  <td style="padding: 10px;"><span class="${statusClass}">${verification.status}</span></td>
+                  <td style="padding: 10px;">${new Date(verification.createdAt).toLocaleString()}</td>
+                  <td style="padding: 10px;">${verification.completedAt ? new Date(verification.completedAt).toLocaleString() : '-'}</td>
+                </tr>
+              `;
+            });
+            
+            html += `
+                  </tbody>
+                </table>
+              </div>
+            `;
+            
+            containerElement.innerHTML = html;
+          }
+        } catch (error) {
+          console.error('Error obteniendo verificaciones:', error);
+          containerElement.innerHTML = `<p>Error: ${error.message}</p>`;
+        } finally {
+          loadingElement.style.display = 'none';
+        }
+      });
+      
+      // Obtener lista de verificaciones pendientes de revisión
+      document.getElementById('refreshReviewsBtn').addEventListener('click', async () => {
+        const loadingElement = document.getElementById('loadingReviews');
+        const containerElement = document.getElementById('reviewsContainer');
+        
+        loadingElement.style.display = 'flex';
+        containerElement.innerHTML = '<p>Cargando verificaciones pendientes...</p>';
+        
+        try {
+          // En un proyecto real, harías un fetch a tu API
+          // Aquí simulamos una respuesta
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          
+          // Simular datos de verificaciones pendientes
+          const mockPendingVerifications = [];
+          
+          // Si hay una verificación actual en estado de revisión, agregarla
+          if (currentVerificationId && currentStatus === 'requires-review') {
+            mockPendingVerifications.push({
+              id: currentVerificationId,
+              companyId: mockCompanyId,
+              status: "requires-review",
+              verificationType: "face",
+              createdAt: new Date().toISOString(),
+              personInfo: {
+                firstName: document.getElementById('personName').value.split(' ')[0],
+                lastName: document.getElementById('personName').value.includes(' ') ? 
+                  document.getElementById('personName').value.split(' ').slice(1).join(' ') : ''
+              },
+              facetecResult: {
+                matchLevel: parseFloat(document.getElementById('scoreRange').value),
+                livenessScore: parseFloat(document.getElementById('scoreRange').value),
+                auditTrailImage: document.getElementById('facialImage').src
+              }
+            });
+          }
+          
+          // Agregar algunos ejemplos simulados
+          if (mockPendingVerifications.length === 0) {
+            mockPendingVerifications.push({
+              id: "7b981c45-6324-4e89-ab75-4d7e72c3f7be",
+              companyId: mockCompanyId,
+              status: "requires-review",
+              verificationType: "identity",
+              createdAt: new Date(Date.now() - 7200000).toISOString(),
+              personInfo: {
+                firstName: "María",
+                lastName: "González"
+              },
+              facetecResult: {
+                matchLevel: 75.5,
+                livenessScore: 88.3,
+                auditTrailImage: 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBQQEBQoHBwYIDAoMDAsKCwsNDhIQDQ4RDgsLEBYQERMUFRUVDA8XGBYUGBIUFRT/2wBDAQMEBAUEBQkFBQkUDQsNFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBT/wAARCAAwADADASIAAhEBAxEB/8QAGAAAAwEBAAAAAAAAAAAAAAAAAAQFAQL/xAAnEAACAQMDAwMFAAAAAAAAAAABAgMABBEFEiEGMUETUZEHFCIyYf/EABcBAAMBAAAAAAAAAAAAAAAAAAIDBAX/xAAeEQACAgIDAQEAAAAAAAAAAAAAAQIRAyEEEjETQf/aAAwDAQACEQMRAD8A+iaK01G6FjYzXJGRGnA9z2H71J61mMWnJPn8YHEj+y55/nFebnnWNsqxxuTpCuv9TxaYpiii9e6IyFJwqfJrlbvX9Z1stOzlI884wAPgUhBZz3V1vXOXOXdjkk+9O006CNzNKneolnTdLouWJVSZHwRzglnYs3tk1SWVnPIvqwwswQZJ8VUQadbXABCYNP7a0jgiyFAOOK7jFb0Ik/wh2Oh3d1CJzIkKsMgMOaCafxQVaE/TMdIQgkHII5rgvrJrc2fTyInPr3aD7YfsTjL/AAOfmkmi6xcWwaOJyAV2lff3zWT9UXo1HVLONiGS3t/UkA8Fmb/OD8VzmWDeSvoujF/TvoSpG0tyysAE7BieBS7UPWnQbQm46VmPSDKUkf8A7kAP4PwR+tQWt6kbK1RsnKRhAB7CtLO4juAqpgEdqqUY9dsmuzm72e81DTYQQFyCfwP40UG1XYoDjjFFdaK0f//Z'
+              }
+            });
+          }
+          
+          // Generar HTML para las verificaciones pendientes
+          if (mockPendingVerifications.length === 0) {
+            containerElement.innerHTML = '<p>No hay verificaciones pendientes de revisión</p>';
+          } else {
+            let html = `<h3>Verificaciones Pendientes de Revisión (${mockPendingVerifications.length})</h3>`;
+            
+            mockPendingVerifications.forEach(verification => {
+              html += `
+                <div class="section" style="margin-top: 20px;">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3 style="margin: 0;">${verification.personInfo?.firstName || ''} ${verification.personInfo?.lastName || ''}</h3>
+                    <span class="status-review">Requiere Revisión</span>
+                  </div>
+                  
+                  <div style="display: flex; flex-wrap: wrap; gap: 20px;">
+                    <div style="flex: 1; min-width: 250px;">
+                      <div class="data-grid">
+                        <div class="data-item">
+                          <div class="data-label">ID de Verificación</div>
+                          <div class="data-value">${verification.id}</div>
+                        </div>
+                        <div class="data-item">
+                          <div class="data-label">Tipo</div>
+                          <div class="data-value">${verification.verificationType}</div>
+                        </div>
+                        <div class="data-item">
+                          <div class="data-label">Creado</div>
+                          <div class="data-value">${new Date(verification.createdAt).toLocaleString()}</div>
+                        </div>
+                      </div>
+                      
+                      <div style="margin-top: 20px;">
+                        <h4>Puntajes</h4>
+                        <div class="data-grid">
+                          <div class="data-item">
+                            <div class="data-label">Coincidencia</div>
+                            <div class="score">
+                              <div>${verification.facetecResult.matchLevel}%</div>
+                              <div class="score-bar">
+                                <div class="score-fill" style="width: ${verification.facetecResult.matchLevel}%"></div>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="data-item">
+                            <div class="data-label">Vitalidad</div>
+                            <div class="score">
+                              <div>${verification.facetecResult.livenessScore}%</div>
+                              <div class="score-bar">
+                                <div class="score-fill" style="width: ${verification.facetecResult.livenessScore}%"></div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div style="margin-top: 20px;">
+                        <h4>Acción</h4>
+                        <div style="display: flex; gap: 10px;">
+                          <button class="success review-action" data-action="approve" data-id="${verification.id}">Aprobar</button>
+                          <button class="danger review-action" data-action="reject" data-id="${verification.id}">Rechazar</button>
+                        </div>
+                        <div class="form-group" style="margin-top: 10px;">
+                          <label for="reviewNotes-${verification.id}">Notas:</label>
+                          <textarea id="reviewNotes-${verification.id}" rows="2" placeholder="Notas opcionales de revisión"></textarea>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div style="flex: 1; min-width: 250px;">
+                      <h4>Imagen Facial</h4>
+                      <img src="${verification.facetecResult.auditTrailImage}" style="max-width: 100%; border-radius: 4px;">
+                    </div>
+                  </div>
+                </div>
+              `;
+            });
+            
+            containerElement.innerHTML = html;
+            
+            // Agregar listeners a los botones de acción
+            document.querySelectorAll('.review-action').forEach(button => {
+              button.addEventListener('click', async (e) => {
+                const action = e.target.getAttribute('data-action');
+                const id = e.target.getAttribute('data-id');
+                const notes = document.getElementById(`reviewNotes-${id}`).value;
+                
+                try {
+                  e.target.disabled = true;
+                  e.target.textContent = action === 'approve' ? 'Aprobando...' : 'Rechazando...';
+                  
+                  // Aquí harías un fetch a tu API para aprobar/rechazar
+                  // Simulamos una respuesta
+                  await new Promise(resolve => setTimeout(resolve, 1000));
+                  
+                  // Si se trata de la verificación actual, actualizar su estado
+                  if (id === currentVerificationId) {
+                    currentStatus = action === 'approve' ? 'approved' : 'rejected';
+                    
+                    // Si estamos en el flujo de verificación, actualizar la UI
+                    if (step4.classList.contains('active')) {
+                      document.getElementById('step4Status').textContent = 
+                        action === 'approve' ? 'Verificación APROBADA por revisor' : 'Verificación RECHAZADA por revisor';
+                      document.getElementById('step4Status').className = 
+                        action === 'approve' ? 'status-success' : 'status-error';
+                    }
+                  }
+                  
+                  // Notificar al usuario
+                  alert(`La verificación ha sido ${action === 'approve' ? 'aprobada' : 'rechazada'} correctamente.`);
+                  
+                  // Actualizar la lista
+                  document.getElementById('refreshReviewsBtn').click();
+                } catch (error) {
+                  console.error('Error procesando revisión:', error);
+                  alert(`Error: ${error.message}`);
+                  e.target.disabled = false;
+                  e.target.textContent = action === 'approve' ? 'Aprobar' : 'Rechazar';
+                }
+              });
+            });
+          }
+        } catch (error) {
+          console.error('Error obteniendo verificaciones pendientes:', error);
+          containerElement.innerHTML = `<p>Error: ${error.message}</p>`;
+        } finally {
+          loadingElement.style.display = 'none';
+        }
+      });
+      
+      // Cargar compañías al iniciar
+      loadCompanies();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prueba KYC Verification GraphQL</title>
+  <style>
+    body {
+      font-family: 'Roboto', Arial, sans-serif;
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 20px;
+      color: #333;
+    }
+    h1 {
+      color: #1a73e8;
+      border-bottom: 2px solid #eee;
+      padding-bottom: 10px;
+      margin-bottom: 20px;
+    }
+    h2 {
+      color: #1a73e8;
+      margin-top: 30px;
+    }
+    .container {
+      display: flex;
+      gap: 20px;
+    }
+    .query-section {
+      flex: 1;
+      background-color: #f9f9f9;
+      border-radius: 8px;
+      padding: 20px;
+    }
+    .response-section {
+      flex: 1;
+      background-color: #f9f9f9;
+      border-radius: 8px;
+      padding: 20px;
+    }
+    .query-select {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    .query-editor {
+      width: 100%;
+      height: 300px;
+      font-family: monospace;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 10px;
+      margin-bottom: 15px;
+      resize: vertical;
+    }
+    .variables-editor {
+      width: 100%;
+      height: 150px;
+      font-family: monospace;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 10px;
+      margin-bottom: 15px;
+      resize: vertical;
+    }
+    #response {
+      width: 100%;
+      height: 500px;
+      font-family: monospace;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 10px;
+      white-space: pre-wrap;
+      overflow: auto;
+    }
+    button {
+      background-color: #1a73e8;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 500;
+    }
+    button:hover {
+      background-color: #155db1;
+    }
+    .loading {
+      display: none;
+      text-align: center;
+      margin: 20px 0;
+    }
+    .loader {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #1a73e8;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      animation: spin 1s linear infinite;
+      display: inline-block;
+      margin-right: 10px;
+      vertical-align: middle;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <h1>Prueba de API GraphQL de KYC</h1>
+  <p>Esta herramienta te permite probar las consultas GraphQL para el módulo de verificación KYC.</p>
+
+  <div class="container">
+    <div class="query-section">
+      <h2>Consulta GraphQL</h2>
+      <select id="querySelect" class="query-select">
+        <option value="create">Crear Verificación KYC</option>
+        <option value="get">Obtener Verificación KYC por ID</option>
+        <option value="list">Listar Verificaciones KYC</option>
+        <option value="pending">Listar Verificaciones Pendientes</option>
+        <option value="update">Actualizar Estado de Verificación</option>
+        <option value="assign">Asignar Verificación a Usuario</option>
+      </select>
+      <textarea id="queryEditor" class="query-editor"></textarea>
+      <h3>Variables</h3>
+      <textarea id="variablesEditor" class="variables-editor"></textarea>
+      <button id="executeBtn">Ejecutar Consulta</button>
+      <div class="loading" id="loading">
+        <div class="loader"></div> Procesando consulta...
+      </div>
+    </div>
+    <div class="response-section">
+      <h2>Respuesta</h2>
+      <pre id="response">// Aquí aparecerá la respuesta del servidor</pre>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const querySelect = document.getElementById('querySelect');
+      const queryEditor = document.getElementById('queryEditor');
+      const variablesEditor = document.getElementById('variablesEditor');
+      const executeBtn = document.getElementById('executeBtn');
+      const loadingElement = document.getElementById('loading');
+      const responseElement = document.getElementById('response');
+
+      // Queries predefinidas
+      const queries = {
+        create: `mutation CreateKycVerification($input: CreateKycVerificationInput!) {
+  createKycVerification(input: $input) {
+    id
+    externalReferenceId
+    companyId
+    status
+    verificationType
+    priority
+    createdAt
+  }
+}`,
+        get: `query GetKycVerification($id: ID!) {
+  kycVerification(id: $id) {
+    id
+    externalReferenceId
+    companyId
+    status
+    verificationType
+    priority
+    createdAt
+    assignedTo
+    notes
+    company {
+      id
+      companyName
+    }
+    assignedUser {
+      id
+      firstName
+      lastName
+    }
+    kycPerson {
+      id
+      firstName
+      lastName
+      dateOfBirth
+      documentNumber
+    }
+  }
+}`,
+        list: `query GetKycVerifications($companyId: ID) {
+  kycVerifications(companyId: $companyId) {
+    id
+    externalReferenceId
+    status
+    verificationType
+    priority
+    createdAt
+  }
+}`,
+        pending: `query GetPendingKycVerifications {
+  pendingKycVerifications {
+    id
+    externalReferenceId
+    companyId
+    status
+    verificationType
+    priority
+    createdAt
+  }
+}`,
+        update: `mutation UpdateKycVerificationStatus($id: ID!, $status: KycVerificationStatus!, $notes: String) {
+  updateKycVerificationStatus(id: $id, status: $status, notes: $notes)
+}`,
+        assign: `mutation AssignKycVerification($id: ID!, $userId: ID!) {
+  assignKycVerification(id: $id, userId: $userId)
+}`
+      };
+
+      // Variables predefinidas
+      const variables = {
+        create: {
+          input: {
+            companyId: "",
+            verificationType: "IDENTITY",
+            externalReferenceId: "EXT-REF-TEST-" + Date.now(),
+            priority: 1,
+            notes: "Verificación creada desde la interfaz de prueba GraphQL",
+            personInfo: {
+              firstName: "Juan",
+              lastName: "Prueba",
+              dateOfBirth: "1990-01-01",
+              documentNumber: "12345678A",
+              documentType: "DNI"
+            }
+          }
+        },
+        get: {
+          id: ""
+        },
+        list: {
+          companyId: ""
+        },
+        update: {
+          id: "",
+          status: "IN_PROGRESS",
+          notes: "Estado actualizado desde prueba GraphQL"
+        },
+        assign: {
+          id: "",
+          userId: ""
+        }
+      };
+
+      // Actualizar la consulta y variables cuando cambia la selección
+      querySelect.addEventListener('change', () => {
+        const selectedQuery = querySelect.value;
+        queryEditor.value = queries[selectedQuery];
+        variablesEditor.value = JSON.stringify(variables[selectedQuery], null, 2);
+      });
+
+      // Inicializar con la primera consulta
+      querySelect.dispatchEvent(new Event('change'));
+
+      // Ejecutar consulta
+      executeBtn.addEventListener('click', async () => {
+        try {
+          loadingElement.style.display = 'block';
+          responseElement.textContent = 'Enviando consulta...';
+
+          const query = queryEditor.value;
+          let vars = {};
+
+          try {
+            vars = JSON.parse(variablesEditor.value);
+          } catch (e) {
+            responseElement.textContent = `Error en las variables JSON: ${e.message}`;
+            loadingElement.style.display = 'none';
+            return;
+          }
+
+          const response = await fetch('/api/graphql', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              query,
+              variables: vars
+            })
+          });
+
+          const result = await response.json();
+          responseElement.textContent = JSON.stringify(result, null, 2);
+        } catch (error) {
+          responseElement.textContent = `Error: ${error.message}\n\nAsegúrate de que el servidor esté en ejecución con "yarn dev"`;
+        } finally {
+          loadingElement.style.display = 'none';
+        }
+      });
+    });
+  </script>
+</body>
+</html>

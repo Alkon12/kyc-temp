@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prueba KYC Verification API</title>
+  <style>
+    body {
+      font-family: 'Roboto', Arial, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      color: #333;
+    }
+    h1 {
+      color: #1a73e8;
+      border-bottom: 2px solid #eee;
+      padding-bottom: 10px;
+      margin-bottom: 20px;
+    }
+    h2 {
+      color: #1a73e8;
+      margin-top: 30px;
+    }
+    .form-section {
+      background-color: #f9f9f9;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 500;
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 10px;
+      box-sizing: border-box;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-family: inherit;
+    }
+    button {
+      background-color: #1a73e8;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 500;
+      margin-top: 20px;
+    }
+    button:hover {
+      background-color: #155db1;
+    }
+    .response-container {
+      margin-top: 30px;
+    }
+    .response-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 10px;
+      margin-bottom: 10px;
+    }
+    #response {
+      background: #f5f5f5;
+      border-radius: 4px;
+      padding: 15px;
+      white-space: pre-wrap;
+      overflow: auto;
+      max-height: 400px;
+      font-family: 'Courier New', monospace;
+      border: 1px solid #ddd;
+    }
+    .required {
+      color: #d32f2f;
+      margin-left: 3px;
+    }
+    .copy-btn {
+      background-color: #34a853;
+      padding: 5px 10px;
+      font-size: 14px;
+    }
+    .loading {
+      display: none;
+      text-align: center;
+      margin: 20px 0;
+    }
+    .loader {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #1a73e8;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      animation: spin 1s linear infinite;
+      display: inline-block;
+      margin-right: 10px;
+      vertical-align: middle;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <h1>Prueba de API de Verificación KYC</h1>
+  <p>Esta herramienta te permite probar el endpoint de creación de verificaciones KYC.</p>
+  
+  <form id="kycForm">
+    <div class="form-section">
+      <h2>Datos de la Verificación</h2>
+      
+      <div class="form-group">
+        <label for="companyId">ID de Compañía<span class="required">*</span>:</label>
+        <input type="text" id="companyId" required>
+        <small>El ID de la compañía debe existir en la base de datos</small>
+      </div>
+      
+      <div class="form-group">
+        <label for="verificationType">Tipo de Verificación<span class="required">*</span>:</label>
+        <select id="verificationType" required>
+          <option value="identity">Identidad</option>
+          <option value="address">Dirección</option>
+          <option value="face">Cara</option>
+          <option value="document">Documento</option>
+          <option value="aml">AML</option>
+          <option value="complete">Completa</option>
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <label for="externalReferenceId">ID de Referencia Externa:</label>
+        <input type="text" id="externalReferenceId" placeholder="Ej. REF-12345">
+        <small>Un identificador único para referencia externa</small>
+      </div>
+      
+      <div class="form-group">
+        <label for="priority">Prioridad:</label>
+        <input type="number" id="priority" value="0" min="0" max="5">
+        <small>Valor numérico entre 0 (normal) y 5 (alta)</small>
+      </div>
+      
+      <div class="form-group">
+        <label for="riskLevel">Nivel de Riesgo:</label>
+        <select id="riskLevel">
+          <option value="">-- Seleccionar --</option>
+          <option value="low">Bajo</option>
+          <option value="medium">Medio</option>
+          <option value="high">Alto</option>
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <label for="notes">Notas:</label>
+        <textarea id="notes" rows="3" placeholder="Notas adicionales sobre esta verificación"></textarea>
+      </div>
+      
+      <div class="form-group">
+        <label for="assignToUserId">Asignar a Usuario (ID):</label>
+        <input type="text" id="assignToUserId">
+        <small>ID del usuario al que se asignará esta verificación</small>
+      </div>
+    </div>
+    
+    <div class="form-section">
+      <h2>Información de la Persona</h2>
+      
+      <div class="form-group">
+        <label for="firstName">Nombre:</label>
+        <input type="text" id="firstName" placeholder="Ej. Juan">
+      </div>
+      
+      <div class="form-group">
+        <label for="lastName">Apellido:</label>
+        <input type="text" id="lastName" placeholder="Ej. Pérez">
+      </div>
+      
+      <div class="form-group">
+        <label for="dateOfBirth">Fecha de Nacimiento:</label>
+        <input type="date" id="dateOfBirth">
+      </div>
+      
+      <div class="form-group">
+        <label for="nationality">Nacionalidad:</label>
+        <input type="text" id="nationality" placeholder="Ej. Española">
+      </div>
+      
+      <div class="form-group">
+        <label for="documentNumber">Número de Documento:</label>
+        <input type="text" id="documentNumber" placeholder="Ej. 12345678A">
+      </div>
+      
+      <div class="form-group">
+        <label for="documentType">Tipo de Documento:</label>
+        <input type="text" id="documentType" placeholder="Ej. DNI, Pasaporte">
+      </div>
+      
+      <div class="form-group">
+        <label for="email">Email:</label>
+        <input type="email" id="email" placeholder="Ej. juan.perez@example.com">
+      </div>
+      
+      <div class="form-group">
+        <label for="phone">Teléfono:</label>
+        <input type="tel" id="phone" placeholder="Ej. +34600000000">
+      </div>
+      
+      <div class="form-group">
+        <label for="address">Dirección:</label>
+        <textarea id="address" rows="2" placeholder="Ej. Calle Principal 123, Madrid"></textarea>
+      </div>
+    </div>
+    
+    <button type="submit">Enviar Verificación KYC</button>
+  </form>
+  
+  <div class="loading" id="loading">
+    <div class="loader"></div> Procesando solicitud...
+  </div>
+  
+  <div class="response-container">
+    <div class="response-header">
+      <h2>Respuesta del Servidor</h2>
+      <button class="copy-btn" id="copyBtn">Copiar</button>
+    </div>
+    <pre id="response">// Aquí aparecerá la respuesta del servidor</pre>
+  </div>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Al cargar la página, mostramos información de ayuda para el usuario
+      const responseElement = document.getElementById('response');
+      responseElement.textContent = `// Para probar la API:
+// 1. Completa al menos los campos obligatorios marcados con *
+// 2. Haz clic en "Enviar Verificación KYC"
+// 3. La respuesta del servidor aparecerá aquí
+
+// IMPORTANTE: Necesitas ejecutar el seed de la base de datos primero
+// con el comando: yarn seed`;
+
+      // Manejador de envío del formulario
+      document.getElementById('kycForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const responseElement = document.getElementById('response');
+        const loadingElement = document.getElementById('loading');
+        
+        // Mostrar el indicador de carga
+        loadingElement.style.display = 'block';
+        responseElement.textContent = 'Enviando solicitud...';
+        
+        // Obtener datos del formulario
+        const companyId = document.getElementById('companyId').value;
+        const verificationType = document.getElementById('verificationType').value;
+        
+        // Validar campos requeridos
+        if (!companyId) {
+          responseElement.textContent = 'Error: El ID de Compañía es obligatorio';
+          loadingElement.style.display = 'none';
+          return;
+        }
+        
+        // Construir objeto de datos
+        const data = {
+          companyId,
+          verificationType,
+          externalReferenceId: document.getElementById('externalReferenceId').value || undefined,
+          priority: parseInt(document.getElementById('priority').value) || 0,
+          riskLevel: document.getElementById('riskLevel').value || undefined,
+          notes: document.getElementById('notes').value || undefined,
+          assignToUserId: document.getElementById('assignToUserId').value || undefined
+        };
+        
+        // Añadir información personal si hay algún campo completo
+        const firstName = document.getElementById('firstName').value;
+        const lastName = document.getElementById('lastName').value;
+        const dateOfBirth = document.getElementById('dateOfBirth').value;
+        
+        if (firstName || lastName || dateOfBirth || document.getElementById('documentNumber').value) {
+          data.personInfo = {
+            firstName: firstName || undefined,
+            lastName: lastName || undefined,
+            dateOfBirth: dateOfBirth || undefined,
+            nationality: document.getElementById('nationality').value || undefined,
+            documentNumber: document.getElementById('documentNumber').value || undefined,
+            documentType: document.getElementById('documentType').value || undefined,
+            email: document.getElementById('email').value || undefined,
+            phone: document.getElementById('phone').value || undefined,
+            address: document.getElementById('address').value || undefined
+          };
+        }
+        
+        try {
+          // Enviar solicitud al endpoint
+          const response = await fetch('/api/v1/kyc', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+          });
+          
+          // Obtener y mostrar respuesta
+          const result = await response.json();
+          responseElement.textContent = JSON.stringify(result, null, 2);
+          
+          if (response.ok) {
+            console.log('Verificación KYC creada exitosamente:', result);
+          } else {
+            console.error('Error al crear verificación KYC:', result);
+          }
+        } catch (error) {
+          responseElement.textContent = `Error: ${error.message}\n\nAsegúrate de que el servidor esté en ejecución con "yarn dev"`;
+          console.error('Error:', error);
+        } finally {
+          // Ocultar el indicador de carga
+          loadingElement.style.display = 'none';
+        }
+      });
+      
+      // Función para copiar la respuesta al portapapeles
+      document.getElementById('copyBtn').addEventListener('click', () => {
+        const responseText = document.getElementById('response').textContent;
+        navigator.clipboard.writeText(responseText)
+          .then(() => {
+            const copyBtn = document.getElementById('copyBtn');
+            const originalText = copyBtn.textContent;
+            copyBtn.textContent = 'Copiado!';
+            setTimeout(() => {
+              copyBtn.textContent = originalText;
+            }, 2000);
+          })
+          .catch(err => {
+            console.error('Error al copiar:', err);
+          });
+      });
+    });
+  </script>
+</body>
+</html>

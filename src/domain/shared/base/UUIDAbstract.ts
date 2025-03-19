@@ -6,8 +6,9 @@ export abstract class UUIDAbstract<Brand> extends ValueObject<Brand, string> {
   constructor(id?: string) {
     const _id = id ? id : uuidv4()
 
+    // Agregar más información para depuración
     if (!UUIDAbstract.isValid(_id)) {
-      throw new ValidationError(`Invalid ID [${id}], must be a UUID`)
+      throw new ValidationError(`Invalid ID [${id}], must be a UUID (type: ${typeof id}, value: ${id})`)
     }
     super(_id)
   }

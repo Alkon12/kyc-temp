@@ -1,0 +1,94 @@
+extend type Query {
+  kycVerification(id: ID!): KycVerification
+  kycVerificationByExternalId(externalReferenceId: String!, companyId: ID!): KycVerification
+  kycVerifications(companyId: ID): [KycVerification!]
+  pendingKycVerifications: [KycVerification!]
+  assignedKycVerifications(userId: ID!): [KycVerification!]
+}
+
+extend type Mutation {
+  createKycVerification(input: CreateKycVerificationInput!): KycVerification!
+  updateKycVerificationStatus(id: ID!, status: KycVerificationStatus!, notes: String): Boolean!
+  assignKycVerification(id: ID!, userId: ID!): Boolean!
+}
+
+enum KycVerificationStatus {
+  PENDING
+  IN_PROGRESS
+  APPROVED
+  REJECTED
+  REQUIRES_REVIEW
+}
+
+enum KycVerificationType {
+  IDENTITY
+  ADDRESS
+  FACE
+  DOCUMENT
+  AML
+  COMPLETE
+}
+
+type KycVerification {
+  id: ID!
+  externalReferenceId: String
+  companyId: ID!
+  status: String!
+  riskLevel: String
+  priority: Int!
+  verificationType: String!
+  assignedTo: ID
+  notes: String
+  createdAt: String
+  updatedAt: String
+  completedAt: String
+  
+  company: Company
+  assignedUser: User
+  kycPerson: KycPerson
+}
+
+type KycPerson {
+  id: ID!
+  verificationId: ID!
+  firstName: String
+  lastName: String
+  dateOfBirth: String
+  nationality: String
+  documentNumber: String
+  documentType: String
+  email: String
+  phone: String
+  address: String
+}
+
+type Company {
+  id: ID!
+  companyName: String!
+  apiKey: String
+  status: String!
+  callbackUrl: String
+}
+
+input KycPersonInput {
+  firstName: String
+  lastName: String
+  dateOfBirth: String
+  nationality: String
+  documentNumber: String
+  documentType: String
+  email: String
+  phone: String
+  address: String
+}
+
+input CreateKycVerificationInput {
+  companyId: ID!
+  externalReferenceId: String
+  verificationType: KycVerificationType!
+  priority: Int
+  riskLevel: String
+  notes: String
+  personInfo: KycPersonInput
+  assignToUserId: ID
+}
