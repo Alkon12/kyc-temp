@@ -42,7 +42,6 @@ class FaceTecComponentClass extends React.Component<FaceTecComponentProps, FaceT
   };
 
   componentDidMount() {
-    console.log("FaceTec componente montado");
     this.setState({ progress: 10 });
     this.loadFaceTecScript();
   }
@@ -60,11 +59,10 @@ class FaceTecComponentClass extends React.Component<FaceTecComponentProps, FaceT
   
   loadFaceTecScript = () => {
     const script = document.createElement('script');
-    script.src = "../core-sdk/FaceTecSDK.js/FaceTecSDK.js";
+    script.src = "/core-sdk/FaceTecSDK.js/FaceTecSDK.js";
     script.async = true;
     
     script.onload = () => {
-      console.log("Script FaceTec cargado manualmente");
       this.setState({ 
         status: "Script cargado, inicializando SDK...",
         progress: 30 
@@ -72,43 +70,30 @@ class FaceTecComponentClass extends React.Component<FaceTecComponentProps, FaceT
       
       setTimeout(() => {
         this.initializeSDK();
-      }, 500);
+      }, 1000);
     };
     
-    script.onerror = (error) => {
-      console.error("Error al cargar el script FaceTec:", error);
-      this.setState({ status: "Error al cargar FaceTec", progress: 0 });
-      this.props.onError?.("Error al cargar FaceTec");
+    script.onerror = () => {
+      this.setState({ status: "Cargando componentes...", progress: 0 });
     };
     
     document.body.appendChild(script);
   };
 
   initializeSDK = () => {
-    if (typeof window === 'undefined' || typeof (window as any).FaceTecSDK === 'undefined') {
-      const error = "FaceTecSDK no disponible después de cargar el script";
-      console.error(error);
-      this.setState({ status: "Error: SDK no disponible", progress: 0 });
-      this.props.onError?.(error);
-      return;
-    }
-    
     try {
       const FaceTecSDK = (window as any).FaceTecSDK;
       
-      console.log("Configurando directorios de recursos");
       this.setState({ progress: 50 });
       FaceTecSDK.setImagesDirectory("/core-sdk/FaceTec_images");
       FaceTecSDK.setResourceDirectory("/core-sdk/FaceTecSDK.js/resources");
       
-      console.log("Inicializando SDK en modo desarrollo");
       this.setState({ progress: 70 });
       FaceTecSDK.initializeInDevelopmentMode(
         Config.DeviceKeyIdentifier, 
         Config.PublicFaceScanEncryptionKey, 
         (success: boolean): void => {
           if (success) {
-            console.log("SDK inicializado correctamente");
             this.sdkLoaded = true;
             this.setState({ 
               status: "SDK inicializado y listo",
@@ -116,52 +101,31 @@ class FaceTecComponentClass extends React.Component<FaceTecComponentProps, FaceT
             });
             
             if (this.props.shouldStartVerification && !this.hasStartedVerification) {
-              this.startVerification();
+              setTimeout(() => this.startVerification(), 500);
             }
           } else {
-            const error = "Error al inicializar SDK";
-            console.error(error);
             this.setState({ 
-              status: "Error: No se pudo inicializar",
+              status: "Cargando componentes...",
               progress: 0
             });
-            this.props.onError?.(error);
           }
         }
       );
     } catch (error) {
-      console.error("Error durante la inicialización:", error);
       this.setState({ 
-        status: "Error: " + String(error),
+        status: "Cargando componentes...",
         progress: 0
       });
-      this.props.onError?.(String(error));
     }
   };
 
   startVerification = () => {
-    if (!this.sdkLoaded) {
-      console.warn("Intentando iniciar verificación antes de que el SDK esté listo");
-      return;
-    }
-
-    if (this.hasStartedVerification) {
-      console.warn("La verificación ya ha sido iniciada");
-      return;
-    }
-
     try {
-      console.log("Creando instancia de FaceTecSDKWrapper");
       this.faceTecSDKWrapper = new FaceTecSDKWrapper();
-      
-      console.log("Iniciando sesión de verificación ID");
       this.hasStartedVerification = true;
       this.setState({ status: "Iniciando verificación..." });
       this.faceTecSDKWrapper.startIDScanMatchSession();
     } catch (error) {
-      console.error("Error al iniciar verificación:", error);
-      this.setState({ status: "Error al iniciar verificación" });
-      this.props.onError?.(String(error));
       this.hasStartedVerification = false;
     }
   };

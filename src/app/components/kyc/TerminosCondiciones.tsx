@@ -15,9 +15,16 @@ import { InfoIcon } from "lucide-react";
 interface TerminosCondicionesProps {
   onAceptar: () => void;
   onRechazar: () => void;
+  companyName: string;
+  firstName: string;
 }
 
-const TerminosCondiciones: React.FC<TerminosCondicionesProps> = ({ onAceptar, onRechazar }) => {
+const TerminosCondiciones: React.FC<TerminosCondicionesProps> = ({ 
+  onAceptar, 
+  onRechazar,
+  companyName,
+  firstName 
+}) => {
   return (
     <div className="container mx-auto max-w-4xl p-4">
       <Card className="border-none shadow-lg">
@@ -25,11 +32,11 @@ const TerminosCondiciones: React.FC<TerminosCondicionesProps> = ({ onAceptar, on
           <div className="flex items-center justify-center gap-4">
             <span className="text-3xl">😊</span>
             <CardTitle className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
-              Bienvenidos a AutofinRent
+              Bienvenido a {companyName}
             </CardTitle>
           </div>
           <CardDescription className="text-lg text-muted-foreground">
-            Durante este proceso realizaremos la verificación de tu identidad.
+            Hola {firstName}, durante este proceso realizaremos la verificación de tu identidad.
           </CardDescription>
         </CardHeader>
 
@@ -55,7 +62,7 @@ const TerminosCondiciones: React.FC<TerminosCondicionesProps> = ({ onAceptar, on
                 <section>
                   <h4 className="font-semibold text-gray-800">1. Responsable del Tratamiento de Datos Personales:</h4>
                   <p className="text-gray-600 mt-2">
-                    [Nombre de la Empresa], con domicilio en [dirección completa], es responsable
+                    {companyName}, con domicilio en [dirección completa], es responsable
                     del tratamiento de sus datos personales conforme a lo establecido en la Ley
                     Federal de Protección de Datos Personales en Posesión de los Particulares
                     (LFPDPPP).

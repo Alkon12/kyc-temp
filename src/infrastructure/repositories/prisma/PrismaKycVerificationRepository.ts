@@ -20,6 +20,7 @@ export class PrismaKycVerificationRepository implements KycVerificationRepositor
       include: {
         company: true,
         assignedUser: true,
+        kycPersons: true,
       },
     })
 
