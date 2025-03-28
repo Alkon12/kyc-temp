@@ -50,6 +50,10 @@ export class KycVerificationService implements AbstractKycVerificationService {
     return this.repository.getUnassigned()
   }
 
+  async getPendingReviews(): Promise<KycVerificationEntity[]> {
+    return this.repository.getByStatus(new KycVerificationStatus('requires-review'))
+  }
+
   async create(args: CreateKycVerificationArgs): Promise<KycVerificationEntity> {
     const verification = KycVerificationFactory.create({
       externalReferenceId: args.externalReferenceId,

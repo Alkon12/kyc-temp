@@ -6,7 +6,7 @@ import { UserId } from '@domain/user/models/UserId'
 import { BooleanValue } from '@domain/shared/BooleanValue'
 import { NumberValue } from '@domain/shared/NumberValue'
 
-export type KycVerificationStatus = 'pending' | 'in_progress' | 'approved' | 'rejected'
+export type KycVerificationStatus = 'pending' | 'in_progress' | 'approved' | 'rejected' | 'requires-review'
 
 export type KycVerificationProps = {
   id: KycVerificationId

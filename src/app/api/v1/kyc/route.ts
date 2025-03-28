@@ -5,12 +5,10 @@ import { KycController } from '@interfaces/controllers/KycController'
 
 const kycController = container.get<KycController>(DI.KycController)
 
-// Crear una nueva verificación KYC
 export async function POST(req: Request) {
   try {
     const body = await req.json()
     
-    // Validación básica
     if (!body.companyId) {
       return NextResponse.json({ error: 'companyId is required' }, { status: 400 })
     }
@@ -19,7 +17,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'verificationType is required' }, { status: 400 })
     }
 
-    // Usar el caso de uso directamente en lugar del controlador
     const createKycUseCase = container.get(DI.CreateKycUseCase)
     const result = await createKycUseCase.execute(body)
     
@@ -46,7 +43,6 @@ export async function POST(req: Request) {
   }
 }
 
-// Obtener verificaciones pendientes de revisión manual
 export async function GET(req: Request) {
   try {
     // Implementar lógica para obtener verificaciones pendientes
