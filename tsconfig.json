@@ -35,6 +35,8 @@
       "@service/*": ["src/service/*"],
       "@infrastructure": ["src/infrastructure"],
       "@infrastructure/*": ["src/infrastructure/*"],
+      "@interfaces": ["src/interfaces"],
+      "@interfaces/*": ["src/interfaces/*"],
       "@api": ["src/api"],
       "@api/*": ["src/api/*"],
       "@app": ["src/app"],
