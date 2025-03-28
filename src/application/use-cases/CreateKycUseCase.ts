@@ -10,6 +10,7 @@ import { NumberValue } from '@domain/shared/NumberValue'
 import { KycPersonFactory } from '@domain/kycPerson/KycPersonFactory'
 import type KycPersonRepository from '@domain/kycPerson/KycPersonRepository'
 import { UserId } from '@domain/user/models/UserId'
+import { DateTimeValue } from '@domain/shared/DateTime'
 
 export interface CreateKycVerificationDto {
   companyId: string
@@ -52,7 +53,7 @@ export class CreateKycUseCase {
       assignedTo: dto.assignToUserId ? new UserId(dto.assignToUserId) : undefined,
     })
 
-    // Guardar la verificación KYC
+    // Guardar la verificación KYC primero
     const createdVerification = await this.kycVerificationRepository.create(kycVerification)
 
     // Si hay información de persona, crear y asociar a la verificación
@@ -61,7 +62,7 @@ export class CreateKycUseCase {
         verificationId: createdVerification.getId(),
         firstName: dto.personInfo.firstName ? new StringValue(dto.personInfo.firstName) : undefined,
         lastName: dto.personInfo.lastName ? new StringValue(dto.personInfo.lastName) : undefined,
-        dateOfBirth: dto.personInfo.dateOfBirth ? new Date(dto.personInfo.dateOfBirth) : undefined,
+        dateOfBirth: dto.personInfo.dateOfBirth ? new DateTimeValue(dto.personInfo.dateOfBirth) : undefined,
         nationality: dto.personInfo.nationality ? new StringValue(dto.personInfo.nationality) : undefined,
         documentNumber: dto.personInfo.documentNumber ? new StringValue(dto.personInfo.documentNumber) : undefined,
         documentType: dto.personInfo.documentType ? new StringValue(dto.personInfo.documentType) : undefined,
