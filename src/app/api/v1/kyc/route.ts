@@ -9,21 +9,22 @@ export async function POST(req: Request) {
   try {
     const body = await req.json()
     
-    if (!body.companyId) {
-      return NextResponse.json({ error: 'companyId is required' }, { status: 400 })
-    }
+    // Crear un objeto Request y Response compatible con Express
+    const expressReq = {
+      body,
+      method: 'POST',
+      headers: req.headers,
+      url: req.url
+    } as any
 
-    if (!body.verificationType) {
-      return NextResponse.json({ error: 'verificationType is required' }, { status: 400 })
-    }
+    const expressRes = {
+      status: (code: number) => ({
+        json: (data: any) => NextResponse.json(data, { status: code })
+      })
+    } as any
 
-    const createKycUseCase = container.get(DI.CreateKycUseCase)
-    const result = await createKycUseCase.execute(body)
-    
-    return NextResponse.json({
-      success: true,
-      data: result.toDTO()
-    }, { status: 201 })
+    // Usar el controlador
+    return await kycController.createVerification(expressReq, expressRes)
     
   } catch (error) {
     console.error('Error in KYC API route:', error)

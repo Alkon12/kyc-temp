@@ -43,9 +43,17 @@ export class KycController {
         assignToUserId
       })
 
+      const resultDTO = result.toDTO()
+      
+      // Obtener la URL base de la aplicación
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+      const facetecUrl = `${baseUrl}/facetec?id=${resultDTO.id}`
+
       return res.status(201).json({
         success: true,
-        data: result.toDTO()
+        data: {
+          facetecUrl
+        }
       })
     } catch (error) {
       console.error('Error creating KYC verification:', error)
