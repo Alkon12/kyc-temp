@@ -30,7 +30,7 @@ export async function POST(req: Request) {
     console.error('Error in KYC API route:', error)
     
     // Manejo de errores específicos
-    if (error.name === 'ValidationError') {
+    if (error instanceof Error && error.name === 'ValidationError') {
       return NextResponse.json({
         success: false,
         error: error.message
@@ -52,7 +52,7 @@ export async function GET(req: Request) {
     
     return NextResponse.json({
       success: true,
-      data: pendingVerifications.map(v => v.toDTO())
+      data: pendingVerifications.map((v: any) => v.toDTO())
     })
   } catch (error) {
     console.error('Error in KYC API route:', error)
