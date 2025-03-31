@@ -1,0 +1,37 @@
+meta {
+  name: Update KycPerson
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/graphql
+  body: json
+  auth: bearer
+}
+
+headers {
+  Content-Type: application/json
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "query": "mutation UpdateKycPerson($id: ID!, $input: UpdateKycPersonInput!) { updateKycPerson(id: $id, input: $input) { id verificationId firstName lastName dateOfBirth nationality documentNumber documentType email phone address } }",
+    "variables": {
+      "id": "your-kyc-person-id",
+      "input": {
+        "firstName": "John",
+        "lastName": "Smith",
+        "nationality": "UK",
+        "documentNumber": "987654321",
+        "email": "john.smith@example.com",
+        "phone": "+44123456789",
+        "address": "456 High St, London, UK"
+      }
+    }
+  }
+} 

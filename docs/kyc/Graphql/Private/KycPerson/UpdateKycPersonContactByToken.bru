@@ -1,0 +1,30 @@
+meta {
+  name: Update KycPerson Contact By Token
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/graphql
+  body: json
+  auth: bearer
+}
+
+headers {
+  Content-Type: application/json
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "query": "mutation UpdateKycPersonContactByToken($token: String!, $email: String!, $phone: String!) { updateKycPersonContactByToken(token: $token, email: $email, phone: $phone) { id firstName lastName email phone } }",
+    "variables": {
+      "token": "your-verification-token",
+      "email": "updated-email@example.com",
+      "phone": "+1234567890"
+    }
+  }
+} 

@@ -16,6 +16,10 @@ import { CompanyId } from '@domain/company/models/CompanyId'
 import { KycVerificationType } from '@domain/kycVerification/models/KycVerificationType'
 import { NumberValue } from '@domain/shared/NumberValue'
 import { KycVerificationStatus } from '@domain/kycVerification/models/KycVerificationStatus'
+import AbstractKycPersonService from '@domain/kycPerson/KycPersonService'
+import { KycPersonId } from '@domain/kycPerson/models/KycPersonId'
+import { DateTimeValue } from '@domain/shared/DateTime'
+import { NotFoundError } from '@domain/error'
 
 @injectable()
 export class KycResolvers {
@@ -27,11 +31,15 @@ export class KycResolvers {
         kycVerifications: this.getKycVerifications,
         pendingKycVerifications: this.getPendingKycVerifications,
         assignedKycVerifications: this.getAssignedKycVerifications,
+        getKycPersonById: this.getKycPersonById,
       },
       Mutation: {
         createKycVerification: this.createKycVerification,
         updateKycVerificationStatus: this.updateKycVerificationStatus,
         assignKycVerification: this.assignKycVerification,
+        createKycPerson: this.createKycPerson,
+        updateKycPerson: this.updateKycPerson,
+        updateKycPersonContactByToken: this.updateKycPersonContactByToken,
       },
       KycVerification: {
         company: this.getCompany,
@@ -172,5 +180,100 @@ export class KycResolvers {
       console.error('Error fetching KYC Person for verification:', error)
       return null
     }
+  }
+
+  // New KycPerson resolvers
+  getKycPersonById = async (
+    _parent: unknown,
+    { id }: { id: string },
+    _context: ApiContext | ApiExternalContext,
+  ): Promise<DTO<KycPersonEntity>> => {
+    const kycPersonService = container.get<AbstractKycPersonService>(DI.KycPersonService)
+    const person = await kycPersonService.getById(new KycPersonId(id))
+    
+    return person.toDTO()
+  }
+
+  createKycPerson = async (
+    _parent: unknown,
+    { input }: { input: any },
+    _context: ApiContext | ApiExternalContext,
+  ): Promise<DTO<KycPersonEntity>> => {
+    const kycPersonService = container.get<AbstractKycPersonService>(DI.KycPersonService)
+    
+    const createArgs = {
+      verificationId: new KycVerificationId(input.verificationId),
+      firstName: input.firstName ? new StringValue(input.firstName) : undefined,
+      lastName: input.lastName ? new StringValue(input.lastName) : undefined,
+      dateOfBirth: input.dateOfBirth ? new DateTimeValue(new Date(input.dateOfBirth)) : undefined,
+      nationality: input.nationality ? new StringValue(input.nationality) : undefined,
+      documentNumber: input.documentNumber ? new StringValue(input.documentNumber) : undefined,
+      documentType: input.documentType ? new StringValue(input.documentType) : undefined,
+      email: input.email ? new StringValue(input.email) : undefined,
+      phone: input.phone ? new StringValue(input.phone) : undefined,
+      address: input.address ? new StringValue(input.address) : undefined,
+    }
+    
+    const person = await kycPersonService.create(createArgs)
+    return person.toDTO()
+  }
+
+  updateKycPerson = async (
+    _parent: unknown,
+    { id, input }: { id: string; input: any },
+    _context: ApiContext | ApiExternalContext,
+  ): Promise<DTO<KycPersonEntity>> => {
+    const kycPersonService = container.get<AbstractKycPersonService>(DI.KycPersonService)
+    
+    const updateArgs = {
+      firstName: input.firstName ? new StringValue(input.firstName) : undefined,
+      lastName: input.lastName ? new StringValue(input.lastName) : undefined,
+      dateOfBirth: input.dateOfBirth ? new DateTimeValue(new Date(input.dateOfBirth)) : undefined,
+      nationality: input.nationality ? new StringValue(input.nationality) : undefined,
+      documentNumber: input.documentNumber ? new StringValue(input.documentNumber) : undefined,
+      documentType: input.documentType ? new StringValue(input.documentType) : undefined,
+      email: input.email ? new StringValue(input.email) : undefined,
+      phone: input.phone ? new StringValue(input.phone) : undefined,
+      address: input.address ? new StringValue(input.address) : undefined,
+    }
+    
+    const person = await kycPersonService.update(new KycPersonId(id), updateArgs)
+    return person.toDTO()
+  }
+
+  // New resolver for updating contact information by token
+  updateKycPersonContactByToken = async (
+    _parent: unknown,
+    { token, email, phone }: { token: string; email: string; phone: string },
+    _context: ApiContext | ApiExternalContext,
+  ): Promise<DTO<KycPersonEntity>> => {
+    // Get the verification link from the token
+    const verificationLinkService = container.get(DI.VerificationLinkService)
+    const verificationLink = await verificationLinkService.getByToken(new StringValue(token))
+    
+    if (!verificationLink) {
+      throw new NotFoundError('Verification link not found')
+    }
+    
+    const verificationId = verificationLink.getVerificationId()
+    
+    // Get the KYC person associated with the verification
+    const kycPersonService = container.get<AbstractKycPersonService>(DI.KycPersonService)
+    const people = await kycPersonService.getByVerificationId(verificationId)
+    
+    if (!people || people.length === 0) {
+      throw new NotFoundError('KYC Person not found for this verification')
+    }
+    
+    const person = people[0]
+    
+    // Update the contact information
+    const updateArgs = {
+      email: new StringValue(email),
+      phone: new StringValue(phone),
+    }
+    
+    const updatedPerson = await kycPersonService.update(person.getId(), updateArgs)
+    return updatedPerson.toDTO()
   }
 }

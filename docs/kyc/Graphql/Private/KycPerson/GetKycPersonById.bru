@@ -1,0 +1,28 @@
+meta {
+  name: Get KycPerson By Id
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/graphql
+  body: json
+  auth: bearer
+}
+
+headers {
+  Content-Type: application/json
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "query": "query GetKycPersonById($id: ID!) { getKycPersonById(id: $id) { id verificationId firstName lastName dateOfBirth nationality documentNumber documentType email phone address } }",
+    "variables": {
+      "id": "your-kyc-person-id"
+    }
+  }
+} 

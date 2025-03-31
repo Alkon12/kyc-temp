@@ -4,6 +4,7 @@ import TerminosCondiciones from "../components/kyc/TerminosCondiciones";
 import FaceTecComponent from "../components/kyc/FaceTecComponent";
 import RechazoTerminos from "../components/kyc/RechazoTerminos";
 import EnlaceExpirado from "../components/kyc/EnlaceExpirado";
+import ContactForm from "../components/kyc/ContactForm";
 import { useSearchParams } from 'next/navigation';
 import { gql, useQuery, useMutation, ApolloProvider } from '@apollo/client';
 import { ApolloClient, InMemoryCache, createHttpLink } from '@apollo/client';
@@ -62,7 +63,7 @@ const publicClient = new ApolloClient({
 });
 
 const FaceTecContent: React.FC = () => {
-  const [step, setStep] = useState<'terminos' | 'verificacion' | 'rechazo'>('terminos');
+  const [step, setStep] = useState<'terminos' | 'verificacion' | 'rechazo' | 'contacto'>('terminos');
   const [error, setError] = useState<string | null>(null);
   const [enlaceExpirado, setEnlaceExpirado] = useState(false);
   const faceTecRef = useRef<any>(null);
@@ -191,6 +192,16 @@ const FaceTecContent: React.FC = () => {
     console.error('Error en la verificación:', error);
   };
 
+  const handleVerificationComplete = () => {
+    // After FaceTec verification is complete, show the contact form
+    setStep('contacto');
+  };
+
+  const handleContactSubmit = (email: string, phone: string) => {
+    console.log('Contact info submitted:', email, phone);
+    // You can add additional actions here after contact submission
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 py-8 flex items-center justify-center">
@@ -236,15 +247,17 @@ const FaceTecContent: React.FC = () => {
         </div>
       )}
 
-      {/* FaceTec siempre se monta pero oculto hasta que se acepten los términos */}
+      {/* FaceTec component */}
       <div style={{ display: step === 'verificacion' ? 'block' : 'none' }}>
         <FaceTecComponent
           onError={handleError}
           ref={faceTecRef}
           shouldStartVerification={step === 'verificacion'}
+          onComplete={handleVerificationComplete}
         />
       </div>
 
+      {/* Terms and conditions */}
       {step === 'terminos' && (
         <TerminosCondiciones
           onAceptar={handleAceptarTerminos}
@@ -254,6 +267,17 @@ const FaceTecContent: React.FC = () => {
         />
       )}
 
+      {/* Contact form */}
+      {step === 'contacto' && token && (
+        <div className="max-w-md mx-auto">
+          <ContactForm 
+            token={token} 
+            onSubmit={handleContactSubmit} 
+          />
+        </div>
+      )}
+
+      {/* Rejection screen */}
       {step === 'rechazo' && (
         <RechazoTerminos />
       )}

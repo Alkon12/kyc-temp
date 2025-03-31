@@ -14,17 +14,39 @@ import { Label } from "@/types/components/ui/label";
 import { Button } from "@/types/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { CheckCircle2 } from "lucide-react";
+import { useMutation } from '@apollo/client';
+import { UPDATE_KYC_PERSON_CONTACT_BY_TOKEN } from '@/app/lib/graphql/mutations';
 
 interface ContactFormProps {
+  token: string;
   onSubmit?: (email: string, phoneNumber: string) => void;
 }
 
-const ContactForm: React.FC<ContactFormProps> = ({ onSubmit }) => {
+const ContactForm: React.FC<ContactFormProps> = ({ token, onSubmit }) => {
   const [email, setEmail] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [errors, setErrors] = useState<{email?: string; phoneNumber?: string}>({});
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  
+  // Set up GraphQL mutation
+  const [updateContactInfo, { loading }] = useMutation(UPDATE_KYC_PERSON_CONTACT_BY_TOKEN, {
+    onCompleted: (data) => {
+      console.log('Contact info updated:', data);
+      setIsSubmitting(false);
+      setIsSubmitted(true);
+      
+      if (onSubmit) {
+        onSubmit(email, phoneNumber);
+      }
+    },
+    onError: (error) => {
+      console.error('Error updating contact info:', error);
+      setIsSubmitting(false);
+      setErrorMessage(error.message || 'Error al actualizar la información de contacto');
+    }
+  });
 
   const validateForm = () => {
     const newErrors: {email?: string; phoneNumber?: string} = {};
@@ -58,15 +80,16 @@ const ContactForm: React.FC<ContactFormProps> = ({ onSubmit }) => {
     }
 
     setIsSubmitting(true);
+    setErrorMessage(null);
     
-    // Simulate API call
-    setTimeout(() => {
-      if (onSubmit) {
-        onSubmit(email, phoneNumber);
+    // Submit the data to the GraphQL API
+    updateContactInfo({
+      variables: {
+        token,
+        email,
+        phone: phoneNumber,
       }
-      setIsSubmitting(false);
-      setIsSubmitted(true);
-    }, 1000);
+    });
   };
 
   if (isSubmitted) {
@@ -98,6 +121,12 @@ const ContactForm: React.FC<ContactFormProps> = ({ onSubmit }) => {
         </CardDescription>
       </CardHeader>
       <CardContent>
+        {errorMessage && (
+          <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+            {errorMessage}
+          </div>
+        )}
+        
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="email">Correo electrónico</Label>

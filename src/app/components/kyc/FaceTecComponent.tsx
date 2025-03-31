@@ -11,7 +11,6 @@ import {
 } from "@/types/components/ui/card";
 import { Progress } from "@/types/components/ui/progress";
 import { Loader2 } from "lucide-react";
-import ContactForm from "./ContactForm";
 
 // FaceTec SDK is loaded through a script method
 declare const FaceTecSDK: any;
@@ -144,22 +143,9 @@ class FaceTecComponentClass extends React.Component<FaceTecComponentProps, FaceT
     return this.sdkLoaded;
   };
 
-  handleContactFormSubmit = (email: string, phoneNumber: string) => {
-    console.log("Información de contacto recibida:", { email, phoneNumber });
-    // Aquí puedes implementar la lógica para guardar estos datos
-  };
-
   render(): React.ReactNode {
-    const { status, progress, scanComplete } = this.state;
+    const { status, progress } = this.state;
     const isLoading = progress > 0 && progress < 100;
-
-    if (scanComplete) {
-      return (
-        <div className="container mx-auto max-w-2xl p-4">
-          <ContactForm onSubmit={this.handleContactFormSubmit} />
-        </div>
-      );
-    }
 
     return (
       <div className="container mx-auto max-w-2xl p-4">

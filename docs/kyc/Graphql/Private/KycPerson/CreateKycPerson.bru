@@ -1,0 +1,39 @@
+meta {
+  name: Create KycPerson
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/graphql
+  body: json
+  auth: bearer
+}
+
+headers {
+  Content-Type: application/json
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "query": "mutation CreateKycPerson($input: CreateKycPersonInput!) { createKycPerson(input: $input) { id verificationId firstName lastName dateOfBirth nationality documentNumber documentType email phone address } }",
+    "variables": {
+      "input": {
+        "verificationId": "your-verification-id",
+        "firstName": "John",
+        "lastName": "Doe",
+        "dateOfBirth": "1990-01-01",
+        "nationality": "US",
+        "documentNumber": "123456789",
+        "documentType": "PASSPORT",
+        "email": "john.doe@example.com",
+        "phone": "+12345678901",
+        "address": "123 Main St, New York, NY 10001"
+      }
+    }
+  }
+} 

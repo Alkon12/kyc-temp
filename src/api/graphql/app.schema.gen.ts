@@ -32,6 +32,19 @@ export type Company = {
   status: Scalars['String']['output'];
 };
 
+export type CreateKycPersonInput = {
+  address?: InputMaybe<Scalars['String']['input']>;
+  dateOfBirth?: InputMaybe<Scalars['String']['input']>;
+  documentNumber?: InputMaybe<Scalars['String']['input']>;
+  documentType?: InputMaybe<Scalars['String']['input']>;
+  email?: InputMaybe<Scalars['String']['input']>;
+  firstName?: InputMaybe<Scalars['String']['input']>;
+  lastName?: InputMaybe<Scalars['String']['input']>;
+  nationality?: InputMaybe<Scalars['String']['input']>;
+  phone?: InputMaybe<Scalars['String']['input']>;
+  verificationId: Scalars['ID']['input'];
+};
+
 export type CreateKycVerificationInput = {
   assignToUserId?: InputMaybe<Scalars['ID']['input']>;
   companyId: Scalars['ID']['input'];
@@ -131,11 +144,14 @@ export enum KycVerificationType {
 export type Mutation = {
   __typename?: 'Mutation';
   assignKycVerification: Scalars['Boolean']['output'];
+  createKycPerson: KycPerson;
   createKycVerification: KycVerification;
   createUser?: Maybe<User>;
   createVerificationLink: VerificationLink;
   invalidateVerificationLink: Scalars['Boolean']['output'];
   recordVerificationLinkAccess: VerificationLink;
+  updateKycPerson: KycPerson;
+  updateKycPersonContactByToken: KycPerson;
   updateKycVerificationStatus: Scalars['Boolean']['output'];
   updateUserPersonalInfo?: Maybe<Scalars['Boolean']['output']>;
   updateVerificationLinkStatus: VerificationLink;
@@ -146,6 +162,11 @@ export type Mutation = {
 export type MutationAssignKycVerificationArgs = {
   id: Scalars['ID']['input'];
   userId: Scalars['ID']['input'];
+};
+
+
+export type MutationCreateKycPersonArgs = {
+  input: CreateKycPersonInput;
 };
 
 
@@ -170,6 +191,19 @@ export type MutationInvalidateVerificationLinkArgs = {
 
 
 export type MutationRecordVerificationLinkAccessArgs = {
+  token: Scalars['String']['input'];
+};
+
+
+export type MutationUpdateKycPersonArgs = {
+  id: Scalars['ID']['input'];
+  input: UpdateKycPersonInput;
+};
+
+
+export type MutationUpdateKycPersonContactByTokenArgs = {
+  email: Scalars['String']['input'];
+  phone: Scalars['String']['input'];
   token: Scalars['String']['input'];
 };
 
@@ -200,6 +234,7 @@ export type Query = {
   __typename?: 'Query';
   assignedKycVerifications?: Maybe<Array<KycVerification>>;
   authWithCredentials: ClientApiAuthResponse;
+  getKycPersonById?: Maybe<KycPerson>;
   getVerificationLinkById: VerificationLink;
   getVerificationLinkByToken: VerificationLink;
   getVerificationLinksByVerificationId: Array<VerificationLink>;
@@ -222,6 +257,11 @@ export type QueryAuthWithCredentialsArgs = {
   email: Scalars['String']['input'];
   password?: InputMaybe<Scalars['String']['input']>;
   provider?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type QueryGetKycPersonByIdArgs = {
+  id: Scalars['ID']['input'];
 };
 
 
@@ -258,6 +298,18 @@ export type QueryKycVerificationsArgs = {
 
 export type QueryUsersByGroupArgs = {
   groupId: Scalars['String']['input'];
+};
+
+export type UpdateKycPersonInput = {
+  address?: InputMaybe<Scalars['String']['input']>;
+  dateOfBirth?: InputMaybe<Scalars['String']['input']>;
+  documentNumber?: InputMaybe<Scalars['String']['input']>;
+  documentType?: InputMaybe<Scalars['String']['input']>;
+  email?: InputMaybe<Scalars['String']['input']>;
+  firstName?: InputMaybe<Scalars['String']['input']>;
+  lastName?: InputMaybe<Scalars['String']['input']>;
+  nationality?: InputMaybe<Scalars['String']['input']>;
+  phone?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type UpdateUserPersonalInfoInput = {
@@ -369,6 +421,7 @@ export type ResolversTypes = {
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
   ClientApiAuthResponse: ResolverTypeWrapper<ClientApiAuthResponse>;
   Company: ResolverTypeWrapper<Company>;
+  CreateKycPersonInput: CreateKycPersonInput;
   CreateKycVerificationInput: CreateKycVerificationInput;
   CreateUserInput: CreateUserInput;
   CreateVerificationLinkInput: CreateVerificationLinkInput;
@@ -385,6 +438,7 @@ export type ResolversTypes = {
   Mutation: ResolverTypeWrapper<{}>;
   Query: ResolverTypeWrapper<{}>;
   String: ResolverTypeWrapper<Scalars['String']['output']>;
+  UpdateKycPersonInput: UpdateKycPersonInput;
   UpdateUserPersonalInfoInput: UpdateUserPersonalInfoInput;
   User: ResolverTypeWrapper<User>;
   VerificationLink: ResolverTypeWrapper<VerificationLink>;
@@ -395,6 +449,7 @@ export type ResolversParentTypes = {
   Boolean: Scalars['Boolean']['output'];
   ClientApiAuthResponse: ClientApiAuthResponse;
   Company: Company;
+  CreateKycPersonInput: CreateKycPersonInput;
   CreateKycVerificationInput: CreateKycVerificationInput;
   CreateUserInput: CreateUserInput;
   CreateVerificationLinkInput: CreateVerificationLinkInput;
@@ -409,6 +464,7 @@ export type ResolversParentTypes = {
   Mutation: {};
   Query: {};
   String: Scalars['String']['output'];
+  UpdateKycPersonInput: UpdateKycPersonInput;
   UpdateUserPersonalInfoInput: UpdateUserPersonalInfoInput;
   User: User;
   VerificationLink: VerificationLink;
@@ -479,11 +535,14 @@ export type KycVerificationResolvers<ContextType = any, ParentType extends Resol
 
 export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
   assignKycVerification?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAssignKycVerificationArgs, 'id' | 'userId'>>;
+  createKycPerson?: Resolver<ResolversTypes['KycPerson'], ParentType, ContextType, RequireFields<MutationCreateKycPersonArgs, 'input'>>;
   createKycVerification?: Resolver<ResolversTypes['KycVerification'], ParentType, ContextType, RequireFields<MutationCreateKycVerificationArgs, 'input'>>;
   createUser?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationCreateUserArgs, 'input'>>;
   createVerificationLink?: Resolver<ResolversTypes['VerificationLink'], ParentType, ContextType, RequireFields<MutationCreateVerificationLinkArgs, 'input'>>;
   invalidateVerificationLink?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationInvalidateVerificationLinkArgs, 'token'>>;
   recordVerificationLinkAccess?: Resolver<ResolversTypes['VerificationLink'], ParentType, ContextType, RequireFields<MutationRecordVerificationLinkAccessArgs, 'token'>>;
+  updateKycPerson?: Resolver<ResolversTypes['KycPerson'], ParentType, ContextType, RequireFields<MutationUpdateKycPersonArgs, 'id' | 'input'>>;
+  updateKycPersonContactByToken?: Resolver<ResolversTypes['KycPerson'], ParentType, ContextType, RequireFields<MutationUpdateKycPersonContactByTokenArgs, 'email' | 'phone' | 'token'>>;
   updateKycVerificationStatus?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationUpdateKycVerificationStatusArgs, 'id' | 'status'>>;
   updateUserPersonalInfo?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationUpdateUserPersonalInfoArgs, 'input'>>;
   updateVerificationLinkStatus?: Resolver<ResolversTypes['VerificationLink'], ParentType, ContextType, RequireFields<MutationUpdateVerificationLinkStatusArgs, 'status' | 'token'>>;
@@ -493,6 +552,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
   assignedKycVerifications?: Resolver<Maybe<Array<ResolversTypes['KycVerification']>>, ParentType, ContextType, RequireFields<QueryAssignedKycVerificationsArgs, 'userId'>>;
   authWithCredentials?: Resolver<ResolversTypes['ClientApiAuthResponse'], ParentType, ContextType, RequireFields<QueryAuthWithCredentialsArgs, 'email'>>;
+  getKycPersonById?: Resolver<Maybe<ResolversTypes['KycPerson']>, ParentType, ContextType, RequireFields<QueryGetKycPersonByIdArgs, 'id'>>;
   getVerificationLinkById?: Resolver<ResolversTypes['VerificationLink'], ParentType, ContextType, RequireFields<QueryGetVerificationLinkByIdArgs, 'verificationLinkId'>>;
   getVerificationLinkByToken?: Resolver<ResolversTypes['VerificationLink'], ParentType, ContextType, RequireFields<QueryGetVerificationLinkByTokenArgs, 'token'>>;
   getVerificationLinksByVerificationId?: Resolver<Array<ResolversTypes['VerificationLink']>, ParentType, ContextType, RequireFields<QueryGetVerificationLinksByVerificationIdArgs, 'verificationId'>>;

@@ -4,12 +4,22 @@ extend type Query {
   kycVerifications(companyId: ID): [KycVerification!]
   pendingKycVerifications: [KycVerification!]
   assignedKycVerifications(userId: ID!): [KycVerification!]
+  
+  # New KycPerson query
+  getKycPersonById(id: ID!): KycPerson
 }
 
 extend type Mutation {
   createKycVerification(input: CreateKycVerificationInput!): KycVerification!
   updateKycVerificationStatus(id: ID!, status: KycVerificationStatus!, notes: String): Boolean!
   assignKycVerification(id: ID!, userId: ID!): Boolean!
+  
+  # New KycPerson mutations
+  createKycPerson(input: CreateKycPersonInput!): KycPerson!
+  updateKycPerson(id: ID!, input: UpdateKycPersonInput!): KycPerson!
+  
+  # Update contact information for KycPerson via verification token
+  updateKycPersonContactByToken(token: String!, email: String!, phone: String!): KycPerson!
 }
 
 enum KycVerificationStatus {
@@ -91,4 +101,30 @@ input CreateKycVerificationInput {
   notes: String
   personInfo: KycPersonInput
   assignToUserId: ID
+}
+
+# New input types for KycPerson mutations
+input CreateKycPersonInput {
+  verificationId: ID!
+  firstName: String
+  lastName: String
+  dateOfBirth: String
+  nationality: String
+  documentNumber: String
+  documentType: String
+  email: String
+  phone: String
+  address: String
+}
+
+input UpdateKycPersonInput {
+  firstName: String
+  lastName: String
+  dateOfBirth: String
+  nationality: String
+  documentNumber: String
+  documentType: String
+  email: String
+  phone: String
+  address: String
 }
