@@ -129,8 +129,8 @@ const FaceTecContent: React.FC = () => {
       
       // Verificar si el enlace es válido
       const linkStatus = data.getVerificationLinkByToken.status;
-      // Permitir estados 'active', 'accepted' y 'rejected' durante la sesión
-      const validStatuses = ['active', 'accepted', 'rejected'];
+      // Permitir estados 'active', 'accepted', 'rejected', 'facetec_completed', 'contact_submitted' durante la sesión
+      const validStatuses = ['active', 'accepted', 'rejected', 'facetec_completed', 'contact_submitted'];
       if (!validStatuses.includes(linkStatus)) {
         setError('Este enlace ha expirado o ha sido invalidado');
         setEnlaceExpirado(true);
@@ -141,6 +141,10 @@ const FaceTecContent: React.FC = () => {
           setStep('verificacion');
         } else if (linkStatus === 'rejected') {
           setStep('rechazo');
+        } else if (linkStatus === 'facetec_completed') {
+          setStep('contacto');
+        } else if (linkStatus === 'contact_submitted') {
+          setStep('contacto');
         }
       }
       
@@ -193,7 +197,17 @@ const FaceTecContent: React.FC = () => {
   };
 
   const handleVerificationComplete = () => {
-    // After FaceTec verification is complete, show the contact form
+    // Actualizar el estado del enlace a "facetec_completed"
+    if (token) {
+      updateStatus({ 
+        variables: { 
+          token,
+          status: 'facetec_completed'
+        }
+      });
+    }
+    
+    // Mostrar el formulario de contacto
     setStep('contacto');
   };
 

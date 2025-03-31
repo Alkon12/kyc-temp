@@ -3,7 +3,7 @@ import { StringValue } from '@domain/shared/StringValue'
 import { VerificationLinkId } from './VerificationLinkId'
 import { UUID } from '@domain/shared/UUID'
 
-export type VerificationLinkStatus = 'active' | 'expired' | 'invalidated' | 'accepted' | 'rejected'
+export type VerificationLinkStatus = 'active' | 'expired' | 'invalidated' | 'accepted' | 'rejected' | 'facetec_completed' | 'contact_submitted'
 
 export type VerificationLinkEntityProps = {
   id: VerificationLinkId
@@ -53,7 +53,7 @@ export class VerificationLinkEntity extends AggregateRoot<'VerificationLinkEntit
   }
 
   isActive(): boolean {
-    const validStatuses = ['active', 'accepted', 'rejected'];
+    const validStatuses = ['active', 'accepted', 'rejected', 'facetec_completed', 'contact_submitted'];
     return validStatuses.includes(this._props.status._value);
   }
 

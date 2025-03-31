@@ -14,8 +14,19 @@ import { Label } from "@/types/components/ui/label";
 import { Button } from "@/types/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { CheckCircle2 } from "lucide-react";
-import { useMutation } from '@apollo/client';
+import { useMutation, gql } from '@apollo/client';
 import { UPDATE_KYC_PERSON_CONTACT_BY_TOKEN } from '@/app/lib/graphql/mutations';
+
+// Mutación para actualizar el estado del enlace
+const UPDATE_VERIFICATION_LINK_STATUS = gql`
+  mutation UpdateVerificationLinkStatus($token: String!, $status: String!) {
+    updateVerificationLinkStatus(token: $token, status: $status) {
+      id
+      status
+      updatedAt
+    }
+  }
+`;
 
 interface ContactFormProps {
   token: string;
@@ -30,10 +41,25 @@ const ContactForm: React.FC<ContactFormProps> = ({ token, onSubmit }) => {
   const [errors, setErrors] = useState<{email?: string; phoneNumber?: string}>({});
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   
-  // Set up GraphQL mutation
+  // Set up GraphQL mutation for contact info
   const [updateContactInfo, { loading }] = useMutation(UPDATE_KYC_PERSON_CONTACT_BY_TOKEN, {
     onCompleted: (data) => {
       console.log('Contact info updated:', data);
+      
+      // Una vez actualizada la información de contacto, actualizar el estado del enlace
+      updateLinkStatus();
+    },
+    onError: (error) => {
+      console.error('Error updating contact info:', error);
+      setIsSubmitting(false);
+      setErrorMessage(error.message || 'Error al actualizar la información de contacto');
+    }
+  });
+  
+  // Set up GraphQL mutation for updating link status
+  const [updateStatus] = useMutation(UPDATE_VERIFICATION_LINK_STATUS, {
+    onCompleted: (data) => {
+      console.log('Link status updated to contact_submitted:', data);
       setIsSubmitting(false);
       setIsSubmitted(true);
       
@@ -42,11 +68,26 @@ const ContactForm: React.FC<ContactFormProps> = ({ token, onSubmit }) => {
       }
     },
     onError: (error) => {
-      console.error('Error updating contact info:', error);
+      console.error('Error updating link status:', error);
+      // No mostramos este error al usuario, ya que la información de contacto se actualizó correctamente
       setIsSubmitting(false);
-      setErrorMessage(error.message || 'Error al actualizar la información de contacto');
+      setIsSubmitted(true);
+      
+      if (onSubmit) {
+        onSubmit(email, phoneNumber);
+      }
     }
   });
+  
+  // Función para actualizar el estado del enlace
+  const updateLinkStatus = () => {
+    updateStatus({
+      variables: {
+        token,
+        status: 'contact_submitted'
+      }
+    });
+  };
 
   const validateForm = () => {
     const newErrors: {email?: string; phoneNumber?: string} = {};
