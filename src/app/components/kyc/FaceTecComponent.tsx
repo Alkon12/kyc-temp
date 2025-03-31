@@ -1,7 +1,7 @@
 "use client"
 import React, { forwardRef, useImperativeHandle } from "react";
 import { Config } from "../../../../public/Config";
-import { FaceTecSDKWrapper } from "@type/lib/FaceTec/processors/FaceTecSDKWrapper";
+import FaceTecSDKWrapper from "@type/lib/FaceTec/processors/FaceTecSDKWrapper";
 import {
   Card,
   CardContent,
@@ -11,6 +11,7 @@ import {
 } from "@/types/components/ui/card";
 import { Progress } from "@/types/components/ui/progress";
 import { Loader2 } from "lucide-react";
+import ContactForm from "./ContactForm";
 
 // FaceTec SDK is loaded through a script method
 declare const FaceTecSDK: any;
@@ -29,6 +30,7 @@ interface FaceTecRef {
 interface FaceTecState {
   status: string;
   progress: number;
+  scanComplete: boolean;
 }
 
 class FaceTecComponentClass extends React.Component<FaceTecComponentProps, FaceTecState> {
@@ -38,7 +40,8 @@ class FaceTecComponentClass extends React.Component<FaceTecComponentProps, FaceT
   
   state: FaceTecState = {
     status: "Cargando componentes...",
-    progress: 0
+    progress: 0,
+    scanComplete: false
   };
 
   componentDidMount() {
@@ -119,9 +122,16 @@ class FaceTecComponentClass extends React.Component<FaceTecComponentProps, FaceT
     }
   };
 
+  handleScanComplete = () => {
+    this.setState({ scanComplete: true });
+    if (this.props.onComplete) {
+      this.props.onComplete();
+    }
+  };
+
   startVerification = () => {
     try {
-      this.faceTecSDKWrapper = new FaceTecSDKWrapper();
+      this.faceTecSDKWrapper = new FaceTecSDKWrapper(this.handleScanComplete);
       this.hasStartedVerification = true;
       this.setState({ status: "Iniciando verificación..." });
       this.faceTecSDKWrapper.startIDScanMatchSession();
@@ -134,9 +144,22 @@ class FaceTecComponentClass extends React.Component<FaceTecComponentProps, FaceT
     return this.sdkLoaded;
   };
 
+  handleContactFormSubmit = (email: string, phoneNumber: string) => {
+    console.log("Información de contacto recibida:", { email, phoneNumber });
+    // Aquí puedes implementar la lógica para guardar estos datos
+  };
+
   render(): React.ReactNode {
-    const { status, progress } = this.state;
+    const { status, progress, scanComplete } = this.state;
     const isLoading = progress > 0 && progress < 100;
+
+    if (scanComplete) {
+      return (
+        <div className="container mx-auto max-w-2xl p-4">
+          <ContactForm onSubmit={this.handleContactFormSubmit} />
+        </div>
+      );
+    }
 
     return (
       <div className="container mx-auto max-w-2xl p-4">

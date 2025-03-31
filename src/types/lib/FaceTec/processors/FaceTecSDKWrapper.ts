@@ -1,62 +1,88 @@
 import { Config } from '../../../../../public/Config';
-import { LivenessCheckProcessor } from './LivenessCheckProcessor';
-import { PhotoIDMatchProcessor } from './PhotoIDMatchProcessor';
+import LivenessCheckProcessor from './LivenessCheckProcessor';
+import PhotoIDMatchProcessor from './PhotoIDMatchProcessor';
 
 declare const FaceTecSDK: any;
 
-export class FaceTecSDKWrapper {
-  public startLivenessSession = async (): Promise<void> => {
-    try {
-      const sessionToken = await this.getSessionToken();
-      if (sessionToken) {
-        new LivenessCheckProcessor(sessionToken, this);
-      }
-    } catch (error) {
-      console.error('Error starting liveness session:', error);
-    }
+class FaceTecSDKWrapper {
+  private onCompleteCallback?: () => void;
+
+  constructor(onCompleteCallback?: () => void) {
+    this.onCompleteCallback = onCompleteCallback;
+  }
+
+  public startLivenessSession = (): void => {
+    // Get a Session Token from the FaceTec SDK, then start the 3D Liveness Check.
+    this.getSessionToken((sessionToken?: string): void => {
+      // eslint-disable-next-line no-new
+      new LivenessCheckProcessor(sessionToken as string, this);
+    });
   };
 
-  public startIDScanMatchSession = async (): Promise<void> => {
-    try {
-      const sessionToken = await this.getSessionToken();
-      if (sessionToken) {
-        new PhotoIDMatchProcessor(sessionToken, this);
-      }
-    } catch (error) {
-      console.error('Error starting ID scan session:', error);
-    }
+  public startIDScanMatchSession = (): void => {
+    // Get a Session Token from the FaceTec SDK, then start the 3D Liveness Check.
+    this.getSessionToken((sessionToken?: string): void => {
+      // eslint-disable-next-line no-new
+      new PhotoIDMatchProcessor(sessionToken as string, this);
+    });
   };
 
-  public onComplete = (
-    faceTecSessionResult: any,
-    faceTecIDScanResult: any | undefined,
-    latestNetworkRequestStatus: number
-  ): void => {
-    console.log("Session Complete. Status:", faceTecSessionResult?.status);
+  public onComplete = (faceTecSessionResult: any, faceTecIDScanResult: any | undefined, _latestNetworkRequestStatus: number):void => {
+    console.log("faceTecSessionResult.status: ",faceTecSessionResult.status);
+
     if (faceTecIDScanResult != null) {
-      console.log("ID Scan Status:", faceTecIDScanResult.status);
+      console.log("faceTecIDScanResult Status: ", faceTecIDScanResult.status);
+    }
+    
+    // If scan is complete and successful, call the callback
+    if (faceTecIDScanResult?.isCompletelyDone && this.onCompleteCallback) {
+      this.onCompleteCallback();
     }
   };
 
-  private getSessionToken = async (): Promise<string | undefined> => {
+  private getSessionToken = (sessionTokenCallback: (sessionToken: string) => void): void => {
     try {
-      const response = await fetch(`${Config.BaseURL}/session-token`, {
-        method: 'GET',
-        headers: {
-          'X-Device-Key': Config.DeviceKeyIdentifier,
-          'X-Token-Authentication': Config.xTokenAuthentication,
-        }
-      });
+      var XHR = new XMLHttpRequest();
+      XHR.open("GET", Config.BaseURL + "/session-token");
+      XHR.setRequestHeader("X-Device-Key", Config.DeviceKeyIdentifier);
+      // XHR.setRequestHeader("X-User-Agent", FaceTecSDK.createFaceTecAPIUserAgentString(""));
 
-      const data = await response.json();
-      if (typeof data.sessionToken === 'string') {
-        return data.sessionToken;
-      }
-      console.error('Invalid session token response');
-      return undefined;
-    } catch (error) {
-      console.error('Error getting session token:', error);
-      return undefined;
+      XHR.onreadystatechange = function(): void {
+        if (this.readyState === XMLHttpRequest.DONE) {
+          var sessionToken = "";
+
+          try {
+          // Attempt to get the sessionToken from the response object.
+            sessionToken = JSON.parse(this.responseText).sessionToken;
+
+            // Something went wrong in parsing the response. Return an error.
+            if (typeof sessionToken !== "string") {
+              console.log(XHR.status);
+              return;
+            }
+          }
+          catch {
+          // Something went wrong in parsing the response. Return an error.
+            XHR.abort();
+            console.log(XHR.status);
+            return;
+          }
+
+          sessionTokenCallback(sessionToken);
+        }
+      };
+
+      XHR.onerror = function(): void {
+        XHR.abort();
+        console.log(XHR.status);
+      };
+
+      XHR.send();
+    }
+    catch (e) {
+      console.log(e);
     }
   };
 }
+
+export default FaceTecSDKWrapper; 
