@@ -1,0 +1,1 @@
+export { default as DocumentSchema } from './schema.graphql' 

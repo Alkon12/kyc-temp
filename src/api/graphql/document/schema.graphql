@@ -1,0 +1,33 @@
+extend type Query {
+  getDocumentById(documentId: String!): Document!
+  getDocumentsByVerificationId(verificationId: String!): [Document!]!
+  getDocumentsByReviewer(reviewerId: String!): [Document!]!
+  getDocumentsByType(documentType: String!): [Document!]!
+  getDocumentsByStatus(status: String!): [Document!]!
+}
+
+extend type Mutation {
+  updateDocumentStatus(documentId: String!, status: String!): Document!
+  assignDocumentReviewer(documentId: String!, reviewerId: String!, notes: String): Document!
+  updateDocumentOcrData(documentId: String!, ocrData: JSON!): Document!
+  deleteDocument(documentId: String!): Boolean!
+}
+
+type Document {
+  id: ID!
+  verificationId: String!
+  documentType: String!
+  filePath: String!
+  fileName: String!
+  fileSize: Int
+  mimeType: String
+  verificationStatus: String!
+  ocrData: JSON
+  reviewerId: String
+  reviewNotes: String
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  
+  kycVerification: KycVerification
+  reviewer: User
+} 

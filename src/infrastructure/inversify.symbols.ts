@@ -13,6 +13,8 @@ export const DI = {
   KycVerificationService: Symbol.for('KycVerificationService'),
   VerificationLinkRepository: Symbol.for('VerificationLinkRepository'),
   VerificationLinkService: Symbol.for('VerificationLinkService'),
+  DocumentRepository: Symbol.for('DocumentRepository'),
+  DocumentService: Symbol.for('DocumentService'),
   
   // FaceTec
   FaceTecService: Symbol.for('FaceTecService'),

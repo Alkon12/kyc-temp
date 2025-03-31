@@ -1,0 +1,39 @@
+meta {
+  name: Get Document By ID
+  type: graphql
+}
+
+vars {
+  documentId: "00000000-0000-0000-0000-000000000000"
+}
+
+query GetDocumentById($documentId: String!) {
+  getDocumentById(documentId: $documentId) {
+    id
+    verificationId
+    documentType
+    filePath
+    fileName
+    fileSize
+    mimeType
+    verificationStatus
+    ocrData
+    reviewerId
+    reviewNotes
+    createdAt
+    updatedAt
+    
+    kycVerification {
+      id
+      status
+      verificationType
+    }
+    
+    reviewer {
+      id
+      firstName
+      lastName
+      email
+    }
+  }
+} 

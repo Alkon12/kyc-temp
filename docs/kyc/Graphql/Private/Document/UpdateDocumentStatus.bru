@@ -1,0 +1,24 @@
+meta {
+  name: Update Document Status
+  type: graphql
+}
+
+vars {
+  documentId: "00000000-0000-0000-0000-000000000000"
+  status: "approved"
+}
+
+mutation UpdateDocumentStatus($documentId: String!, $status: String!) {
+  updateDocumentStatus(documentId: $documentId, status: $status) {
+    id
+    verificationId
+    documentType
+    filePath
+    fileName
+    verificationStatus
+    reviewerId
+    reviewNotes
+    createdAt
+    updatedAt
+  }
+} 

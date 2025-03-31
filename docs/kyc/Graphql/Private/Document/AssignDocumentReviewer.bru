@@ -1,0 +1,30 @@
+meta {
+  name: Assign Document Reviewer
+  type: graphql
+}
+
+vars {
+  documentId: "00000000-0000-0000-0000-000000000000"
+  reviewerId: "00000000-0000-0000-0000-000000000000"
+  notes: "Document review in progress"
+}
+
+mutation AssignDocumentReviewer($documentId: String!, $reviewerId: String!, $notes: String) {
+  assignDocumentReviewer(documentId: $documentId, reviewerId: $reviewerId, notes: $notes) {
+    id
+    verificationId
+    documentType
+    fileName
+    verificationStatus
+    reviewerId
+    reviewNotes
+    updatedAt
+    
+    reviewer {
+      id
+      firstName
+      lastName
+      email
+    }
+  }
+} 

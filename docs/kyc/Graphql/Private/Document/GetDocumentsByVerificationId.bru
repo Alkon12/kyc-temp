@@ -1,0 +1,26 @@
+meta {
+  name: Get Documents By Verification ID
+  type: graphql
+}
+
+vars {
+  verificationId: "00000000-0000-0000-0000-000000000000"
+}
+
+query GetDocumentsByVerificationId($verificationId: String!) {
+  getDocumentsByVerificationId(verificationId: $verificationId) {
+    id
+    verificationId
+    documentType
+    filePath
+    fileName
+    fileSize
+    mimeType
+    verificationStatus
+    ocrData
+    reviewerId
+    reviewNotes
+    createdAt
+    updatedAt
+  }
+} 

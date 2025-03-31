@@ -16,6 +16,7 @@ import { ConsoleLogger } from './ConsoleLogger'
 import { TestResolvers } from '@api/graphql/test/TestResolvers'
 import { KycResolvers } from '@api/graphql/kyc/KycResolvers'
 import { VerificationLinkResolvers } from '@api/graphql/verification-link/VerificationLinkResolvers'
+import { DocumentResolvers } from '@api/graphql/document/DocumentResolvers'
 import { UserService } from '@service/UserService'
 import type CompanyRepository from '@domain/company/CompanyRepository'
 import { PrismaCompanyRepository } from './repositories/prisma/PrismaCompanyRepository'
@@ -41,6 +42,10 @@ import type VerificationLinkRepository from '@domain/verification-link/Verificat
 import { PrismaVerificationLinkRepository } from './repositories/prisma/PrismaVerificationLinkRepository'
 import AbstractVerificationLinkService from '@domain/verification-link/VerificationLinkService'
 import { VerificationLinkService } from '@service/VerificationLinkService'
+import type DocumentRepository from '@domain/document/DocumentRepository'
+import { PrismaDocumentRepository } from './repositories/prisma/PrismaDocumentRepository'
+import AbstractDocumentService from '@domain/document/DocumentService'
+import { DocumentService } from '@service/DocumentService'
 
 const container = new Container()
 
@@ -51,6 +56,7 @@ container.bind(UserResolvers).toSelf()
 container.bind(TestResolvers).toSelf()
 container.bind(KycResolvers).toSelf()
 container.bind(VerificationLinkResolvers).toSelf()
+container.bind(DocumentResolvers).toSelf()
 
 // Services
 container.bind<LoggingService>(DI.LoggingService).to(ConsoleLogger).inSingletonScope()
@@ -63,6 +69,7 @@ container.bind<AbstractCompanyService>(DI.CompanyService).to(CompanyService).inS
 container.bind<AbstractKycPersonService>(DI.KycPersonService).to(KycPersonService).inSingletonScope()
 container.bind<AbstractKycVerificationService>(DI.KycVerificationService).to(KycVerificationService).inSingletonScope()
 container.bind<AbstractVerificationLinkService>(DI.VerificationLinkService).to(VerificationLinkService).inSingletonScope()
+container.bind<AbstractDocumentService>(DI.DocumentService).to(DocumentService).inSingletonScope()
 
 // Repositories
 container.bind<UserRepository>(DI.UserRepository).to(PrismaUserRepository)
@@ -70,6 +77,7 @@ container.bind<CompanyRepository>(DI.CompanyRepository).to(PrismaCompanyReposito
 container.bind<KycPersonRepository>(DI.KycPersonRepository).to(PrismaKycPersonRepository)
 container.bind<KycVerificationRepository>(DI.KycVerificationRepository).to(PrismaKycVerificationRepository)
 container.bind<VerificationLinkRepository>(DI.VerificationLinkRepository).to(PrismaVerificationLinkRepository)
+container.bind<DocumentRepository>(DI.DocumentRepository).to(PrismaDocumentRepository)
 
 // FaceTec Service (usar MockFaceTecService para desarrollo y pruebas)
 container.bind<FaceTecService>(DI.FaceTecService).to(MockFaceTecService).inSingletonScope()
