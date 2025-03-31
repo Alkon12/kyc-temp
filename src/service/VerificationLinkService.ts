@@ -60,12 +60,19 @@ export class VerificationLinkService implements AbstractVerificationLinkService 
     try {
       const link = await this._verificationLinkRepository.getByToken(token)
       
-      // Check if link is valid
-      if (!link.isValid()) {
+      // Verificar explícitamente si ha expirado primero
+      if (link.isExpired()) {
+        console.log(`El enlace con token ${token._value.substring(0, 8)}... ha expirado durante la validación.`)
+        await this._verificationLinkRepository.save(link)
         return false
       }
       
-      // Increment access count and save
+      // Verificar si el enlace está activo
+      if (!link.isActive()) {
+        return false
+      }
+      
+      // Incrementar contador de accesos y guardar
       link.incrementAccessCount()
       await this._verificationLinkRepository.save(link)
       
@@ -92,6 +99,10 @@ export class VerificationLinkService implements AbstractVerificationLinkService 
       }
       throw error
     }
+  }
+  
+  async save(verificationLink: VerificationLinkEntity): Promise<VerificationLinkEntity> {
+    return this._verificationLinkRepository.save(verificationLink)
   }
   
   private generateToken(): string {

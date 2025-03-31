@@ -11,4 +11,5 @@ export default abstract class AbstractVerificationLinkService {
   abstract create(props: CreateVerificationLinkArgs): Promise<VerificationLinkEntity>
   abstract validateToken(token: StringValue): Promise<boolean>
   abstract invalidateToken(token: StringValue): Promise<boolean>
+  abstract save(verificationLink: VerificationLinkEntity): Promise<VerificationLinkEntity>
 } 

@@ -135,8 +135,10 @@ export type Mutation = {
   createUser?: Maybe<User>;
   createVerificationLink: VerificationLink;
   invalidateVerificationLink: Scalars['Boolean']['output'];
+  recordVerificationLinkAccess: VerificationLink;
   updateKycVerificationStatus: Scalars['Boolean']['output'];
   updateUserPersonalInfo?: Maybe<Scalars['Boolean']['output']>;
+  updateVerificationLinkStatus: VerificationLink;
   validateVerificationLink: Scalars['Boolean']['output'];
 };
 
@@ -167,6 +169,11 @@ export type MutationInvalidateVerificationLinkArgs = {
 };
 
 
+export type MutationRecordVerificationLinkAccessArgs = {
+  token: Scalars['String']['input'];
+};
+
+
 export type MutationUpdateKycVerificationStatusArgs = {
   id: Scalars['ID']['input'];
   notes?: InputMaybe<Scalars['String']['input']>;
@@ -176,6 +183,12 @@ export type MutationUpdateKycVerificationStatusArgs = {
 
 export type MutationUpdateUserPersonalInfoArgs = {
   input: UpdateUserPersonalInfoInput;
+};
+
+
+export type MutationUpdateVerificationLinkStatusArgs = {
+  status: Scalars['String']['input'];
+  token: Scalars['String']['input'];
 };
 
 
@@ -470,8 +483,10 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   createUser?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationCreateUserArgs, 'input'>>;
   createVerificationLink?: Resolver<ResolversTypes['VerificationLink'], ParentType, ContextType, RequireFields<MutationCreateVerificationLinkArgs, 'input'>>;
   invalidateVerificationLink?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationInvalidateVerificationLinkArgs, 'token'>>;
+  recordVerificationLinkAccess?: Resolver<ResolversTypes['VerificationLink'], ParentType, ContextType, RequireFields<MutationRecordVerificationLinkAccessArgs, 'token'>>;
   updateKycVerificationStatus?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationUpdateKycVerificationStatusArgs, 'id' | 'status'>>;
   updateUserPersonalInfo?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationUpdateUserPersonalInfoArgs, 'input'>>;
+  updateVerificationLinkStatus?: Resolver<ResolversTypes['VerificationLink'], ParentType, ContextType, RequireFields<MutationUpdateVerificationLinkStatusArgs, 'status' | 'token'>>;
   validateVerificationLink?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationValidateVerificationLinkArgs, 'token'>>;
 };
 

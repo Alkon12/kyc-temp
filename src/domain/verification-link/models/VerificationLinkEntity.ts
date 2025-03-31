@@ -3,7 +3,7 @@ import { StringValue } from '@domain/shared/StringValue'
 import { VerificationLinkId } from './VerificationLinkId'
 import { UUID } from '@domain/shared/UUID'
 
-export type VerificationLinkStatus = 'active' | 'expired' | 'invalidated'
+export type VerificationLinkStatus = 'active' | 'expired' | 'invalidated' | 'accepted' | 'rejected'
 
 export type VerificationLinkEntityProps = {
   id: VerificationLinkId
@@ -53,7 +53,8 @@ export class VerificationLinkEntity extends AggregateRoot<'VerificationLinkEntit
   }
 
   isActive(): boolean {
-    return this._props.status._value === 'active'
+    const validStatuses = ['active', 'accepted', 'rejected'];
+    return validStatuses.includes(this._props.status._value);
   }
 
   isExpired(): boolean {
@@ -62,6 +63,8 @@ export class VerificationLinkEntity extends AggregateRoot<'VerificationLinkEntit
     }
 
     if (this._props.expiresAt && new Date(this._props.expiresAt._value) < new Date()) {
+      const tokenPreview = this._props.token._value.substring(0, 8) + '...'
+      console.log(`Enlace con token ${tokenPreview} ha expirado (fecha actual > ${this._props.expiresAt._value})`)
       this.expire()
       return true
     }
@@ -88,6 +91,12 @@ export class VerificationLinkEntity extends AggregateRoot<'VerificationLinkEntit
 
   invalidate() {
     this._props.status = new StringValue('invalidated')
+    this._props.updatedAt = new StringValue(new Date().toISOString())
+    return this
+  }
+
+  updateStatus(status: string) {
+    this._props.status = new StringValue(status)
     this._props.updatedAt = new StringValue(new Date().toISOString())
     return this
   }

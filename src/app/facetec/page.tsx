@@ -3,8 +3,9 @@ import React, { useState, useRef, useEffect } from "react";
 import TerminosCondiciones from "../components/kyc/TerminosCondiciones";
 import FaceTecComponent from "../components/kyc/FaceTecComponent";
 import RechazoTerminos from "../components/kyc/RechazoTerminos";
+import EnlaceExpirado from "../components/kyc/EnlaceExpirado";
 import { useSearchParams } from 'next/navigation';
-import { gql, useQuery, ApolloProvider } from '@apollo/client';
+import { gql, useQuery, useMutation, ApolloProvider } from '@apollo/client';
 import { ApolloClient, InMemoryCache, createHttpLink } from '@apollo/client';
 
 // Consulta para obtener verificación usando token en lugar del ID
@@ -30,6 +31,28 @@ const GET_VERIFICATION_BY_TOKEN = gql`
   }
 `;
 
+// Mutación para registrar el acceso
+const RECORD_VERIFICATION_LINK_ACCESS = gql`
+  mutation RecordVerificationLinkAccess($token: String!) {
+    recordVerificationLinkAccess(token: $token) {
+      id
+      accessCount
+      lastAccessedAt
+    }
+  }
+`;
+
+// Mutación para actualizar el estado del enlace
+const UPDATE_VERIFICATION_LINK_STATUS = gql`
+  mutation UpdateVerificationLinkStatus($token: String!, $status: String!) {
+    updateVerificationLinkStatus(token: $token, status: $status) {
+      id
+      status
+      updatedAt
+    }
+  }
+`;
+
 // Crear el cliente de Apollo para el endpoint público
 const publicClient = new ApolloClient({
   link: createHttpLink({
@@ -41,13 +64,35 @@ const publicClient = new ApolloClient({
 const FaceTecContent: React.FC = () => {
   const [step, setStep] = useState<'terminos' | 'verificacion' | 'rechazo'>('terminos');
   const [error, setError] = useState<string | null>(null);
+  const [enlaceExpirado, setEnlaceExpirado] = useState(false);
   const faceTecRef = useRef<any>(null);
   const searchParams = useSearchParams();
   const token = searchParams?.get('token');
+  const [accessRecorded, setAccessRecorded] = useState(false);
 
   const { loading, data, error: queryError } = useQuery(GET_VERIFICATION_BY_TOKEN, {
     variables: { token },
     skip: !token,
+  });
+
+  const [recordAccess] = useMutation(RECORD_VERIFICATION_LINK_ACCESS, {
+    onCompleted: (data) => {
+      console.log('Acceso registrado:', data);
+      setAccessRecorded(true);
+    },
+    onError: (error) => {
+      console.error('Error al registrar acceso:', error);
+    }
+  });
+
+  const [updateStatus] = useMutation(UPDATE_VERIFICATION_LINK_STATUS, {
+    onCompleted: (data) => {
+      console.log('Estado actualizado:', data);
+    },
+    onError: (error) => {
+      console.error('Error al actualizar estado:', error);
+      setError('Error al actualizar el estado: ' + error.message);
+    }
   });
 
   useEffect(() => {
@@ -64,6 +109,13 @@ const FaceTecContent: React.FC = () => {
     }
   }, [data]);
 
+  // Registrar el acceso cuando se carga la página
+  useEffect(() => {
+    if (token && !accessRecorded) {
+      recordAccess({ variables: { token } });
+    }
+  }, [token, recordAccess, accessRecorded]);
+
   // Efectuar validación de token al cargar la página
   useEffect(() => {
     if (token && !loading && data?.getVerificationLinkByToken) {
@@ -76,8 +128,19 @@ const FaceTecContent: React.FC = () => {
       
       // Verificar si el enlace es válido
       const linkStatus = data.getVerificationLinkByToken.status;
-      if (linkStatus !== 'active') {
+      // Permitir estados 'active', 'accepted' y 'rejected' durante la sesión
+      const validStatuses = ['active', 'accepted', 'rejected'];
+      if (!validStatuses.includes(linkStatus)) {
         setError('Este enlace ha expirado o ha sido invalidado');
+        setEnlaceExpirado(true);
+        return;
+      } else {
+        // Establecer el paso según el estado del enlace
+        if (linkStatus === 'accepted') {
+          setStep('verificacion');
+        } else if (linkStatus === 'rejected') {
+          setStep('rechazo');
+        }
       }
       
       // Verificar si la verificación KYC es válida
@@ -94,10 +157,32 @@ const FaceTecContent: React.FC = () => {
   }, [token, loading, data]);
 
   const handleAceptarTerminos = () => {
-    setStep('verificacion');
+    if (token) {
+      // Actualizar estado a "accepted"
+      updateStatus({ 
+        variables: { 
+          token,
+          status: 'accepted'
+        }
+      });
+      
+      // Continuar con el proceso de verificación
+      setStep('verificacion');
+    }
   };
 
   const handleRechazarTerminos = () => {
+    if (token) {
+      // Actualizar estado a "rejected"
+      updateStatus({ 
+        variables: { 
+          token, 
+          status: 'rejected'
+        }
+      });
+    }
+    
+    // Mostrar la pantalla de rechazo
     setStep('rechazo');
   };
 
@@ -122,6 +207,15 @@ const FaceTecContent: React.FC = () => {
     );
   }
 
+  // Si el enlace ha expirado, mostrar la pantalla de enlace expirado
+  if (enlaceExpirado) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-8 flex items-center justify-center">
+        <EnlaceExpirado />
+      </div>
+    );
+  }
+
   if (!data.getVerificationLinkByToken.kycVerification) {
     return (
       <div className="min-h-screen bg-gray-50 py-8 flex items-center justify-center">
@@ -136,7 +230,7 @@ const FaceTecContent: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
-      {error && (
+      {error && !enlaceExpirado && (
         <div className="max-w-4xl mx-auto mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
           {error}
         </div>

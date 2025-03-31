@@ -8,6 +8,8 @@ extend type Mutation {
   createVerificationLink(input: CreateVerificationLinkInput!): VerificationLink!
   validateVerificationLink(token: String!): Boolean!
   invalidateVerificationLink(token: String!): Boolean!
+  recordVerificationLinkAccess(token: String!): VerificationLink!
+  updateVerificationLinkStatus(token: String!, status: String!): VerificationLink!
 }
 
 input CreateVerificationLinkInput {
