@@ -15,6 +15,7 @@ import { ExternalApiAuthJWT } from './auth/externalApiAuth/ExternalApiAuthJWT'
 import { ConsoleLogger } from './ConsoleLogger'
 import { TestResolvers } from '@api/graphql/test/TestResolvers'
 import { KycResolvers } from '@api/graphql/kyc/KycResolvers'
+import { VerificationLinkResolvers } from '@api/graphql/verification-link/VerificationLinkResolvers'
 import { UserService } from '@service/UserService'
 import type CompanyRepository from '@domain/company/CompanyRepository'
 import { PrismaCompanyRepository } from './repositories/prisma/PrismaCompanyRepository'
@@ -36,6 +37,10 @@ import { KycController } from '@/interfaces/controllers/KycController'
 import { FaceTecService } from '@domain/faceTec/FaceTecService'
 import { FaceTecServiceImpl } from '@service/FaceTecService'
 import { MockFaceTecService } from '@service/MockFaceTecService'
+import type VerificationLinkRepository from '@domain/verification-link/VerificationLinkRepository'
+import { PrismaVerificationLinkRepository } from './repositories/prisma/PrismaVerificationLinkRepository'
+import AbstractVerificationLinkService from '@domain/verification-link/VerificationLinkService'
+import { VerificationLinkService } from '@service/VerificationLinkService'
 
 const container = new Container()
 
@@ -45,6 +50,7 @@ container.bind(ApolloServer).toSelf().inSingletonScope()
 container.bind(UserResolvers).toSelf()
 container.bind(TestResolvers).toSelf()
 container.bind(KycResolvers).toSelf()
+container.bind(VerificationLinkResolvers).toSelf()
 
 // Services
 container.bind<LoggingService>(DI.LoggingService).to(ConsoleLogger).inSingletonScope()
@@ -56,12 +62,14 @@ container.bind<AbstractUserService>(DI.UserService).to(UserService).inSingletonS
 container.bind<AbstractCompanyService>(DI.CompanyService).to(CompanyService).inSingletonScope()
 container.bind<AbstractKycPersonService>(DI.KycPersonService).to(KycPersonService).inSingletonScope()
 container.bind<AbstractKycVerificationService>(DI.KycVerificationService).to(KycVerificationService).inSingletonScope()
+container.bind<AbstractVerificationLinkService>(DI.VerificationLinkService).to(VerificationLinkService).inSingletonScope()
 
 // Repositories
 container.bind<UserRepository>(DI.UserRepository).to(PrismaUserRepository)
 container.bind<CompanyRepository>(DI.CompanyRepository).to(PrismaCompanyRepository)
 container.bind<KycPersonRepository>(DI.KycPersonRepository).to(PrismaKycPersonRepository)
 container.bind<KycVerificationRepository>(DI.KycVerificationRepository).to(PrismaKycVerificationRepository)
+container.bind<VerificationLinkRepository>(DI.VerificationLinkRepository).to(PrismaVerificationLinkRepository)
 
 // FaceTec Service (usar MockFaceTecService para desarrollo y pruebas)
 container.bind<FaceTecService>(DI.FaceTecService).to(MockFaceTecService).inSingletonScope()

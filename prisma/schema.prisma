@@ -1,4 +1,3 @@
-
 generator client {
   provider = "prisma-client-js"
   binaryTargets = ["native", "linux-musl"]
@@ -124,6 +123,23 @@ model UserRole {
   @@id([userId, roleId, companyId])
 }
 
+model VerificationLink {
+  id              String   @id @default(uuid())
+  verificationId  String
+  token           String   @unique
+  status          String   @default("active") // active, expired, invalidated
+  expiresAt       DateTime?
+  lastAccessedAt  DateTime?
+  accessCount     Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  kycVerification KycVerification @relation(fields: [verificationId], references: [id], onDelete: Cascade)
+
+  @@index([verificationId], name: "idx_verification_links_verification")
+  @@index([token], name: "idx_verification_links_token")
+}
+
 model KycVerification {
   id                  String   @id @default(uuid())
   externalReferenceId String?
@@ -146,6 +162,7 @@ model KycVerification {
   activityLogs  ActivityLog[]
   externalVerifications ExternalVerification[]
   verificationWorkflows VerificationWorkflow[]
+  verificationLinks    VerificationLink[]
 
   @@index([companyId], name: "idx_kyc_verifications_company")
   @@index([status], name: "idx_kyc_verifications_status")

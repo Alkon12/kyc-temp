@@ -2,6 +2,9 @@ overwrite: true
 schema:
   - './src/api/graphql/base/schema.graphql'
   - './src/api/graphql/user/schema.graphql'
+  - './src/api/graphql/test/schema.graphql'
+  - './src/api/graphql/kyc/schema.graphql'
+  - './src/api/graphql/verification-link/schema.graphql'
  
   
 documents: null

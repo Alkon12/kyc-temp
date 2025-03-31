@@ -1,0 +1,67 @@
+Before diving into the best practices, please note that you may need to adapt the globs depending on your project's specific structure and file types.
+
+---
+
+name: typescript-best-practices.mdc
+description: TypeScript coding standards and type safety guidelines
+globs: **/*.{ts,tsx}
+
+- Use explicit types to ensure type safety and clarity.
+- Avoid using `any` type; opt for more specific types or generics.
+- Prefer interfaces over types for public APIs to allow for extension.
+- Use type guards and assertions to handle type narrowing effectively.
+- Implement proper type inference to reduce redundancy and improve readability.
+- Use absolute paths with `@` aliases for imports to maintain a clean and organized project structure.
+
+---
+
+name: prisma-best-practices.mdc
+description: Best practices for using Prisma ORM
+globs: **/*.{ts,prisma}
+
+- Use the `uuid()` function for generating unique IDs in your Prisma schema.
+- Implement cascade operations for relations to maintain data integrity.
+- Use `findUnique` with `include` to fetch related data efficiently.
+- Create migrations with descriptive names to track changes effectively.
+- Use `convertPrismaToDTO` to handle null values when converting to DTOs.
+- Implement error handling for database operations, such as `NotFoundError`.
+
+---
+
+name: graphql-best-practices.mdc
+description: Best practices for GraphQL schema and resolvers
+globs: **/*.{graphql,ts}
+
+- Organize schemas and resolvers in separate files for better maintainability.
+- Use `extend type` to add fields to existing types in your schema.
+- Implement resolvers using dependency injection for better testability.
+- Use `DTO` to convert domain entities to GraphQL types.
+- Keep your schema and resolvers in sync by running `yarn graphql` after changes.
+- Use clear and descriptive names for queries and mutations (e.g., `getNuevaEntidadById`).
+
+---
+
+name: inversify-best-practices.mdc
+description: Best practices for using Inversify for dependency injection
+globs: **/*.{ts}
+
+- Use `@injectable()` decorator for classes that need to be injected.
+- Define symbols for services and repositories in a centralized file.
+- Use `inSingletonScope()` for services that should be singletons.
+- Implement clear separation of concerns by binding interfaces to implementations.
+- Use container bindings to manage dependencies across different layers of the application.
+
+---
+
+name: ddd-best-practices.mdc
+description: Best practices for Domain-Driven Design (DDD) and Clean Architecture
+globs: **/*.{ts}
+
+- Follow a layered architecture with clear separation between domain, infrastructure, service, and API layers.
+- Use domain-driven design principles to model your business logic.
+- Implement domain entities, value objects, and factories to encapsulate domain logic.
+- Use interfaces for repositories and services to allow for different implementations.
+- Implement domain errors that extend from a base `DomainError` class.
+- Use the AAA (Arrange-Act-Assert) pattern for testing domain logic.
+
+---

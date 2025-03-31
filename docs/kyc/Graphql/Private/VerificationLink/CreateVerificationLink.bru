@@ -1,0 +1,23 @@
+meta {
+  name: Create Verification Link
+  type: graphql
+  seq: 1
+}
+
+mutation {
+  createVerificationLink(input: {
+    verificationId: "88c76cef-4132-4ce3-9c4a-551d38487ca7"
+    # token is optional, will be auto-generated if not provided
+    # expiresAt is optional, default is 48 hours from creation
+    # expiresAt: "2024-04-03T00:00:00Z"
+  }) {
+    id
+    verificationId
+    token
+    status
+    expiresAt
+    accessCount
+    createdAt
+    updatedAt
+  }
+} 

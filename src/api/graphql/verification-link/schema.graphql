@@ -1,0 +1,31 @@
+extend type Query {
+  getVerificationLinkById(verificationLinkId: String!): VerificationLink!
+  getVerificationLinkByToken(token: String!): VerificationLink!
+  getVerificationLinksByVerificationId(verificationId: String!): [VerificationLink!]!
+}
+
+extend type Mutation {
+  createVerificationLink(input: CreateVerificationLinkInput!): VerificationLink!
+  validateVerificationLink(token: String!): Boolean!
+  invalidateVerificationLink(token: String!): Boolean!
+}
+
+input CreateVerificationLinkInput {
+  verificationId: String!
+  token: String
+  expiresAt: String
+}
+
+type VerificationLink {
+  id: ID!
+  verificationId: String!
+  token: String!
+  status: String!
+  expiresAt: String
+  lastAccessedAt: String
+  accessCount: Int!
+  createdAt: String!
+  updatedAt: String!
+
+  kycVerification: KycVerification
+} 

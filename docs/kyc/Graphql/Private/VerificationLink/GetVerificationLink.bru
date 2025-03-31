@@ -1,0 +1,49 @@
+meta {
+  name: Get Verification Link
+  type: graphql
+  seq: 2
+}
+
+# Get by ID
+query GetVerificationLinkById {
+  getVerificationLinkById(verificationLinkId: "88c76cef-4132-4ce3-9c4a-551d38487ca7") {
+    id
+    verificationId
+    token
+    status
+    expiresAt
+    lastAccessedAt
+    accessCount
+    createdAt
+    updatedAt
+    kycVerification {
+      id
+      status
+    }
+  }
+}
+
+# Get by Token
+query GetVerificationLinkByToken {
+  getVerificationLinkByToken(token: "a1b2c3d4e5f6") {
+    id
+    verificationId
+    token
+    status
+    expiresAt
+    lastAccessedAt
+    accessCount
+    createdAt
+    updatedAt
+  }
+}
+
+# Get by Verification ID
+query GetVerificationLinksByVerificationId {
+  getVerificationLinksByVerificationId(verificationId: "88c76cef-4132-4ce3-9c4a-551d38487ca7") {
+    id
+    token
+    status
+    createdAt
+  }
+} 
