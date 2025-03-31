@@ -1,0 +1,91 @@
+meta {
+  name: Create KYC Verification
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/v1/kyc
+  body: json
+  auth: bearer
+}
+
+headers {
+  Content-Type: application/json
+  Authorization: Bearer {{token}}
+}
+
+body:json {
+  {
+    "companyId": "45f2e24f-a3d7-4555-8d7d-13286e855820",
+    "verificationType": "identity",
+    "personInfo": {
+        "firstName": "Alfredote",
+        "lastName": "Dumainote"
+    },
+    "externalReferenceId": "user123",  // Optional: your internal reference ID
+    "priority": 4,                     // Optional: priority level (default: 0)
+    "riskLevel": "low",                // Optional: risk level (low, medium, high)
+    "notes": "Bruno test"           // Optional: additional notes
+  }
+}
+
+vars:pre-request {
+  baseUrl: http://localhost:3000
+  token: YOUR_JWT_TOKEN_HERE
+}
+
+tests {
+  test("Verificar respuesta exitosa", function() {
+    expect(res.status).to.equal(201);
+    expect(res.body.success).to.be.true;
+    expect(res.body.data).to.have.property("id");
+    expect(res.body.data).to.have.property("token");
+    expect(res.body.data).to.have.property("facetecUrl");
+    expect(res.body.data).to.have.property("expiresAt");
+  });
+}
+
+docs {
+  # Create KYC Verification
+  
+  Este endpoint crea una nueva verificación KYC y devuelve un enlace único para iniciar el proceso de verificación con FaceTec.
+  
+  ## Campos requeridos
+  - `companyId`: ID de la empresa
+  - `verificationType`: Tipo de verificación (identity, document, etc.)
+  - `personInfo`: Información básica de la persona a verificar
+    - `firstName`: Nombre
+    - `lastName`: Apellido
+  
+  ## Campos opcionales
+  - `externalReferenceId`: ID de referencia externa
+  - `priority`: Nivel de prioridad (0-9)
+  - `riskLevel`: Nivel de riesgo (low, medium, high)
+  - `notes`: Notas adicionales
+  - `assignToUserId`: ID del usuario al que se asignará la verificación
+  
+  ## Respuesta
+  La respuesta incluirá:
+  - `id`: ID de la verificación
+  - `token`: Token único del enlace de verificación
+  - `expiresAt`: Fecha de expiración del enlace (24 horas)
+  - `facetecUrl`: URL completa para iniciar el proceso de verificación
+  
+  ## Ejemplo de respuesta
+  ```json
+  {
+    "success": true,
+    "data": {
+      "id": "88c76cef-4132-4ce3-9c4a-551d38487ca7",
+      "token": "a1b2c3d4e5f6...",
+      "expiresAt": "2024-04-01T12:00:00Z",
+      "facetecUrl": "http://localhost:3000/facetec?token=a1b2c3d4e5f6..."
+    }
+  }
+  ```
+  
+  ## Errores
+  - 400: Datos de entrada inválidos
+  - 500: Error interno del servidor
+}

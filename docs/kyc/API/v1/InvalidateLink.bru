@@ -1,0 +1,55 @@
+meta {
+  name: Invalidate Verification Link
+  type: graphql
+  seq: 3
+}
+
+mutation {
+  invalidateVerificationLink(token: "token-aqui")
+}
+
+headers {
+  Content-Type: application/json
+  Authorization: Bearer {{token}}
+}
+
+vars:pre-request {
+  baseUrl: http://localhost:3000
+  token: YOUR_JWT_TOKEN_HERE
+}
+
+docs {
+  # Invalidar Enlace de Verificación
+
+  Esta mutación GraphQL permite invalidar manualmente un enlace de verificación antes de que expire. Esto es útil cuando:
+  - El enlace fue compartido incorrectamente
+  - Se desea revocar el acceso antes del período de expiración
+  - El proceso de verificación ya no es necesario
+
+  ## Parámetros
+  - `token`: Token único del enlace de verificación que se desea invalidar
+
+  ## Respuesta
+  - `true`: Si el enlace fue invalidado correctamente
+  - `false`: Si el enlace no pudo ser invalidado (ej: no existe, ya está invalidado, etc.)
+
+  ## Autenticación
+  Esta mutación requiere autenticación con un JWT válido, ya que es una operación administrativa.
+
+  ## Cómo usar
+  Esta mutación se puede ejecutar contra el endpoint de GraphQL:
+  ```
+  POST http://localhost:3000/api/graphql
+  ```
+
+  El JWT debe incluirse en el header `Authorization` como `Bearer <token>`.
+}
+
+tests {
+  test("Verificar respuesta exitosa", function() {
+    expect(res.status).to.equal(200);
+    expect(res.body.data).to.have.property("invalidateVerificationLink");
+    // Debería ser true si el token existe y se invalidó correctamente
+    expect(res.body.data.invalidateVerificationLink).to.be.true;
+  });
+} 

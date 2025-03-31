@@ -35,11 +35,23 @@ export class VerificationLinkService implements AbstractVerificationLinkService 
     const expiresIn = 48 * 60 * 60 * 1000 // 48 hours in milliseconds
     const expiryDate = props.expiresAt || new StringValue(new Date(Date.now() + expiresIn).toISOString())
     
+    console.log('Verification link service create with props:', {
+      verificationId: props.verificationId._value,
+      token: token._value.substring(0, 10) + '...',
+      expiresAt: expiryDate._value
+    });
+    
     const verificationLink = VerificationLinkFactory.create({
       verificationId: props.verificationId,
       token,
       expiresAt: expiryDate,
     })
+    
+    const dto = verificationLink.toDTO();
+    console.log('Verification link entity created:', {
+      id: dto.id,
+      verificationId: dto.verificationId
+    });
 
     return this._verificationLinkRepository.create(verificationLink)
   }

@@ -63,6 +63,11 @@ export class PrismaVerificationLinkRepository implements VerificationLinkReposit
   async create(verificationLink: VerificationLinkEntity): Promise<VerificationLinkEntity> {
     const dto = verificationLink.toDTO()
     
+    console.log('Creating verification link in repository with data:', {
+      id: dto.id,
+      verificationId: dto.verificationId,
+    });
+    
     const createdVerificationLink = await prisma.verificationLink.create({
       data: {
         id: dto.id,
@@ -79,6 +84,11 @@ export class PrismaVerificationLinkRepository implements VerificationLinkReposit
         kycVerification: true,
       },
     })
+    
+    console.log('Created verification link in repository:', {
+      id: createdVerificationLink.id,
+      verificationId: createdVerificationLink.verificationId,
+    });
 
     return VerificationLinkFactory.fromDTO(convertPrismaToDTO<VerificationLinkEntity>(createdVerificationLink))
   }

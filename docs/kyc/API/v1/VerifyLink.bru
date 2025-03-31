@@ -1,0 +1,72 @@
+meta {
+  name: Verify Link Status
+  type: graphql
+  seq: 2
+}
+
+query {
+  getVerificationLinkByToken(token: "token-aqui") {
+    id
+    verificationId
+    token
+    status
+    expiresAt
+    lastAccessedAt
+    accessCount
+    createdAt
+    updatedAt
+    kycVerification {
+      id
+      status
+      company {
+        companyName
+      }
+      kycPersons {
+        firstName
+        lastName
+      }
+    }
+  }
+}
+
+vars:pre-request {
+  baseUrl: http://localhost:3000
+}
+
+docs {
+  # Verificar Estado de Enlace
+
+  Esta consulta GraphQL permite verificar el estado actual de un enlace de verificación usando su token.
+
+  ## Parámetros
+  - `token`: Token único del enlace de verificación
+
+  ## Respuesta
+  La respuesta incluirá:
+  - Información del enlace (estado, expiración, etc.)
+  - Información de la verificación asociada
+  - Detalles de la empresa
+  - Información de la persona a verificar
+
+  ## Valores posibles para `status`
+  - `active`: El enlace está activo y puede ser usado
+  - `expired`: El enlace ha expirado (pasaron las 24 horas)
+  - `invalidated`: El enlace fue invalidado manualmente
+
+  ## Cómo usar
+  Esta consulta se puede ejecutar contra el endpoint público de GraphQL:
+  ```
+  POST http://localhost:3000/api/public/graphql
+  ```
+
+  No requiere autenticación, ya que es accesible públicamente para poder verificar enlaces.
+}
+
+tests {
+  test("Verificar respuesta exitosa", function() {
+    expect(res.status).to.equal(200);
+    expect(res.body.data).to.have.property("getVerificationLinkByToken");
+    expect(res.body.data.getVerificationLinkByToken).to.have.property("status");
+    expect(res.body.data.getVerificationLinkByToken).to.have.property("token");
+  });
+} 

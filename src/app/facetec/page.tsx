@@ -7,16 +7,24 @@ import { useSearchParams } from 'next/navigation';
 import { gql, useQuery, ApolloProvider } from '@apollo/client';
 import { ApolloClient, InMemoryCache, createHttpLink } from '@apollo/client';
 
-const GET_KYC_VERIFICATION = gql`
-  query GetKycVerification($id: ID!) {
-    kycVerification(id: $id) {
+// Consulta para obtener verificación usando token en lugar del ID
+const GET_VERIFICATION_BY_TOKEN = gql`
+  query GetVerificationLinkByToken($token: String!) {
+    getVerificationLinkByToken(token: $token) {
       id
-      company {
-        companyName
-      }
-      kycPerson {
-        firstName
-        lastName
+      verificationId
+      token
+      status
+      kycVerification {
+        id
+        status
+        company {
+          companyName
+        }
+        kycPerson {
+          firstName
+          lastName
+        }
       }
     }
   }
@@ -35,18 +43,55 @@ const FaceTecContent: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const faceTecRef = useRef<any>(null);
   const searchParams = useSearchParams();
-  const id = searchParams?.get('id');
+  const token = searchParams?.get('token');
 
-  const { loading, data, error: queryError } = useQuery(GET_KYC_VERIFICATION, {
-    variables: { id },
-    skip: !id,
+  const { loading, data, error: queryError } = useQuery(GET_VERIFICATION_BY_TOKEN, {
+    variables: { token },
+    skip: !token,
   });
 
   useEffect(() => {
     if (queryError) {
+      console.error('GraphQL Error:', queryError);
       setError(queryError.message);
     }
   }, [queryError]);
+
+  // Log data para depuración
+  useEffect(() => {
+    if (data) {
+      console.log('GraphQL response:', data);
+    }
+  }, [data]);
+
+  // Efectuar validación de token al cargar la página
+  useEffect(() => {
+    if (token && !loading && data?.getVerificationLinkByToken) {
+      console.log('Validation data:', {
+        linkStatus: data.getVerificationLinkByToken.status,
+        verificationId: data.getVerificationLinkByToken.verificationId,
+        kycStatus: data.getVerificationLinkByToken.kycVerification?.status,
+        hasKycVerification: !!data.getVerificationLinkByToken.kycVerification
+      });
+      
+      // Verificar si el enlace es válido
+      const linkStatus = data.getVerificationLinkByToken.status;
+      if (linkStatus !== 'active') {
+        setError('Este enlace ha expirado o ha sido invalidado');
+      }
+      
+      // Verificar si la verificación KYC es válida
+      if (!data.getVerificationLinkByToken.kycVerification) {
+        setError('No se encontró la verificación asociada a este enlace');
+        return;
+      }
+      
+      const kycStatus = data.getVerificationLinkByToken.kycVerification.status;
+      if (kycStatus !== 'pending') {
+        setError('Esta verificación ya no está pendiente');
+      }
+    }
+  }, [token, loading, data]);
 
   const handleAceptarTerminos = () => {
     setStep('verificacion');
@@ -69,13 +114,25 @@ const FaceTecContent: React.FC = () => {
     );
   }
 
-  if (!data?.kycVerification) {
+  if (!data?.getVerificationLinkByToken) {
     return (
       <div className="min-h-screen bg-gray-50 py-8 flex items-center justify-center">
-        <div className="text-xl text-red-600">No se encontró la verificación</div>
+        <div className="text-xl text-red-600">No se encontró el enlace de verificación</div>
       </div>
     );
   }
+
+  if (!data.getVerificationLinkByToken.kycVerification) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-8 flex items-center justify-center">
+        <div className="text-xl text-red-600">No se encontró la verificación asociada a este enlace</div>
+      </div>
+    );
+  }
+
+  const { kycVerification } = data.getVerificationLinkByToken;
+  const companyName = kycVerification.company?.companyName || '';
+  const firstName = kycVerification.kycPerson?.firstName || '';
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -98,8 +155,8 @@ const FaceTecContent: React.FC = () => {
         <TerminosCondiciones
           onAceptar={handleAceptarTerminos}
           onRechazar={handleRechazarTerminos}
-          companyName={data.kycVerification.company.companyName}
-          firstName={data.kycVerification.kycPerson.firstName}
+          companyName={companyName}
+          firstName={firstName}
         />
       )}
 

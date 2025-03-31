@@ -15,6 +15,8 @@ import {
   MutationValidateVerificationLinkArgs,
   MutationInvalidateVerificationLinkArgs
 } from '../app.schema.gen'
+import AbstractKycVerificationService from '@domain/kycVerification/KycVerificationService'
+import { KycVerificationId } from '@domain/kycVerification/models/KycVerificationId'
 
 @injectable()
 export class VerificationLinkResolvers {
@@ -30,6 +32,31 @@ export class VerificationLinkResolvers {
         validateVerificationLink: this.validateVerificationLink,
         invalidateVerificationLink: this.invalidateVerificationLink,
       },
+      VerificationLink: {
+        kycVerification: this.resolveKycVerification,
+      }
+    }
+  }
+
+  // Resolver específico para el campo kycVerification
+  resolveKycVerification = async (parent: any): Promise<any> => {
+    console.log('Resolving kycVerification for verificationId:', parent.verificationId);
+    
+    if (!parent.verificationId) {
+      console.error('No verificationId found in parent:', parent);
+      return null;
+    }
+    
+    try {
+      const kycVerificationService = container.get<AbstractKycVerificationService>(DI.KycVerificationService);
+      const verification = await kycVerificationService.getById(new KycVerificationId(parent.verificationId));
+      
+      console.log('Resolved kycVerification:', verification ? 'found' : 'not found');
+      
+      return verification ? verification.toDTO() : null;
+    } catch (error) {
+      console.error('Error resolving kycVerification:', error);
+      return null;
     }
   }
 
