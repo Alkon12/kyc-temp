@@ -9,6 +9,7 @@
     "prettier:check": "prettier --check .",
     "devWin": "next dev",
     "dev": "NODE_OPTIONS='--inspect' next dev",
+    "devhttps": "next dev --experimental-https -H 0.0.0.0",
     "dev-verbose": "NODE_OPTIONS='--inspect' next dev | pino-pretty",
     "watch": "yarn tsc -w",
     "build": "next build",

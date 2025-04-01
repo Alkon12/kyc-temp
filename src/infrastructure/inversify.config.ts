@@ -47,6 +47,7 @@ import { PrismaDocumentRepository } from './repositories/prisma/PrismaDocumentRe
 import AbstractDocumentService from '@domain/document/DocumentService'
 import { DocumentService } from '@service/DocumentService'
 import { FaceTecDocumentService } from '@service/FaceTecDocumentService'
+import { PaperlessService } from '@service/PaperlessService'
 
 const container = new Container()
 
@@ -63,6 +64,7 @@ container.bind(DocumentResolvers).toSelf()
 container.bind<LoggingService>(DI.LoggingService).to(ConsoleLogger).inSingletonScope()
 container.bind<AuthService>(DI.AuthService).to(NextAuthService).inSingletonScope()
 container.bind<ExternalAuthService>(DI.ExternalAuthService).to(ExternalApiAuthJWT).inSingletonScope()
+container.bind<PaperlessService>(DI.PaperlessService).to(PaperlessService).inSingletonScope()
 
 // Domain Services
 container.bind<AbstractUserService>(DI.UserService).to(UserService).inSingletonScope()

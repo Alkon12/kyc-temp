@@ -26,6 +26,21 @@ export class FaceTecDocumentService {
     token: string
   ): Promise<DocumentEntity | null> {
     try {
+      // 0. Verificar y corregir el formato de base64 si es necesario
+      let cleanedBase64Image = base64Image;
+      
+      // Si no tiene prefijo data:image, añadirlo
+      if (cleanedBase64Image && !cleanedBase64Image.startsWith('data:image')) {
+        console.log(`Añadiendo prefijo data:image/jpeg;base64, a la imagen ${documentType}`);
+        cleanedBase64Image = `data:image/jpeg;base64,${cleanedBase64Image}`;
+      }
+      
+      // Verificar que la imagen no esté vacía
+      if (!cleanedBase64Image || cleanedBase64Image.length < 100) {
+        console.error(`La imagen ${documentType} parece estar vacía o es inválida`);
+        return null;
+      }
+      
       // 1. Obtener la verificación asociada al token
       const verificationLink = await this._verificationLinkRepository.getByToken(new StringValue(token))
       if (!verificationLink) {
@@ -46,16 +61,27 @@ export class FaceTecDocumentService {
       // 4. Log para confirmar que se está procesando
       console.log(`Preparando para guardar ${documentType} con nombre ${filename}`)
       
+      // Calcular el tamaño real de los datos después de limpiar el prefijo (solo para el cálculo)
+      let fileSize = 0;
+      try {
+        const base64WithoutPrefix = cleanedBase64Image.replace(/^data:image\/\w+;base64,/, '');
+        fileSize = Buffer.from(base64WithoutPrefix, 'base64').length;
+        console.log(`Tamaño de la imagen ${documentType}: ${fileSize} bytes`);
+      } catch (e) {
+        console.error(`Error al calcular el tamaño de la imagen ${documentType}:`, e);
+        fileSize = cleanedBase64Image.length; // Usamos el tamaño del string como fallback
+      }
+      
       // 5. Crear entrada en la base de datos
       const document = DocumentFactory.create({
         verificationId: new KycVerificationId(verificationId),
         documentType: new StringValue(documentType),
         filePath: new StringValue(virtualFilePath),
         fileName: new StringValue(filename),
-        fileSize: Buffer.from(base64Image.replace(/^data:image\/\w+;base64,/, ''), 'base64').length,
+        fileSize: fileSize,
         mimeType: new StringValue('image/jpeg'),
         verificationStatus: new StringValue('pending'),
-        imageData: new StringValue(base64Image) // Guardar temporalmente la imagen en la base de datos
+        imageData: new StringValue(cleanedBase64Image) // Guardar la imagen corregida
       })
       
       // 6. Guardar en la base de datos

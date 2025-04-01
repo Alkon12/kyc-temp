@@ -104,6 +104,12 @@ export class DocumentEntity extends AggregateRoot<'DocumentEntity', DocumentEnti
     return this
   }
 
+  updateFilePath(filePath: StringValue) {
+    this._props.filePath = filePath
+    this._props.updatedAt = new DateTimeValue(new Date())
+    return this
+  }
+
   setReviewer(reviewerId: UserId, notes?: string) {
     this._props.reviewerId = reviewerId
     if (notes) {

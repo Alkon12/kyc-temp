@@ -1,7 +1,7 @@
 "use client"
 import React, { forwardRef, useImperativeHandle } from "react";
 import { Config } from "../../../../public/Config";
-import FaceTecSDKWrapper from "@type/lib/FaceTec/processors/FaceTecSDKWrapper";
+import FaceTecSDKWrapper from "@/lib/FaceTec/processors/FaceTecSDKWrapper";
 import {
   Card,
   CardContent,

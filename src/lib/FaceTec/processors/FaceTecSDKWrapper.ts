@@ -1,4 +1,4 @@
-import { Config } from '../../../../../public/Config';
+import { Config } from '../../../../public/Config';
 import LivenessCheckProcessor from './LivenessCheckProcessor';
 import PhotoIDMatchProcessor from './PhotoIDMatchProcessor';
 

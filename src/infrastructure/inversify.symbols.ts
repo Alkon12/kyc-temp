@@ -16,6 +16,7 @@ export const DI = {
   DocumentRepository: Symbol.for('DocumentRepository'),
   DocumentService: Symbol.for('DocumentService'),
   FaceTecDocumentService: Symbol.for('FaceTecDocumentService'),
+  PaperlessService: Symbol.for('PaperlessService'),
   
   // FaceTec
   FaceTecService: Symbol.for('FaceTecService'),

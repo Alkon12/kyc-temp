@@ -76,24 +76,47 @@ class LivenessCheckProcessor {
     
     try {
       // Extraer información de los resultados
-      const selfieImage = this.latestSessionResult.auditTrail[0]; // Primera imagen del audit trail (selfie)
+      // Asegurarnos de que la imagen esté en formato base64 correcto con el prefijo data:image
+      let selfieImage = this.latestSessionResult.auditTrail[0]; // Primera imagen del audit trail (selfie)
+      
+      // Si la imagen no tiene el prefijo data:image, añadirlo
+      if (selfieImage && !selfieImage.startsWith('data:image')) {
+        console.log('Añadiendo prefijo data:image/jpeg;base64, a la imagen selfie');
+        selfieImage = `data:image/jpeg;base64,${selfieImage}`;
+      }
       
       // Datos adicionales para análisis
       const faceTecData = {
         sessionId: this.latestSessionResult.sessionId,
-        status: this.latestSessionResult.status
+        status: this.latestSessionResult.status,
+        faceScan: this.latestSessionResult.faceScan ? true : false // Solo enviamos un flag, no el objeto completo
       };
       
-      // Intentar usar la API del servidor para guardar la selfie
+      console.log('Intentando guardar selfie con formato correcto en Paperless...');
+      
+      // Mantener una copia en localStorage como respaldo (pero no descargar automáticamente)
+      this.saveImageThumbnail(selfieImage);
+      
+      // Usar la API para guardar en Paperless primero
       this.saveDocumentUsingAPI('SELFIE', selfieImage)
         .then((data) => {
-          console.log('Selfie guardada correctamente:', data);
+          console.log('Selfie guardada correctamente en API/Paperless:', data);
+          
+          // Si se guardó en Paperless, no necesitamos guardar localmente
+          if (data && data.data && data.data.filePath && data.data.filePath.includes('paperless')) {
+            console.log('Imagen guardada exitosamente en Paperless:', data.data.filePath);
+          } else {
+            // Si no se guardó en Paperless, guardamos localmente como respaldo
+            console.log('Guardando localmente como respaldo...');
+            this.saveImageLocally(selfieImage, 'selfie');
+          }
         })
         .catch((error) => {
           console.error('Error al guardar selfie usando API:', error);
           
           // Si falla la API, intentar usar el servicio directo como fallback
           if (this.faceTecDocumentService) {
+            console.log('Intentando guardar con servicio directo...');
             // Crear un documento solo para la selfie
             this.faceTecDocumentService.saveDocumentImage(
               selfieImage,
@@ -107,20 +130,149 @@ class LivenessCheckProcessor {
                 this.faceTecDocumentService?.saveOcrData(
                   document.getId().toDTO(),
                   faceTecData
-                );
+                ).then(() => {
+                  console.log('Datos OCR guardados correctamente');
+                }).catch((error) => {
+                  console.error('Error al guardar datos OCR:', error);
+                });
+              } else {
+                // Si falla el servicio directo, guardamos localmente
+                console.log('No se pudo guardar con servicio directo, guardando localmente...');
+                this.saveImageLocally(selfieImage, 'selfie');
               }
             }).catch((error) => {
               console.error('Error al guardar la selfie usando servicio directo:', error);
+              // Si falla el servicio directo, guardamos localmente
+              this.saveImageLocally(selfieImage, 'selfie');
             });
+          } else {
+            // Si no hay servicio, guardamos localmente
+            console.log('No se pudo guardar con API ni servicio directo, guardando localmente...');
+            this.saveImageLocally(selfieImage, 'selfie');
           }
         });
     } catch (error) {
       console.error('Error al procesar y guardar la selfie:', error);
+      // En caso de error general, intentamos guardar localmente
+      if (this.latestSessionResult && this.latestSessionResult.auditTrail[0]) {
+        this.saveImageLocally(this.latestSessionResult.auditTrail[0], 'selfie_backup');
+      }
+    }
+  }
+
+  /**
+   * Guarda solo una miniatura en localStorage sin descargar la imagen completa
+   */
+  private saveImageThumbnail(imageBase64: string) {
+    try {
+      console.log('Guardando miniatura en localStorage...');
+      
+      // Crear un elemento de imagen para procesar
+      const img = new Image();
+      
+      img.onload = () => {
+        try {
+          // Crear un canvas pequeño para la miniatura
+          const smallCanvas = document.createElement('canvas');
+          const smallCtx = smallCanvas.getContext('2d');
+          smallCanvas.width = 100; // versión pequeña
+          smallCanvas.height = 100 * (img.height / img.width);
+          
+          if (smallCtx) {
+            smallCtx.drawImage(img, 0, 0, smallCanvas.width, smallCanvas.height);
+            const smallDataUrl = smallCanvas.toDataURL('image/jpeg', 0.5);
+            
+            // Guardar en localStorage (limitado en tamaño)
+            const timestamp = new Date().getTime();
+            localStorage.setItem('kyc_last_selfie_thumbnail', smallDataUrl);
+            localStorage.setItem('kyc_last_selfie_time', timestamp.toString());
+            console.log('Miniatura de selfie guardada en localStorage');
+          }
+        } catch (e) {
+          console.error('Error al crear miniatura:', e);
+        }
+      };
+      
+      img.onerror = (e) => {
+        console.error('Error al cargar la imagen para miniatura:', e);
+      };
+      
+      // Establecer la fuente de la imagen
+      img.src = imageBase64;
+      
+    } catch (error) {
+      console.error('Error al guardar miniatura:', error);
+    }
+  }
+  
+  private saveImageLocally(imageBase64: string, prefix: string) {
+    try {
+      console.log('Guardando imagen localmente...');
+      
+      // Crear un elemento canvas para manipular la imagen
+      const img = new Image();
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      
+      // Limpiar la imagen base64 si es necesario
+      let base64Data = imageBase64;
+      if (base64Data.includes('data:image')) {
+        base64Data = base64Data.replace(/^data:image\/\w+;base64,/, '');
+      }
+      
+      // Crear un nombre de archivo único con timestamp para evitar duplicados
+      const timestamp = new Date().getTime();
+      const filename = `${prefix}_${timestamp}.jpg`;
+      
+      // Establecer la imagen cuando esté cargada
+      img.onload = () => {
+        canvas.width = img.width;
+        canvas.height = img.height;
+        
+        if (ctx) {
+          // Dibujar la imagen en el canvas
+          ctx.drawImage(img, 0, 0);
+          
+          try {
+            // Convertir canvas a blob
+            canvas.toBlob((blob) => {
+              if (blob) {
+                // Crear un enlace para descargar
+                const a = document.createElement('a');
+                a.download = filename;
+                a.href = window.URL.createObjectURL(blob);
+                
+                // Disparar clic para guardar automáticamente
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                
+                console.log(`¡ÉXITO! Imagen selfie guardada localmente como: ${filename}`);
+              } else {
+                console.error('No se pudo crear el blob para guardar la imagen');
+              }
+            }, 'image/jpeg', 0.95);
+          } catch (e) {
+            console.error('Error al guardar localmente:', e);
+          }
+        }
+      };
+      
+      img.onerror = (e) => {
+        console.error('Error al cargar la imagen para guardar localmente:', e);
+      };
+      
+      // Establecer la fuente de la imagen
+      img.src = imageBase64;
+      
+    } catch (error) {
+      console.error('Error al guardar la imagen localmente:', error);
     }
   }
   
   private async saveDocumentUsingAPI(documentType: string, imageData: string): Promise<any> {
     try {
+      console.log(`Enviando solicitud a API para guardar ${documentType}...`);
       const response = await fetch('/api/v1/documents', {
         method: 'POST',
         headers: {
