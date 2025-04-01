@@ -15,6 +15,7 @@ export const DI = {
   VerificationLinkService: Symbol.for('VerificationLinkService'),
   DocumentRepository: Symbol.for('DocumentRepository'),
   DocumentService: Symbol.for('DocumentService'),
+  FaceTecDocumentService: Symbol.for('FaceTecDocumentService'),
   
   // FaceTec
   FaceTecService: Symbol.for('FaceTecService'),

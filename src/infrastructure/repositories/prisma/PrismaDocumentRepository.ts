@@ -87,6 +87,11 @@ export class PrismaDocumentRepository implements DocumentRepository {
 
   async create(document: DocumentEntity): Promise<DocumentEntity> {
     const dto = document.toDTO()
+    
+    // Nota: imageData es un campo que solo existe a nivel de entidad, no en la BD
+    // Aquí podríamos implementar lógica para guardar la imagen en un servicio de almacenamiento
+    // y luego guardar la URL en filePath, pero por ahora lo manejamos a nivel de entidad
+    
     const createdDocument = await prisma.document.create({
       data: {
         id: dto.id,
@@ -100,6 +105,7 @@ export class PrismaDocumentRepository implements DocumentRepository {
         ocrData: dto.ocrData,
         reviewerId: dto.reviewerId,
         reviewNotes: dto.reviewNotes,
+        // No incluimos imageData aquí porque no está en el schema de Prisma
       },
       include: {
         kycVerification: true,
@@ -107,7 +113,15 @@ export class PrismaDocumentRepository implements DocumentRepository {
       },
     })
 
-    return DocumentFactory.fromDTO(convertPrismaToDTO<DocumentEntity>(createdDocument))
+    // Creamos la entidad que incluirá imageData (aunque se pierde al guardar en BD)
+    const documentEntity = DocumentFactory.fromDTO(convertPrismaToDTO<DocumentEntity>(createdDocument))
+    
+    // Si había imageData en la entidad original, lo mantenemos en la nueva
+    if (document.getImageData()) {
+      documentEntity.props.imageData = document.getImageData()
+    }
+    
+    return documentEntity
   }
 
   async save(document: DocumentEntity): Promise<DocumentEntity> {
@@ -127,6 +141,7 @@ export class PrismaDocumentRepository implements DocumentRepository {
         reviewerId: dto.reviewerId,
         reviewNotes: dto.reviewNotes,
         updatedAt: new Date(),
+        // No incluimos imageData aquí porque no está en el schema de Prisma
       },
       include: {
         kycVerification: true,
@@ -134,7 +149,15 @@ export class PrismaDocumentRepository implements DocumentRepository {
       },
     })
 
-    return DocumentFactory.fromDTO(convertPrismaToDTO<DocumentEntity>(updatedDocument))
+    // Creamos la entidad que incluirá imageData (aunque se pierde al guardar en BD)
+    const documentEntity = DocumentFactory.fromDTO(convertPrismaToDTO<DocumentEntity>(updatedDocument))
+    
+    // Si había imageData en la entidad original, lo mantenemos en la nueva
+    if (document.getImageData()) {
+      documentEntity.props.imageData = document.getImageData()
+    }
+    
+    return documentEntity
   }
 
   async delete(documentId: DocumentId): Promise<boolean> {

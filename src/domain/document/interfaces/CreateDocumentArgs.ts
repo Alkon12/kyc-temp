@@ -10,4 +10,5 @@ export interface CreateDocumentArgs {
   fileSize?: number
   mimeType?: StringValue
   ocrData?: JsonValue
+  imageData?: StringValue
 } 

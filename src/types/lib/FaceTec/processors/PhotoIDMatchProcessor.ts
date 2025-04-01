@@ -1,4 +1,7 @@
 import { Config } from "public/Config";
+import container from '@infrastructure/inversify.config';
+import { DI } from '@infrastructure';
+import { FaceTecDocumentService } from '@service/FaceTecDocumentService';
 
 declare const FaceTecSDK: any;
 
@@ -19,7 +22,8 @@ class PhotoIDMatchProcessor {
   public success: boolean;
   public sampleAppControllerReference: any;
   public externalDatabaseRefID: string;
-
+  private verificationToken: string = '';
+  private faceTecDocumentService: FaceTecDocumentService | null = null;
 
   constructor(sessionToken: string, sampleAppControllerReference: any) {
     //
@@ -32,6 +36,23 @@ class PhotoIDMatchProcessor {
     this.latestIDScanResult = null;
     this.cancelledDueToNetworkError = false;
     this.externalDatabaseRefID = crypto.randomUUID();
+    
+    // Obtener el token actual de la URL
+    try {
+      const url = new URL(window.location.href);
+      this.verificationToken = url.searchParams.get('token') || '';
+      
+      // Obtener el servicio de documentos del contenedor
+      if (container) {
+        try {
+          this.faceTecDocumentService = container.get<FaceTecDocumentService>(DI.FaceTecDocumentService);
+        } catch (e) {
+          console.error('Error al obtener FaceTecDocumentService:', e);
+        }
+      }
+    } catch (e) {
+      console.error('Error al obtener token:', e);
+    }
 
     // In v9.2.2+, configure the messages that will be displayed to the User in each of the possible cases.
     // Based on the internal processing and decision logic about how the flow gets advanced, the FaceTec SDK will use the appropriate, configured message.
@@ -63,6 +84,162 @@ class PhotoIDMatchProcessor {
     );
   }
 
+  private saveDocuments() {
+    if (!this.verificationToken) {
+      console.error('No se puede guardar documentos: token inválido');
+      return;
+    }
+    
+    if (!this.latestSessionResult || !this.latestIDScanResult) {
+      console.error('No hay resultados de escaneo para guardar');
+      return;
+    }
+    
+    try {
+      // Extraer información de los resultados
+      const selfieImage = this.latestSessionResult.auditTrail[0]; // Primera imagen del audit trail (selfie)
+      const idFrontImage = this.latestIDScanResult.frontImages[0]; // Primera imagen frontal de ID
+      
+      // La imagen trasera podría no existir si es una tarjeta sin reverso
+      const idBackImage = this.latestIDScanResult.backImages && 
+                          this.latestIDScanResult.backImages.length > 0 ? 
+                          this.latestIDScanResult.backImages[0] : null;
+      
+      // Datos adicionales para análisis
+      const faceTecData = {
+        matchLevel: this.latestIDScanResult.matchLevel,
+        idScanStatus: this.latestIDScanResult.status,
+        idType: this.latestIDScanResult.idType,
+        idData: this.latestIDScanResult.idData
+      };
+      
+      // Intentar usar la API del servidor para guardar los documentos
+      this.saveDocumentUsingAPI('SELFIE', selfieImage)
+        .then(() => this.saveDocumentUsingAPI('ID_FRONT', idFrontImage))
+        .then(() => {
+          if (idBackImage) {
+            return this.saveDocumentUsingAPI('ID_BACK', idBackImage);
+          }
+          return Promise.resolve();
+        })
+        .then(() => {
+          console.log('Documentos guardados correctamente');
+        })
+        .catch(error => {
+          console.error('Error al guardar documentos usando API:', error);
+          
+          // Si falla la API, intentar usar el servicio directo como fallback
+          if (this.faceTecDocumentService) {
+            this.faceTecDocumentService.saveVerificationDocuments(
+              selfieImage,
+              idFrontImage,
+              idBackImage,
+              this.verificationToken,
+              this.latestSessionResult.sessionId,
+              faceTecData
+            ).then((success) => {
+              console.log('Documentos guardados usando servicio directo:', success);
+            }).catch((error) => {
+              console.error('Error al guardar documentos usando servicio directo:', error);
+            });
+          }
+        });
+    } catch (error) {
+      console.error('Error al procesar y guardar documentos:', error);
+    }
+  }
+  
+  private async saveDocumentUsingAPI(documentType: string, imageData: string): Promise<any> {
+    try {
+      const response = await fetch('/api/v1/documents', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          documentType,
+          imageData,
+          token: this.verificationToken
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Error al guardar ${documentType}: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error(`Error al guardar ${documentType} usando API:`, error);
+      throw error;
+    }
+  }
+
+  // Guardar la imagen de la selfie inmediatamente después del escáner facial
+  private saveSelfie() {
+    if (!this.verificationToken || !this.latestSessionResult) {
+      return;
+    }
+    
+    try {
+      // Extraer la selfie del resultado del escaneo facial
+      const selfieImage = this.latestSessionResult.auditTrail[0];
+      
+      // Guardar la selfie usando la API
+      console.log("Guardando selfie inmediatamente después del escaneo facial...");
+      this.saveDocumentUsingAPI('SELFIE', selfieImage)
+        .then((data) => {
+          console.log('Selfie guardada correctamente después del escaneo facial:', data);
+        })
+        .catch((error) => {
+          console.error('Error al guardar selfie después del escaneo facial:', error);
+        });
+    } catch (error) {
+      console.error('Error al procesar la selfie después del escaneo facial:', error);
+    }
+  }
+  
+  // Guardar las imágenes de la identificación inmediatamente después del escaneo del ID
+  private saveIDImages() {
+    if (!this.verificationToken || !this.latestIDScanResult) {
+      return;
+    }
+    
+    try {
+      // Extraer imágenes del ID escaneado
+      if (this.latestIDScanResult.frontImages && this.latestIDScanResult.frontImages.length > 0) {
+        const idFrontImage = this.latestIDScanResult.frontImages[0];
+        
+        // Guardar imagen frontal del ID
+        console.log("Guardando frente del ID inmediatamente después del escaneo...");
+        this.saveDocumentUsingAPI('ID_FRONT', idFrontImage)
+          .then((data) => {
+            console.log('Frente del ID guardado correctamente:', data);
+          })
+          .catch((error) => {
+            console.error('Error al guardar frente del ID:', error);
+          });
+      }
+      
+      // Si hay imagen trasera, guardarla también
+      if (this.latestIDScanResult.backImages && this.latestIDScanResult.backImages.length > 0) {
+        const idBackImage = this.latestIDScanResult.backImages[0];
+        
+        // Guardar imagen trasera del ID
+        console.log("Guardando reverso del ID inmediatamente después del escaneo...");
+        this.saveDocumentUsingAPI('ID_BACK', idBackImage)
+          .then((data) => {
+            console.log('Reverso del ID guardado correctamente:', data);
+          })
+          .catch((error) => {
+            console.error('Error al guardar reverso del ID:', error);
+          });
+      }
+    } catch (error) {
+      console.error('Error al procesar imágenes del ID después del escaneo:', error);
+    }
+  }
+
   //
   // Part 2:  Handling the Result of a FaceScan - First part of the Photo ID Scan
   //
@@ -77,6 +254,9 @@ class PhotoIDMatchProcessor {
       faceScanResultCallback.cancel();
       return;
     }
+
+    // IMPORTANTE: Guardar la selfie inmediatamente después del escaneo facial exitoso
+    this.saveSelfie();
 
     // IMPORTANT:  FaceTecSDK.FaceTecSessionStatus.SessionCompletedSuccessfully DOES NOT mean the Enrollment was Successful.
     // It simply means the User completed the Session and a 3D FaceScan was created.  You still need to perform the Enrollment on your Servers.
@@ -183,6 +363,9 @@ class PhotoIDMatchProcessor {
       return;
     }
 
+    // IMPORTANTE: Guardar las imágenes del ID inmediatamente después del escaneo exitoso
+    this.saveIDImages();
+
     // IMPORTANT:  FaceTecSDK.FaceTecIDScanStatus.Success DOES NOT mean the IDScan was Successful.
     // It simply means the User completed the Session and a 3D IDScan was created.  You still need to perform the ID-Check on your Servers.
 
@@ -205,17 +388,16 @@ class PhotoIDMatchProcessor {
     // Sending up front and back images are non-essential, but are useful for auditing purposes, and are required in order for the FaceTec Server Dashboard to render properly.
     //
     if (idScanResult.frontImages && idScanResult.frontImages[0]) {
-      parameters.idScanFrontImage = idScanResult.frontImages[0];
+      parameters.frontImages = idScanResult.frontImages;
     }
 
     if (idScanResult.backImages && idScanResult.backImages[0]) {
-      parameters.idScanBackImage = idScanResult.backImages[0];
+      parameters.backImages = idScanResult.backImages;
     }
 
     //
     // Part 13:  Make the Networking Call to Your Servers.  Below is just example code, you are free to customize based on how your own API works.
     //
-
     this.latestNetworkRequest = new XMLHttpRequest();
     this.latestNetworkRequest.open("POST", Config.BaseURL + "/match-3d-2d-idscan");
     this.latestNetworkRequest.setRequestHeader("Content-Type", "application/json");
@@ -238,52 +420,36 @@ class PhotoIDMatchProcessor {
           // In v9.2.0+, we key off a new property called wasProcessed to determine if we successfully processed the Session result on the Server.
           // Device SDK UI flow is now driven by the proceedToNextStep function, which should receive the scanResultBlob from the Server SDK response.
           if (responseJSON.wasProcessed === true && responseJSON.error === false) {
-            // In v9.2.0+, configure the messages that will be displayed to the User in each of the possible cases.
-            // Based on the internal processing and decision logic about how the flow gets advanced, the FaceTec SDK will use the appropriate, configured message.
-            // Please note that this programmatic API overrides these same Strings that can also be set via our standard, non-programmatic Text Customization & Localization APIs.
-            FaceTecSDK.FaceTecCustomization.setIDScanResultScreenMessageOverrides(
-              "Front Scan Complete", // Successful scan of ID front-side (ID Types with no back-side).
-              "Front of ID<br/>Scanned", // Successful scan of ID front-side (ID Types that do have a back-side).
-              "ID Scan Complete", // Successful scan of the ID back-side.
-              "Passport Scan Complete", // Successful scan of a Passport
-              "Photo ID Scan<br/>Complete", // Successful upload of final IDScan containing User-Confirmed ID Text.
-              "ID Photo Capture<br/>Complete", // Successful upload of final Photo ID Scan result but scan is flagged as requiring additional review.
-              "Face Didn't Match<br/>Highly Enough", // Case where a Retry is needed because the Face on the Photo ID did not Match the User's Face highly enough.
-              "ID Document<br/>Not Fully Visible", // Case where a Retry is needed because a Full ID was not detected with high enough confidence.
-              "ID Text Not Legible", // Case where a Retry is needed because the OCR did not produce good enough results and the User should Retry with a better capture.
-              "ID Type Mismatch<br/>Please Try Again" // Case where there is likely no OCR Template installed for the document the User is attempting to scan.
-            );
+
+            // Dynamically set the success message based on whether la verificación fue exitosa o no
+            const successMessage = responseJSON.isMatch
+              ? "Your 3D Face<br/>Matched Your ID"
+              : "Your 3D Face<br/>Did Not Match Your ID";
+
+            FaceTecSDK.FaceTecCustomization.setOverrideResultScreenSuccessMessage(successMessage);
 
             // In v9.2.0+, simply pass in scanResultBlob to the proceedToNextStep function to advance the User flow.
             // scanResultBlob is a proprietary, encrypted blob that controls the logic for what happens next for the User.
-            // Cases:
-            //   1.  User must re-scan the same side of the ID that they just tried.
-            //   2.  User succeeded in scanning the Front Side of the ID, there is no Back Side, and the User is now sent to the User OCR Confirmation UI.
-            //   3.  User succeeded in scanning the Front Side of the ID, there is a Back Side, and the User is sent to the Auto-Capture UI for the Back Side of their ID.
-            //   4.  User succeeded in scanning the Back Side of the ID, and the User is now sent to the User OCR Confirmation UI.
-            //   5.  The entire process is complete.  This occurs after sending up the final IDScan that contains the User OCR Data.
             idScanResultCallback.proceedToNextStep(scanResultBlob);
           }
           else {
             // CASE:  UNEXPECTED response from API.  Our Sample Code keys off a wasProcessed boolean on the root of the JSON object --> You define your own API contracts with yourself and may choose to do something different here based on the error.
-            if (responseJSON.error === true && responseJSON.errorMessage != null) {
-              this.cancelDueToNetworkError(responseJSON.errorMessage, idScanResultCallback);
-            }
-            else {
-              this.cancelDueToNetworkError("Unexpected API response, cancelling out.", idScanResultCallback);
-            }
+            console.log("Unexpected API response, cancelling out.");
+            idScanResultCallback.cancel();
           }
         }
         catch {
           // CASE:  Parsing the response into JSON failed --> You define your own API contracts with yourself and may choose to do something different here based on the error.  Solid server-side code should ensure you don't get to this case.
-          this.cancelDueToNetworkError("Exception while handling API response, cancelling out.", idScanResultCallback);
+          console.log("Exception while handling API response, cancelling out.");
+          idScanResultCallback.cancel();
         }
       }
     };
 
     this.latestNetworkRequest.onerror = (): void => {
       // CASE:  Network Request itself is erroring --> You define your own API contracts with yourself and may choose to do something different here based on the error.
-      this.cancelDueToNetworkError("XHR error, cancelling.", idScanResultCallback);
+      console.log("XHR error, cancelling.");
+      idScanResultCallback.cancel();
     };
 
     //
@@ -299,6 +465,17 @@ class PhotoIDMatchProcessor {
     //
     var jsonStringToUpload = JSON.stringify(parameters);
     this.latestNetworkRequest.send(jsonStringToUpload);
+
+    //
+    // Part 17:  For better UX, update the User if the upload is taking a while.  You are free to customize and enhance this behavior to your liking.
+    //
+    window.setTimeout(() => {
+      if (this.latestNetworkRequest.readyState === XMLHttpRequest.DONE) {
+        return;
+      }
+
+      idScanResultCallback.uploadMessageOverride("Still Uploading...");
+    }, 6000);
   };
 
   //
@@ -306,27 +483,27 @@ class PhotoIDMatchProcessor {
   //
   public onFaceTecSDKCompletelyDone = (): void => {
     //
-    // DEVELOPER NOTE:  onFaceTecSDKCompletelyDone() is called after the Session has completed or you signal the FaceTec SDK with cancel().
+    // DEVELOPER NOTE:  onFaceTecSDKCompletelyDone() is called after you signal the FaceTec SDK with success() or cancel().
     // Calling a custom function on the Sample App Controller is done for demonstration purposes to show you that here is where you get control back from the FaceTec SDK.
     //
-
-    // If the Photo ID Scan was processed get the success result from isCompletelyDone
-    if (this.latestIDScanResult != null) {
-      this.success = this.latestIDScanResult!.isCompletelyDone;
-    }
-
-    // Log success message
+    this.success = this.latestIDScanResult!.isCompletelyDone;
+    
+    // Ya no necesitamos guardar aquí, lo hacemos justo después de cada escaneo exitoso
     if (this.success) {
-      console.log("Id Scan Complete");
+      console.log("ID Match Process Completed Successfully");
     }
 
-    this.sampleAppControllerReference.onComplete(this.latestSessionResult, this.latestIDScanResult, this.latestNetworkRequest.status);
+    this.sampleAppControllerReference.onComplete(
+      this.latestSessionResult,
+      this.latestIDScanResult,
+      this.latestNetworkRequest.status
+    );
   };
 
   // Helper function to ensure the session is only cancelled once
-  public cancelDueToNetworkError = (networkErrorMessage: string, faceTecScanResultCallback: any | any): void => {
+  public cancelDueToNetworkError = (networkErrorMessage: string, faceTecScanResultCallback: any): void => {
     if (this.cancelledDueToNetworkError === false) {
-      console.error(networkErrorMessage);
+      console.log(networkErrorMessage);
       this.cancelledDueToNetworkError = true;
       faceTecScanResultCallback.cancel();
     }

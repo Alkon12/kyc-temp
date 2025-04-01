@@ -19,6 +19,7 @@ interface FaceTecComponentProps {
   onComplete?: () => void;
   onError?: (error: string) => void;
   shouldStartVerification?: boolean;
+  token?: string; // Token de verificación
 }
 
 interface FaceTecRef {
@@ -133,9 +134,14 @@ class FaceTecComponentClass extends React.Component<FaceTecComponentProps, FaceT
       this.faceTecSDKWrapper = new FaceTecSDKWrapper(this.handleScanComplete);
       this.hasStartedVerification = true;
       this.setState({ status: "Iniciando verificación..." });
+      
+      // Usar IDScanMatchSession para capturar documento de identidad
       this.faceTecSDKWrapper.startIDScanMatchSession();
     } catch (error) {
       this.hasStartedVerification = false;
+      if (this.props.onError) {
+        this.props.onError("Error al iniciar la verificación");
+      }
     }
   };
 

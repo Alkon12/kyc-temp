@@ -268,6 +268,7 @@ const FaceTecContent: React.FC = () => {
           ref={faceTecRef}
           shouldStartVerification={step === 'verificacion'}
           onComplete={handleVerificationComplete}
+          token={token || undefined}
         />
       </div>
 

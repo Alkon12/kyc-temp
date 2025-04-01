@@ -25,6 +25,7 @@ export type DocumentArgs = {
   reviewNotes?: StringValue
   createdAt?: Date
   updatedAt?: Date
+  imageData?: StringValue
 }
 
 export class DocumentFactory {

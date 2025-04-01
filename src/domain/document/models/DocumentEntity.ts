@@ -23,6 +23,7 @@ export type DocumentEntityProps = {
   reviewNotes?: StringValue
   createdAt: DateTimeValue
   updatedAt: DateTimeValue
+  imageData?: StringValue
 
   kycVerification?: KycVerificationEntity
   reviewer?: UserEntity
@@ -83,6 +84,10 @@ export class DocumentEntity extends AggregateRoot<'DocumentEntity', DocumentEnti
 
   getUpdatedAt() {
     return this._props.updatedAt
+  }
+
+  getImageData() {
+    return this._props.imageData
   }
 
   getKycVerification() {

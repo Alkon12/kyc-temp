@@ -1,4 +1,7 @@
 import { Config } from "public/Config";
+import container from '@infrastructure/inversify.config';
+import { DI } from '@infrastructure';
+import { FaceTecDocumentService } from '@service/FaceTecDocumentService';
 
 declare const FaceTecSDK: any;
 
@@ -17,6 +20,8 @@ class LivenessCheckProcessor {
   //
   private success: boolean;
   private sampleAppControllerReference: any;
+  private verificationToken: string = '';
+  private faceTecDocumentService: FaceTecDocumentService | null = null;
 
   constructor(sessionToken: string, sampleAppControllerReference: any) {
     //
@@ -27,6 +32,23 @@ class LivenessCheckProcessor {
     this.sampleAppControllerReference = sampleAppControllerReference;
     this.latestSessionResult = null;
     this.cancelledDueToNetworkError = false;
+    
+    // Obtener el token actual de la URL
+    try {
+      const url = new URL(window.location.href);
+      this.verificationToken = url.searchParams.get('token') || '';
+      
+      // Obtener el servicio de documentos del contenedor
+      if (container) {
+        try {
+          this.faceTecDocumentService = container.get<FaceTecDocumentService>(DI.FaceTecDocumentService);
+        } catch (e) {
+          console.error('Error al obtener FaceTecDocumentService:', e);
+        }
+      }
+    } catch (e) {
+      console.error('Error al obtener token:', e);
+    }
 
     //
     // Part 1:  Starting the FaceTec Session
@@ -39,6 +61,88 @@ class LivenessCheckProcessor {
       this,
       sessionToken
     );
+  }
+
+  private saveSelfie() {
+    if (!this.verificationToken) {
+      console.error('No se puede guardar la selfie: token inválido');
+      return;
+    }
+    
+    if (!this.latestSessionResult) {
+      console.error('No hay resultados de escaneo para guardar');
+      return;
+    }
+    
+    try {
+      // Extraer información de los resultados
+      const selfieImage = this.latestSessionResult.auditTrail[0]; // Primera imagen del audit trail (selfie)
+      
+      // Datos adicionales para análisis
+      const faceTecData = {
+        sessionId: this.latestSessionResult.sessionId,
+        status: this.latestSessionResult.status
+      };
+      
+      // Intentar usar la API del servidor para guardar la selfie
+      this.saveDocumentUsingAPI('SELFIE', selfieImage)
+        .then((data) => {
+          console.log('Selfie guardada correctamente:', data);
+        })
+        .catch((error) => {
+          console.error('Error al guardar selfie usando API:', error);
+          
+          // Si falla la API, intentar usar el servicio directo como fallback
+          if (this.faceTecDocumentService) {
+            // Crear un documento solo para la selfie
+            this.faceTecDocumentService.saveDocumentImage(
+              selfieImage,
+              'SELFIE',
+              this.verificationToken
+            ).then((document) => {
+              if (document) {
+                console.log('Selfie guardada correctamente usando servicio directo');
+                
+                // Guardar datos adicionales
+                this.faceTecDocumentService?.saveOcrData(
+                  document.getId().toDTO(),
+                  faceTecData
+                );
+              }
+            }).catch((error) => {
+              console.error('Error al guardar la selfie usando servicio directo:', error);
+            });
+          }
+        });
+    } catch (error) {
+      console.error('Error al procesar y guardar la selfie:', error);
+    }
+  }
+  
+  private async saveDocumentUsingAPI(documentType: string, imageData: string): Promise<any> {
+    try {
+      const response = await fetch('/api/v1/documents', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          documentType,
+          imageData,
+          token: this.verificationToken
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Error al guardar ${documentType}: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error(`Error al guardar ${documentType} usando API:`, error);
+      throw error;
+    }
   }
 
   //
@@ -56,6 +160,10 @@ class LivenessCheckProcessor {
       faceScanResultCallback.cancel();
       return;
     }
+
+    // IMPORTANTE: Guardar la selfie tan pronto como tengamos un escaneo exitoso
+    // Esto sucede después del escaneo pero antes de enviar los datos al servidor
+    this.saveSelfie();
 
     // IMPORTANT:  FaceTecSDK.FaceTecSessionStatus.SessionCompletedSuccessfully DOES NOT mean the Liveness Check was Successful.
     // It simply means the User completed the Session and a 3D FaceScan was created.  You still need to perform the Liveness Check on your Servers.
@@ -160,7 +268,8 @@ class LivenessCheckProcessor {
     //
     this.success = this.latestSessionResult!.isCompletelyDone;
 
-    // Log success message
+    // Log success message 
+    // Ya no guardamos la selfie aquí, lo hacemos inmediatamente después del escaneo
     if (this.success) {
       console.log("Liveness Confirmed");
     }

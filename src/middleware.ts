@@ -39,7 +39,8 @@ export default withAuth(
         if (req.nextUrl.pathname.startsWith('/api/graphql/public') || 
             req.nextUrl.pathname.startsWith('/api/external/graphql') ||
             req.nextUrl.pathname.startsWith("/api/auth") ||
-            req.nextUrl.pathname.startsWith("/api/v1/kyc")) {
+            req.nextUrl.pathname.startsWith("/api/v1/kyc") ||
+            req.nextUrl.pathname.startsWith("/api/v1/documents")) {
           return true
         }
         

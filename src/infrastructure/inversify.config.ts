@@ -46,6 +46,7 @@ import type DocumentRepository from '@domain/document/DocumentRepository'
 import { PrismaDocumentRepository } from './repositories/prisma/PrismaDocumentRepository'
 import AbstractDocumentService from '@domain/document/DocumentService'
 import { DocumentService } from '@service/DocumentService'
+import { FaceTecDocumentService } from '@service/FaceTecDocumentService'
 
 const container = new Container()
 
@@ -70,6 +71,7 @@ container.bind<AbstractKycPersonService>(DI.KycPersonService).to(KycPersonServic
 container.bind<AbstractKycVerificationService>(DI.KycVerificationService).to(KycVerificationService).inSingletonScope()
 container.bind<AbstractVerificationLinkService>(DI.VerificationLinkService).to(VerificationLinkService).inSingletonScope()
 container.bind<AbstractDocumentService>(DI.DocumentService).to(DocumentService).inSingletonScope()
+container.bind<FaceTecDocumentService>(DI.FaceTecDocumentService).to(FaceTecDocumentService).inSingletonScope()
 
 // Repositories
 container.bind<UserRepository>(DI.UserRepository).to(PrismaUserRepository)
