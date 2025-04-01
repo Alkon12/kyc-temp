@@ -14,6 +14,9 @@ class LivenessCheckProcessor {
   public latestNetworkRequest: XMLHttpRequest = new XMLHttpRequest();
   public latestSessionResult: any | null;
 
+  // Agregar flag para controlar si ya se subió la selfie
+  private selfieUploaded: boolean = false;
+
   //
   // DEVELOPER NOTE:  These properties are for demonstration purposes only so the Sample App can get information about what is happening in the processor.
   // In the code in your own App, you can pass around signals, flags, intermediates, and results however you would like.
@@ -74,6 +77,12 @@ class LivenessCheckProcessor {
       return;
     }
     
+    // Evitar subidas duplicadas
+    if (this.selfieUploaded) {
+      console.log('La selfie ya fue subida previamente, omitiendo duplicado...');
+      return;
+    }
+    
     try {
       // Extraer información de los resultados
       // Asegurarnos de que la imagen esté en formato base64 correcto con el prefijo data:image
@@ -84,6 +93,9 @@ class LivenessCheckProcessor {
         console.log('Añadiendo prefijo data:image/jpeg;base64, a la imagen selfie');
         selfieImage = `data:image/jpeg;base64,${selfieImage}`;
       }
+      
+      // Marcar como subida para evitar duplicados
+      this.selfieUploaded = true;
       
       // Datos adicionales para análisis
       const faceTecData = {
@@ -108,11 +120,13 @@ class LivenessCheckProcessor {
           } else {
             // Si no se guardó en Paperless, guardamos localmente como respaldo
             console.log('Guardando localmente como respaldo...');
-            this.saveImageLocally(selfieImage, 'selfie');
+            this.triggerDownload(selfieImage, 'selfie');
           }
         })
         .catch((error) => {
           console.error('Error al guardar selfie usando API:', error);
+          // Restablecer el flag en caso de error para permitir reintento
+          this.selfieUploaded = false;
           
           // Si falla la API, intentar usar el servicio directo como fallback
           if (this.faceTecDocumentService) {
@@ -138,24 +152,27 @@ class LivenessCheckProcessor {
               } else {
                 // Si falla el servicio directo, guardamos localmente
                 console.log('No se pudo guardar con servicio directo, guardando localmente...');
-                this.saveImageLocally(selfieImage, 'selfie');
+                this.triggerDownload(selfieImage, 'selfie');
               }
             }).catch((error) => {
               console.error('Error al guardar la selfie usando servicio directo:', error);
               // Si falla el servicio directo, guardamos localmente
-              this.saveImageLocally(selfieImage, 'selfie');
+              this.triggerDownload(selfieImage, 'selfie');
             });
           } else {
             // Si no hay servicio, guardamos localmente
             console.log('No se pudo guardar con API ni servicio directo, guardando localmente...');
-            this.saveImageLocally(selfieImage, 'selfie');
+            this.triggerDownload(selfieImage, 'selfie');
           }
         });
     } catch (error) {
       console.error('Error al procesar y guardar la selfie:', error);
+      // Restablecer el flag en caso de error para permitir reintento
+      this.selfieUploaded = false;
+      
       // En caso de error general, intentamos guardar localmente
       if (this.latestSessionResult && this.latestSessionResult.auditTrail[0]) {
-        this.saveImageLocally(this.latestSessionResult.auditTrail[0], 'selfie_backup');
+        this.triggerDownload(this.latestSessionResult.auditTrail[0], 'selfie_backup');
       }
     }
   }
@@ -205,14 +222,14 @@ class LivenessCheckProcessor {
     }
   }
   
-  private saveImageLocally(imageBase64: string, prefix: string) {
+  // Versión simplificada para descargar la imagen solo cuando sea necesario
+  private triggerDownload(imageBase64: string, prefix: string) {
     try {
-      console.log('Guardando imagen localmente...');
+      console.log('Descargando imagen...');
       
-      // Crear un elemento canvas para manipular la imagen
-      const img = new Image();
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
+      // Crear un nombre de archivo único con timestamp
+      const timestamp = new Date().getTime();
+      const filename = `${prefix}_${timestamp}.jpg`;
       
       // Limpiar la imagen base64 si es necesario
       let base64Data = imageBase64;
@@ -220,53 +237,33 @@ class LivenessCheckProcessor {
         base64Data = base64Data.replace(/^data:image\/\w+;base64,/, '');
       }
       
-      // Crear un nombre de archivo único con timestamp para evitar duplicados
-      const timestamp = new Date().getTime();
-      const filename = `${prefix}_${timestamp}.jpg`;
+      // Crear un blob desde los datos base64
+      const byteString = atob(base64Data);
+      const arrayBuffer = new ArrayBuffer(byteString.length);
+      const intArray = new Uint8Array(arrayBuffer);
       
-      // Establecer la imagen cuando esté cargada
-      img.onload = () => {
-        canvas.width = img.width;
-        canvas.height = img.height;
-        
-        if (ctx) {
-          // Dibujar la imagen en el canvas
-          ctx.drawImage(img, 0, 0);
-          
-          try {
-            // Convertir canvas a blob
-            canvas.toBlob((blob) => {
-              if (blob) {
-                // Crear un enlace para descargar
-                const a = document.createElement('a');
-                a.download = filename;
-                a.href = window.URL.createObjectURL(blob);
-                
-                // Disparar clic para guardar automáticamente
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                
-                console.log(`¡ÉXITO! Imagen selfie guardada localmente como: ${filename}`);
-              } else {
-                console.error('No se pudo crear el blob para guardar la imagen');
-              }
-            }, 'image/jpeg', 0.95);
-          } catch (e) {
-            console.error('Error al guardar localmente:', e);
-          }
-        }
-      };
+      for (let i = 0; i < byteString.length; i++) {
+        intArray[i] = byteString.charCodeAt(i);
+      }
       
-      img.onerror = (e) => {
-        console.error('Error al cargar la imagen para guardar localmente:', e);
-      };
+      const blob = new Blob([arrayBuffer], { type: 'image/jpeg' });
       
-      // Establecer la fuente de la imagen
-      img.src = imageBase64;
+      // Crear un enlace para descargar
+      const a = document.createElement('a');
+      a.download = filename;
+      a.href = URL.createObjectURL(blob);
       
+      // Disparar clic para descargar
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      
+      // Liberar el objeto URL
+      setTimeout(() => URL.revokeObjectURL(a.href), 100);
+      
+      console.log(`Imagen descargada como: ${filename}`);
     } catch (error) {
-      console.error('Error al guardar la imagen localmente:', error);
+      console.error('Error al descargar la imagen:', error);
     }
   }
   
@@ -424,6 +421,9 @@ class LivenessCheckProcessor {
     // Ya no guardamos la selfie aquí, lo hacemos inmediatamente después del escaneo
     if (this.success) {
       console.log("Liveness Confirmed");
+      
+      // Ya no intentamos guardar la imagen aquí para evitar subidas duplicadas
+      // La imagen ya fue guardada en this.processSessionResultWhileFaceTecSDKWaits()
     }
 
     this.sampleAppControllerReference.onComplete(this.latestSessionResult, null, this.latestNetworkRequest.status);

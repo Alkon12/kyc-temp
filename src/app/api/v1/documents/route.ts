@@ -59,17 +59,30 @@ export async function POST(req: Request) {
     let paperlessUrl = null
     
     // Intentar guardar en Paperless como primera opción
-    if (paperlessConnected && document.getImageData()) {
+    if (paperlessConnected && body.imageData) {
       try {
         console.log('API: Subiendo documento a Paperless...')
         
+        // Verificar los datos que tenemos
+        console.log(`API: VerificationId: ${document.getVerificationId().toDTO()}`)
+        console.log(`API: FileName: ${document.getFileName().toDTO()}`)
+        console.log(`API: DocumentType: ${document.getDocumentType().toDTO()}`)
+        console.log(`API: Tamaño de ImageData: ${body.imageData?.length || 0} caracteres`)
+        
+        // Verificar si body.imageData tiene el prefijo correcto
+        const hasPrefix = body.imageData?.startsWith('data:image');
+        console.log(`API: ImageData tiene prefijo data:image? ${hasPrefix ? 'Sí' : 'No'}`);
+        
         // Subir a Paperless usando los datos originales
+        console.log(`API: Llamando a paperlessService.uploadDocument...`);
         paperlessUrl = await paperlessService.uploadDocument(
           body.imageData, // Usar los datos originales
           document.getFileName().toDTO(),
           document.getDocumentType().toDTO(),
           document.getVerificationId().toDTO()
         )
+        
+        console.log(`API: Resultado de uploadDocument: ${paperlessUrl ? 'URL obtenida' : 'NULL - Falló la subida'}`);
         
         if (paperlessUrl) {
           console.log(`API: ¡ÉXITO! Documento subido a Paperless: ${paperlessUrl}`)
@@ -84,10 +97,19 @@ export async function POST(req: Request) {
           console.log(`API: Estado del documento actualizado a 'saved_paperless'`)
           
           savedToPaperless = true
+        } else {
+          console.log(`API: La función uploadDocument retornó NULL, fallo al subir a Paperless`);
         }
       } catch (error) {
         console.error('API: Error al subir a Paperless:', error)
+        // Mostrar más detalles del error
+        if (error instanceof Error) {
+          console.error(`API: Mensaje de error: ${error.message}`);
+          console.error(`API: Stack trace: ${error.stack}`);
+        }
       }
+    } else {
+      console.log(`API: No se intentó subir a Paperless. Condiciones: paperlessConnected=${paperlessConnected}, body.imageData=${!!body.imageData}`);
     }
     
     // Si no se pudo guardar en Paperless, guardar localmente como fallback

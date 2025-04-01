@@ -15,6 +15,11 @@ class PhotoIDMatchProcessor {
   public latestSessionResult: any | null;
   public latestIDScanResult: any | null;
 
+  // Agregar flags para controlar si ya se subieron las imágenes
+  private frontImageUploaded: boolean = false;
+  private backImageUploaded: boolean = false;
+  private selfieUploaded: boolean = false;
+
   //
   // DEVELOPER NOTE:  These properties are for demonstration purposes only so the Sample App can get information about what is happening in the processor.
   // In the code in your own App, you can pass around signals, flags, intermediates, and results however you would like.
@@ -84,71 +89,6 @@ class PhotoIDMatchProcessor {
     );
   }
 
-  private saveDocuments() {
-    if (!this.verificationToken) {
-      console.error('No se puede guardar documentos: token inválido');
-      return;
-    }
-    
-    if (!this.latestSessionResult || !this.latestIDScanResult) {
-      console.error('No hay resultados de escaneo para guardar');
-      return;
-    }
-    
-    try {
-      // Extraer información de los resultados
-      const selfieImage = this.latestSessionResult.auditTrail[0]; // Primera imagen del audit trail (selfie)
-      const idFrontImage = this.latestIDScanResult.frontImages[0]; // Primera imagen frontal de ID
-      
-      // La imagen trasera podría no existir si es una tarjeta sin reverso
-      const idBackImage = this.latestIDScanResult.backImages && 
-                          this.latestIDScanResult.backImages.length > 0 ? 
-                          this.latestIDScanResult.backImages[0] : null;
-      
-      // Datos adicionales para análisis
-      const faceTecData = {
-        matchLevel: this.latestIDScanResult.matchLevel,
-        idScanStatus: this.latestIDScanResult.status,
-        idType: this.latestIDScanResult.idType,
-        idData: this.latestIDScanResult.idData
-      };
-      
-      // Intentar usar la API del servidor para guardar los documentos
-      this.saveDocumentUsingAPI('SELFIE', selfieImage)
-        .then(() => this.saveDocumentUsingAPI('ID_FRONT', idFrontImage))
-        .then(() => {
-          if (idBackImage) {
-            return this.saveDocumentUsingAPI('ID_BACK', idBackImage);
-          }
-          return Promise.resolve();
-        })
-        .then(() => {
-          console.log('Documentos guardados correctamente');
-        })
-        .catch(error => {
-          console.error('Error al guardar documentos usando API:', error);
-          
-          // Si falla la API, intentar usar el servicio directo como fallback
-          if (this.faceTecDocumentService) {
-            this.faceTecDocumentService.saveVerificationDocuments(
-              selfieImage,
-              idFrontImage,
-              idBackImage,
-              this.verificationToken,
-              this.latestSessionResult.sessionId,
-              faceTecData
-            ).then((success) => {
-              console.log('Documentos guardados usando servicio directo:', success);
-            }).catch((error) => {
-              console.error('Error al guardar documentos usando servicio directo:', error);
-            });
-          }
-        });
-    } catch (error) {
-      console.error('Error al procesar y guardar documentos:', error);
-    }
-  }
-  
   private async saveDocumentUsingAPI(documentType: string, imageData: string): Promise<any> {
     try {
       const response = await fetch('/api/v1/documents', {
@@ -177,13 +117,16 @@ class PhotoIDMatchProcessor {
 
   // Guardar la imagen de la selfie inmediatamente después del escáner facial
   private saveSelfie() {
-    if (!this.verificationToken || !this.latestSessionResult) {
+    if (!this.verificationToken || !this.latestSessionResult || this.selfieUploaded) {
       return;
     }
     
     try {
       // Extraer la selfie del resultado del escaneo facial
       const selfieImage = this.latestSessionResult.auditTrail[0];
+      
+      // Marcar como subida para evitar duplicados
+      this.selfieUploaded = true;
       
       // Guardar la selfie usando la API
       console.log("Guardando selfie inmediatamente después del escaneo facial...");
@@ -193,9 +136,13 @@ class PhotoIDMatchProcessor {
         })
         .catch((error) => {
           console.error('Error al guardar selfie después del escaneo facial:', error);
+          // Si falla, permitir otro intento
+          this.selfieUploaded = false;
         });
     } catch (error) {
       console.error('Error al procesar la selfie después del escaneo facial:', error);
+      // Si falla, permitir otro intento
+      this.selfieUploaded = false;
     }
   }
   
@@ -207,8 +154,14 @@ class PhotoIDMatchProcessor {
     
     try {
       // Extraer imágenes del ID escaneado
-      if (this.latestIDScanResult.frontImages && this.latestIDScanResult.frontImages.length > 0) {
+      if (this.latestIDScanResult.frontImages && 
+          this.latestIDScanResult.frontImages.length > 0 && 
+          !this.frontImageUploaded) {
+          
         const idFrontImage = this.latestIDScanResult.frontImages[0];
+        
+        // Marcar como subida para evitar duplicados
+        this.frontImageUploaded = true;
         
         // Guardar imagen frontal del ID
         console.log("Guardando frente del ID inmediatamente después del escaneo...");
@@ -218,12 +171,20 @@ class PhotoIDMatchProcessor {
           })
           .catch((error) => {
             console.error('Error al guardar frente del ID:', error);
+            // Si falla, permitir otro intento
+            this.frontImageUploaded = false;
           });
       }
       
       // Si hay imagen trasera, guardarla también
-      if (this.latestIDScanResult.backImages && this.latestIDScanResult.backImages.length > 0) {
+      if (this.latestIDScanResult.backImages && 
+          this.latestIDScanResult.backImages.length > 0 && 
+          !this.backImageUploaded) {
+          
         const idBackImage = this.latestIDScanResult.backImages[0];
+        
+        // Marcar como subida para evitar duplicados
+        this.backImageUploaded = true;
         
         // Guardar imagen trasera del ID
         console.log("Guardando reverso del ID inmediatamente después del escaneo...");
@@ -233,10 +194,15 @@ class PhotoIDMatchProcessor {
           })
           .catch((error) => {
             console.error('Error al guardar reverso del ID:', error);
+            // Si falla, permitir otro intento
+            this.backImageUploaded = false;
           });
       }
     } catch (error) {
       console.error('Error al procesar imágenes del ID después del escaneo:', error);
+      // Si falla completamente, permitir otro intento para ambas imágenes
+      this.frontImageUploaded = false;
+      this.backImageUploaded = false;
     }
   }
 
