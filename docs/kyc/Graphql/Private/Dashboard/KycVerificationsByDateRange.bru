@@ -1,0 +1,54 @@
+meta {
+  name: Get KYC Verifications By Date Range
+  type: graphql
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/graphql
+  auth: none
+  body: graphql {
+    query {
+      kycVerificationsByDate(
+        startDate: "2023-01-01T00:00:00.000Z",
+        endDate: "2023-12-31T23:59:59.999Z"
+      ) {
+        id
+        externalReferenceId
+        status
+        riskLevel
+        priority
+        verificationType
+        createdAt
+        updatedAt
+        completedAt
+        company {
+          id
+          companyName
+        }
+        assignedUser {
+          id
+          email
+          firstName
+          lastName
+        }
+      }
+    }
+  }
+}
+
+headers {
+  Content-Type: application/json
+  Authorization: Bearer {{token}}
+}
+
+tests {
+  test("Status code is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+  
+  test("Verifications are returned", function() {
+    expect(res.body.data.kycVerificationsByDate).to.exist;
+    expect(res.body.data.kycVerificationsByDate).to.be.an('array');
+  });
+} 

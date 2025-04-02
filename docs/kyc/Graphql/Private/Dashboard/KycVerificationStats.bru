@@ -1,0 +1,61 @@
+meta {
+  name: Get KYC Verification Stats
+  type: graphql
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/graphql
+  auth: none
+  body: graphql {
+    query {
+      kycVerificationStats {
+        total
+        pending
+        inProgress
+        approved
+        rejected
+        requiresReview
+        byCompany {
+          companyId
+          companyName
+          total
+          pending
+          approved
+          rejected
+        }
+        byType {
+          verificationType
+          count
+        }
+        recentActivity {
+          id
+          externalReferenceId
+          status
+          verificationType
+          createdAt
+          updatedAt
+          company {
+            companyName
+          }
+        }
+      }
+    }
+  }
+}
+
+headers {
+  Content-Type: application/json
+  Authorization: Bearer {{token}}
+}
+
+tests {
+  test("Status code is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+  
+  test("Stats are returned", function() {
+    expect(res.body.data.kycVerificationStats).to.exist;
+    expect(res.body.data.kycVerificationStats.total).to.be.a('number');
+  });
+} 

@@ -1,0 +1,60 @@
+meta {
+  name: Get KYC Verifications By Status And Company
+  type: graphql
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/graphql
+  auth: none
+  body: graphql {
+    query {
+      kycVerificationsByStatus(
+        status: PENDING,
+        companyId: "company-id-here"
+      ) {
+        id
+        externalReferenceId
+        status
+        riskLevel
+        priority
+        verificationType
+        createdAt
+        updatedAt
+        company {
+          id
+          companyName
+        }
+        assignedUser {
+          id
+          email
+          firstName
+          lastName
+        }
+        kycPerson {
+          id
+          firstName
+          lastName
+          email
+          phone
+        }
+      }
+    }
+  }
+}
+
+headers {
+  Content-Type: application/json
+  Authorization: Bearer {{token}}
+}
+
+tests {
+  test("Status code is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+  
+  test("Verifications are returned", function() {
+    expect(res.body.data.kycVerificationsByStatus).to.exist;
+    expect(res.body.data.kycVerificationsByStatus).to.be.an('array');
+  });
+} 

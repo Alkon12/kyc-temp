@@ -32,6 +32,10 @@ export class KycResolvers {
         pendingKycVerifications: this.getPendingKycVerifications,
         assignedKycVerifications: this.getAssignedKycVerifications,
         getKycPersonById: this.getKycPersonById,
+        kycVerificationStats: this.getKycVerificationStats,
+        kycVerificationsByStatus: this.getKycVerificationsByStatus,
+        kycVerificationsByPriority: this.getKycVerificationsByPriority,
+        kycVerificationsByDate: this.getKycVerificationsByDate,
       },
       Mutation: {
         createKycVerification: this.createKycVerification,
@@ -144,8 +148,8 @@ export class KycResolvers {
     const statusValue = new KycVerificationStatus(status.toLowerCase().replace('_', '-'))
     const notesValue = notes ? new StringValue(notes) : undefined
     
-    const result = await kycVerificationService.updateStatus(new KycVerificationId(id), statusValue, notesValue)
-    return result.toDTO()
+    await kycVerificationService.updateStatus(new KycVerificationId(id), statusValue, notesValue)
+    return true
   }
 
   assignKycVerification = async (
@@ -155,8 +159,8 @@ export class KycResolvers {
   ): Promise<boolean> => {
     const kycVerificationService = container.get<AbstractKycVerificationService>(DI.KycVerificationService)
     
-    const result = await kycVerificationService.assignToUser(new KycVerificationId(id), new UserId(userId))
-    return result.toDTO()
+    await kycVerificationService.assignToUser(new KycVerificationId(id), new UserId(userId))
+    return true
   }
 
   // Resolvers para los campos relacionados
@@ -275,5 +279,159 @@ export class KycResolvers {
     
     const updatedPerson = await kycPersonService.update(person.getId(), updateArgs)
     return updatedPerson.toDTO()
+  }
+
+  // Dashboard query resolvers
+  getKycVerificationStats = async (
+    _parent: unknown,
+    { companyId }: { companyId?: string },
+    _context: ApiContext | ApiExternalContext,
+  ): Promise<any> => {
+    const kycVerificationService = container.get<AbstractKycVerificationService>(DI.KycVerificationService)
+    
+    // Get all verifications, or by company if provided
+    let verifications: KycVerificationEntity[]
+    if (companyId) {
+      verifications = await kycVerificationService.getByCompanyId(new CompanyId(companyId))
+    } else {
+      verifications = await kycVerificationService.getAll()
+    }
+    
+    // Count by status
+    const pending = verifications.filter((v: KycVerificationEntity) => v.getStatus().toDTO() === 'pending').length
+    const inProgress = verifications.filter((v: KycVerificationEntity) => v.getStatus().toDTO() === 'in-progress').length
+    const approved = verifications.filter((v: KycVerificationEntity) => v.getStatus().toDTO() === 'approved').length
+    const rejected = verifications.filter((v: KycVerificationEntity) => v.getStatus().toDTO() === 'rejected').length
+    const requiresReview = verifications.filter((v: KycVerificationEntity) => v.getStatus().toDTO() === 'requires-review').length
+    
+    // Group by company
+    const byCompany: Record<string, any> = {}
+    for (const verification of verifications) {
+      const company = verification.getCompany()
+      if (!company) continue
+      
+      const companyId = company.getId().toDTO()
+      if (!byCompany[companyId]) {
+        byCompany[companyId] = {
+          companyId: companyId,
+          companyName: company.getCompanyName().toDTO(),
+          total: 0,
+          pending: 0,
+          approved: 0,
+          rejected: 0,
+        }
+      }
+      
+      byCompany[companyId].total++
+      
+      const status = verification.getStatus().toDTO()
+      if (status === 'pending') byCompany[companyId].pending++
+      if (status === 'approved') byCompany[companyId].approved++
+      if (status === 'rejected') byCompany[companyId].rejected++
+    }
+    
+    // Group by verification type
+    const byType: Record<string, number> = {}
+    for (const verification of verifications) {
+      const type = verification.getVerificationType().toDTO()
+      byType[type] = (byType[type] || 0) + 1
+    }
+    
+    // Get recent activity (last 10 verifications)
+    const recentActivity = verifications
+      .sort((a, b) => {
+        const dateA = a.getUpdatedAt()?.toDTO() || a.getCreatedAt()?.toDTO() || new Date()
+        const dateB = b.getUpdatedAt()?.toDTO() || b.getCreatedAt()?.toDTO() || new Date()
+        return new Date(dateB).getTime() - new Date(dateA).getTime()
+      })
+      .slice(0, 10)
+      .map(v => v.toDTO())
+    
+    return {
+      total: verifications.length,
+      pending,
+      inProgress,
+      approved,
+      rejected,
+      requiresReview,
+      byCompany: Object.values(byCompany),
+      byType: Object.entries(byType).map(([verificationType, count]) => ({ verificationType, count })),
+      recentActivity,
+    }
+  }
+
+  getKycVerificationsByStatus = async (
+    _parent: unknown,
+    { status, companyId }: { status: string; companyId?: string },
+    _context: ApiContext | ApiExternalContext,
+  ): Promise<DTO<KycVerificationEntity>[]> => {
+    const kycVerificationService = container.get<AbstractKycVerificationService>(DI.KycVerificationService)
+    
+    // Convert GraphQL enum to domain status
+    const statusValue = new KycVerificationStatus(status.toLowerCase().replace('_', '-'))
+    
+    let verifications: KycVerificationEntity[]
+    
+    // Filter by status
+    verifications = await kycVerificationService.getByStatus(statusValue)
+    
+    // Further filter by company if provided
+    if (companyId) {
+      verifications = verifications.filter(v => v.getCompanyId().toDTO() === companyId)
+    }
+    
+    return verifications.map(v => v.toDTO())
+  }
+
+  getKycVerificationsByPriority = async (
+    _parent: unknown,
+    { priority, companyId }: { priority: number; companyId?: string },
+    _context: ApiContext | ApiExternalContext,
+  ): Promise<DTO<KycVerificationEntity>[]> => {
+    const kycVerificationService = container.get<AbstractKycVerificationService>(DI.KycVerificationService)
+    
+    // Get all verifications, then filter by priority
+    let verifications: KycVerificationEntity[]
+    if (companyId) {
+      verifications = await kycVerificationService.getByCompanyId(new CompanyId(companyId))
+    } else {
+      verifications = await kycVerificationService.getAll()
+    }
+    
+    // Filter by priority
+    verifications = verifications.filter(v => v.getPriority().toDTO() === priority)
+    
+    return verifications.map(v => v.toDTO())
+  }
+
+  getKycVerificationsByDate = async (
+    _parent: unknown,
+    { startDate, endDate, companyId }: { startDate: string; endDate: string; companyId?: string },
+    _context: ApiContext | ApiExternalContext,
+  ): Promise<DTO<KycVerificationEntity>[]> => {
+    const kycVerificationService = container.get<AbstractKycVerificationService>(DI.KycVerificationService)
+    
+    // Get all verifications, then filter by date range
+    let verifications: KycVerificationEntity[]
+    if (companyId) {
+      verifications = await kycVerificationService.getByCompanyId(new CompanyId(companyId))
+    } else {
+      verifications = await kycVerificationService.getAll()
+    }
+    
+    // Parse dates
+    const start = new Date(startDate)
+    const end = new Date(endDate)
+    
+    // Filter by created date within range
+    verifications = verifications.filter(v => {
+      const createdAt = v.getCreatedAt()?.toDTO()
+      if (!createdAt) return false
+      
+      const date = new Date(createdAt)
+      return date >= start && date <= end
+    })
+    
+    return verifications.map(v => v.toDTO())
   }
 }

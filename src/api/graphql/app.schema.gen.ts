@@ -33,6 +33,16 @@ export type Company = {
   status: Scalars['String']['output'];
 };
 
+export type CompanyStats = {
+  __typename?: 'CompanyStats';
+  approved: Scalars['Int']['output'];
+  companyId: Scalars['ID']['output'];
+  companyName: Scalars['String']['output'];
+  pending: Scalars['Int']['output'];
+  rejected: Scalars['Int']['output'];
+  total: Scalars['Int']['output'];
+};
+
 export type CreateKycPersonInput = {
   address?: InputMaybe<Scalars['String']['input']>;
   dateOfBirth?: InputMaybe<Scalars['String']['input']>;
@@ -142,6 +152,19 @@ export type KycVerification = {
   status: Scalars['String']['output'];
   updatedAt?: Maybe<Scalars['String']['output']>;
   verificationType: Scalars['String']['output'];
+};
+
+export type KycVerificationStats = {
+  __typename?: 'KycVerificationStats';
+  approved: Scalars['Int']['output'];
+  byCompany?: Maybe<Array<CompanyStats>>;
+  byType?: Maybe<Array<TypeStats>>;
+  inProgress: Scalars['Int']['output'];
+  pending: Scalars['Int']['output'];
+  recentActivity?: Maybe<Array<KycVerification>>;
+  rejected: Scalars['Int']['output'];
+  requiresReview: Scalars['Int']['output'];
+  total: Scalars['Int']['output'];
 };
 
 export enum KycVerificationStatus {
@@ -293,7 +316,11 @@ export type Query = {
   getVerificationLinksByVerificationId: Array<VerificationLink>;
   kycVerification?: Maybe<KycVerification>;
   kycVerificationByExternalId?: Maybe<KycVerification>;
+  kycVerificationStats: KycVerificationStats;
   kycVerifications?: Maybe<Array<KycVerification>>;
+  kycVerificationsByDate?: Maybe<Array<KycVerification>>;
+  kycVerificationsByPriority?: Maybe<Array<KycVerification>>;
+  kycVerificationsByStatus?: Maybe<Array<KycVerification>>;
   pendingKycVerifications?: Maybe<Array<KycVerification>>;
   test: Scalars['String']['output'];
   user: User;
@@ -369,13 +396,43 @@ export type QueryKycVerificationByExternalIdArgs = {
 };
 
 
+export type QueryKycVerificationStatsArgs = {
+  companyId?: InputMaybe<Scalars['ID']['input']>;
+};
+
+
 export type QueryKycVerificationsArgs = {
   companyId?: InputMaybe<Scalars['ID']['input']>;
 };
 
 
+export type QueryKycVerificationsByDateArgs = {
+  companyId?: InputMaybe<Scalars['ID']['input']>;
+  endDate: Scalars['String']['input'];
+  startDate: Scalars['String']['input'];
+};
+
+
+export type QueryKycVerificationsByPriorityArgs = {
+  companyId?: InputMaybe<Scalars['ID']['input']>;
+  priority: Scalars['Int']['input'];
+};
+
+
+export type QueryKycVerificationsByStatusArgs = {
+  companyId?: InputMaybe<Scalars['ID']['input']>;
+  status: KycVerificationStatus;
+};
+
+
 export type QueryUsersByGroupArgs = {
   groupId: Scalars['String']['input'];
+};
+
+export type TypeStats = {
+  __typename?: 'TypeStats';
+  count: Scalars['Int']['output'];
+  verificationType: Scalars['String']['output'];
 };
 
 export type UpdateKycPersonInput = {
@@ -499,6 +556,7 @@ export type ResolversTypes = {
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
   ClientApiAuthResponse: ResolverTypeWrapper<ClientApiAuthResponse>;
   Company: ResolverTypeWrapper<Company>;
+  CompanyStats: ResolverTypeWrapper<CompanyStats>;
   CreateKycPersonInput: CreateKycPersonInput;
   CreateKycVerificationInput: CreateKycVerificationInput;
   CreateUserInput: CreateUserInput;
@@ -513,11 +571,13 @@ export type ResolversTypes = {
   KycPerson: ResolverTypeWrapper<KycPerson>;
   KycPersonInput: KycPersonInput;
   KycVerification: ResolverTypeWrapper<KycVerification>;
+  KycVerificationStats: ResolverTypeWrapper<KycVerificationStats>;
   KycVerificationStatus: KycVerificationStatus;
   KycVerificationType: KycVerificationType;
   Mutation: ResolverTypeWrapper<{}>;
   Query: ResolverTypeWrapper<{}>;
   String: ResolverTypeWrapper<Scalars['String']['output']>;
+  TypeStats: ResolverTypeWrapper<TypeStats>;
   UpdateKycPersonInput: UpdateKycPersonInput;
   UpdateUserPersonalInfoInput: UpdateUserPersonalInfoInput;
   User: ResolverTypeWrapper<User>;
@@ -529,6 +589,7 @@ export type ResolversParentTypes = {
   Boolean: Scalars['Boolean']['output'];
   ClientApiAuthResponse: ClientApiAuthResponse;
   Company: Company;
+  CompanyStats: CompanyStats;
   CreateKycPersonInput: CreateKycPersonInput;
   CreateKycVerificationInput: CreateKycVerificationInput;
   CreateUserInput: CreateUserInput;
@@ -543,9 +604,11 @@ export type ResolversParentTypes = {
   KycPerson: KycPerson;
   KycPersonInput: KycPersonInput;
   KycVerification: KycVerification;
+  KycVerificationStats: KycVerificationStats;
   Mutation: {};
   Query: {};
   String: Scalars['String']['output'];
+  TypeStats: TypeStats;
   UpdateKycPersonInput: UpdateKycPersonInput;
   UpdateUserPersonalInfoInput: UpdateUserPersonalInfoInput;
   User: User;
@@ -563,6 +626,16 @@ export type CompanyResolvers<ContextType = any, ParentType extends ResolversPare
   companyName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   status?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type CompanyStatsResolvers<ContextType = any, ParentType extends ResolversParentTypes['CompanyStats'] = ResolversParentTypes['CompanyStats']> = {
+  approved?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  companyId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  companyName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  pending?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  rejected?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  total?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -638,6 +711,19 @@ export type KycVerificationResolvers<ContextType = any, ParentType extends Resol
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export type KycVerificationStatsResolvers<ContextType = any, ParentType extends ResolversParentTypes['KycVerificationStats'] = ResolversParentTypes['KycVerificationStats']> = {
+  approved?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  byCompany?: Resolver<Maybe<Array<ResolversTypes['CompanyStats']>>, ParentType, ContextType>;
+  byType?: Resolver<Maybe<Array<ResolversTypes['TypeStats']>>, ParentType, ContextType>;
+  inProgress?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  pending?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  recentActivity?: Resolver<Maybe<Array<ResolversTypes['KycVerification']>>, ParentType, ContextType>;
+  rejected?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  requiresReview?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  total?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
   assignDocumentReviewer?: Resolver<ResolversTypes['Document'], ParentType, ContextType, RequireFields<MutationAssignDocumentReviewerArgs, 'documentId' | 'reviewerId'>>;
   assignKycVerification?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAssignKycVerificationArgs, 'id' | 'userId'>>;
@@ -672,11 +758,21 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   getVerificationLinksByVerificationId?: Resolver<Array<ResolversTypes['VerificationLink']>, ParentType, ContextType, RequireFields<QueryGetVerificationLinksByVerificationIdArgs, 'verificationId'>>;
   kycVerification?: Resolver<Maybe<ResolversTypes['KycVerification']>, ParentType, ContextType, RequireFields<QueryKycVerificationArgs, 'id'>>;
   kycVerificationByExternalId?: Resolver<Maybe<ResolversTypes['KycVerification']>, ParentType, ContextType, RequireFields<QueryKycVerificationByExternalIdArgs, 'companyId' | 'externalReferenceId'>>;
+  kycVerificationStats?: Resolver<ResolversTypes['KycVerificationStats'], ParentType, ContextType, Partial<QueryKycVerificationStatsArgs>>;
   kycVerifications?: Resolver<Maybe<Array<ResolversTypes['KycVerification']>>, ParentType, ContextType, Partial<QueryKycVerificationsArgs>>;
+  kycVerificationsByDate?: Resolver<Maybe<Array<ResolversTypes['KycVerification']>>, ParentType, ContextType, RequireFields<QueryKycVerificationsByDateArgs, 'endDate' | 'startDate'>>;
+  kycVerificationsByPriority?: Resolver<Maybe<Array<ResolversTypes['KycVerification']>>, ParentType, ContextType, RequireFields<QueryKycVerificationsByPriorityArgs, 'priority'>>;
+  kycVerificationsByStatus?: Resolver<Maybe<Array<ResolversTypes['KycVerification']>>, ParentType, ContextType, RequireFields<QueryKycVerificationsByStatusArgs, 'status'>>;
   pendingKycVerifications?: Resolver<Maybe<Array<ResolversTypes['KycVerification']>>, ParentType, ContextType>;
   test?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   user?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
   usersByGroup?: Resolver<Maybe<Array<ResolversTypes['User']>>, ParentType, ContextType, RequireFields<QueryUsersByGroupArgs, 'groupId'>>;
+};
+
+export type TypeStatsResolvers<ContextType = any, ParentType extends ResolversParentTypes['TypeStats'] = ResolversParentTypes['TypeStats']> = {
+  count?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  verificationType?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export type UserResolvers<ContextType = any, ParentType extends ResolversParentTypes['User'] = ResolversParentTypes['User']> = {
@@ -708,6 +804,7 @@ export type VerificationLinkResolvers<ContextType = any, ParentType extends Reso
 export type Resolvers<ContextType = any> = {
   ClientApiAuthResponse?: ClientApiAuthResponseResolvers<ContextType>;
   Company?: CompanyResolvers<ContextType>;
+  CompanyStats?: CompanyStatsResolvers<ContextType>;
   Date?: GraphQLScalarType;
   DateTime?: GraphQLScalarType;
   Document?: DocumentResolvers<ContextType>;
@@ -715,8 +812,10 @@ export type Resolvers<ContextType = any> = {
   JSON?: GraphQLScalarType;
   KycPerson?: KycPersonResolvers<ContextType>;
   KycVerification?: KycVerificationResolvers<ContextType>;
+  KycVerificationStats?: KycVerificationStatsResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
+  TypeStats?: TypeStatsResolvers<ContextType>;
   User?: UserResolvers<ContextType>;
   VerificationLink?: VerificationLinkResolvers<ContextType>;
 };

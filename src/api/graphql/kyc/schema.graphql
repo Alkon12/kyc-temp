@@ -5,6 +5,12 @@ extend type Query {
   pendingKycVerifications: [KycVerification!]
   assignedKycVerifications(userId: ID!): [KycVerification!]
   
+  # Dashboard queries
+  kycVerificationStats(companyId: ID): KycVerificationStats!
+  kycVerificationsByStatus(status: KycVerificationStatus!, companyId: ID): [KycVerification!]
+  kycVerificationsByPriority(priority: Int!, companyId: ID): [KycVerification!]
+  kycVerificationsByDate(startDate: String!, endDate: String!, companyId: ID): [KycVerification!]
+  
   # New KycPerson query
   getKycPersonById(id: ID!): KycPerson
 }
@@ -127,4 +133,31 @@ input UpdateKycPersonInput {
   email: String
   phone: String
   address: String
+}
+
+# New types for dashboard
+type KycVerificationStats {
+  total: Int!
+  pending: Int!
+  inProgress: Int!
+  approved: Int!
+  rejected: Int!
+  requiresReview: Int!
+  byCompany: [CompanyStats!]
+  byType: [TypeStats!]
+  recentActivity: [KycVerification!]
+}
+
+type CompanyStats {
+  companyId: ID!
+  companyName: String!
+  total: Int!
+  pending: Int!
+  approved: Int!
+  rejected: Int!
+}
+
+type TypeStats {
+  verificationType: String!
+  count: Int!
 }
