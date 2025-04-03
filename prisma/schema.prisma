@@ -114,13 +114,14 @@ model RolePermission {
 model UserRole {
   userId    String
   roleId    String
-  companyId String
+  companyId String?
 
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   role    Role    @relation(fields: [roleId], references: [id], onDelete: Cascade)
-  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  company Company? @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
-  @@id([userId, roleId, companyId])
+  @@id([userId, roleId])
+  @@unique([userId, roleId, companyId])
 }
 
 model VerificationLink {
