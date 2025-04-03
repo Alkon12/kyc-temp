@@ -9,7 +9,8 @@ import {
   Menu,
   X,
   PanelLeft,
-  PanelRight
+  PanelRight,
+  Building2
 } from "lucide-react";
 
 export const Icons = {
@@ -22,7 +23,8 @@ export const Icons = {
   menu: Menu,
   close: X,
   panelLeft: PanelLeft,
-  panelRight: PanelRight
+  panelRight: PanelRight,
+  building: Building2
 };
 
 export type Icon = keyof typeof Icons; 

@@ -73,6 +73,35 @@ export const nextAuthOptions: NextAuthOptions = {
             companyId: userRole.companyId || null // Asegurarse que companyId sea null explícitamente si no existe
           }))
           
+          // Obtener permisos para cada rol
+          const userRoleIds = userData.userRoles.map(ur => ur.roleId);
+          const rolesWithPermissions = await prisma.role.findMany({
+            where: {
+              id: {
+                in: userRoleIds
+              }
+            },
+            include: {
+              rolePermissions: {
+                include: {
+                  permission: true
+                }
+              }
+            }
+          });
+          
+          // Añadir permisos a cada rol
+          session.user.roles = session.user.roles.map(role => {
+            const roleData = rolesWithPermissions.find(r => r.id === role.id);
+            return {
+              ...role,
+              permissions: roleData?.rolePermissions.map(rp => ({
+                id: rp.permission.id,
+                permissionName: rp.permission.permissionName
+              })) || []
+            };
+          });
+          
           console.log("Usuario con roles:", JSON.stringify(session.user.roles, null, 2))
         }
       }

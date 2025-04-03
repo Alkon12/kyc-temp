@@ -7,7 +7,8 @@ import { signOut, useSession } from 'next-auth/react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/types/components/ui/button'
 import { Icons } from '@/components/icons'
-import { navigationItems } from '@/config/dashboard'
+import { navigationItems, permissionedNavigationItems } from '@/config/dashboard'
+import { Authorize } from '@/components/auth/Authorize'
 
 interface SidebarProps {
   isOpen: boolean;
@@ -93,6 +94,7 @@ export function Sidebar({
         
         <nav className="flex-1 overflow-y-auto py-6">
           <ul className="space-y-1 px-2">
+            {/* Elementos de navegación estándar */}
             {navigationItems.map((item) => {
               const Icon = Icons[item.icon as keyof typeof Icons]
               const isActive = pathname === item.href
@@ -122,6 +124,40 @@ export function Sidebar({
                     )}
                   </Link>
                 </li>
+              )
+            })}
+            
+            {/* Elementos de navegación que requieren permisos específicos */}
+            {permissionedNavigationItems.map((item) => {
+              const Icon = Icons[item.icon as keyof typeof Icons]
+              const isActive = pathname === item.href
+              
+              return (
+                <Authorize key={item.href} permissions={Array.from(item.requiredPermissions)}>
+                  <li>
+                    <Link
+                      href={item.href as any}
+                      className={cn(
+                        'flex items-center rounded-md py-2 transition-colors',
+                        isButtonCollapsed ? 'justify-center px-2' : 'px-3',
+                        isActive
+                          ? 'bg-primary/10 text-primary'
+                          : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                      )}
+                      title={item.name}
+                      onClick={() => {
+                        if (isMobile) {
+                          toggleSidebar()
+                        }
+                      }}
+                    >
+                      <Icon className={cn("h-5 w-5", shouldShowFullContent && 'mr-3')} />
+                      {shouldShowFullContent && (
+                        <span className="truncate">{item.name}</span>
+                      )}
+                    </Link>
+                  </li>
+                </Authorize>
               )
             })}
           </ul>

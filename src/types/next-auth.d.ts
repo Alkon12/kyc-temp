@@ -21,6 +21,10 @@ declare module 'next-auth' {
         id: string;
         roleName: string;
         companyId: string | null;
+        permissions?: Array<{
+          id: string;
+          permissionName: string;
+        }>;
       }>;
     }
 
