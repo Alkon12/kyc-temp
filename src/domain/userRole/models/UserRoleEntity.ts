@@ -9,7 +9,7 @@ import { CompanyEntity } from '@domain/company/models/CompanyEntity'
 export type UserRoleEntityProps = {
   userId: UserId
   roleId: RoleId
-  companyId: CompanyId
+  companyId?: CompanyId
   user?: UserEntity
   role?: RoleEntity
   company?: CompanyEntity

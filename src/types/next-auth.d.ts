@@ -11,7 +11,18 @@ declare module 'next-auth' {
       | 'lastName'
       | 'phoneNumber'
       | 'picture'
-    > {}
+    > {
+      groups?: Array<{
+        id: string;
+        title: string;
+        assignedAt: string;
+      }>;
+      roles?: Array<{
+        id: string;
+        roleName: string;
+        companyId: string | null;
+      }>;
+    }
 
   interface Account extends AccountModel {}
 

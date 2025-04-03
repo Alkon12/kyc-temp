@@ -39,7 +39,42 @@ export const nextAuthOptions: NextAuthOptions = {
       const user = token.user as User
 
       if (session && user) {
+        // Incluir el usuario básico primero
         session.user = user
+        
+        // Obtener grupos y roles del usuario desde Prisma
+        const userData = await prisma.user.findUnique({
+          where: { id: user.id },
+          include: {
+            groups: {
+              include: {
+                group: true
+              }
+            },
+            userRoles: {
+              include: {
+                role: true
+              }
+            }
+          }
+        })
+        
+        if (userData) {
+          // Añadir grupos y roles a la sesión
+          session.user.groups = userData.groups.map(userGroup => ({
+            id: userGroup.groupId,
+            title: userGroup.group.title,
+            assignedAt: userGroup.assignedAt.toISOString(),
+          }))
+          
+          session.user.roles = userData.userRoles.map(userRole => ({
+            id: userRole.roleId,
+            roleName: userRole.role.roleName,
+            companyId: userRole.companyId || null // Asegurarse que companyId sea null explícitamente si no existe
+          }))
+          
+          console.log("Usuario con roles:", JSON.stringify(session.user.roles, null, 2))
+        }
       }
       return session
     },

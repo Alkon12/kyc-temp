@@ -5,5 +5,5 @@ import { CompanyId } from '@domain/company/models/CompanyId'
 export interface CreateUserRoleArgs {
   userId: UserId
   roleId: RoleId
-  companyId: CompanyId
+  companyId?: CompanyId
 }

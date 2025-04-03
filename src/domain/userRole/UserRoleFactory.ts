@@ -14,7 +14,7 @@ export class UserRoleFactory {
     return new UserRoleEntity({
       userId: new UserId(dto.userId),
       roleId: new RoleId(dto.roleId),
-      companyId: new CompanyId(dto.companyId),
+      companyId: dto.companyId ? new CompanyId(dto.companyId) : undefined,
       user: dto.user ? UserFactory.fromDTO(dto.user) : undefined,
       role: dto.role ? RoleFactory.fromDTO(dto.role) : undefined,
       company: dto.company ? CompanyFactory.fromDTO(dto.company) : undefined,

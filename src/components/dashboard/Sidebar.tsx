@@ -133,11 +133,11 @@ export function Sidebar({
             <div className="mb-4">
               <div className="flex items-center space-x-3">
                 <div className="flex-shrink-0 h-9 w-9 rounded-full bg-primary/10 text-primary flex items-center justify-center">
-                  {session.user.name ? session.user.name.charAt(0).toUpperCase() : 'U'}
+                  {session.user.firstName ? session.user.firstName.charAt(0).toUpperCase() : 'U'}
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">
-                    {session.user.name || 'Usuario'}
+                    {session.user.firstName || 'Usuario'}
                   </p>
                   <p className="text-xs text-muted-foreground truncate">
                     {session.user.email || ''}
