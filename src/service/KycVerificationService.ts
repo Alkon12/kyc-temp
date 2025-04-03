@@ -54,6 +54,15 @@ export class KycVerificationService implements AbstractKycVerificationService {
     return this.repository.getByStatus(new KycVerificationStatus('requires-review'))
   }
 
+  async getAll(): Promise<KycVerificationEntity[]> {
+    // Use the repository instead of directly accessing Prisma
+    return this.repository.getAll()
+  }
+
+  async getPendingVerifications(): Promise<KycVerificationEntity[]> {
+    return this.repository.getByStatus(new KycVerificationStatus('pending'))
+  }
+
   async create(args: CreateKycVerificationArgs): Promise<KycVerificationEntity> {
     const verification = KycVerificationFactory.create({
       externalReferenceId: args.externalReferenceId,
@@ -85,9 +94,14 @@ export class KycVerificationService implements AbstractKycVerificationService {
     return this.repository.save(updatedVerification)
   }
 
-  async updateStatus(id: KycVerificationId, status: KycVerificationStatus): Promise<KycVerificationEntity> {
+  async updateStatus(id: KycVerificationId, status: KycVerificationStatus, notes?: StringValue): Promise<KycVerificationEntity> {
     const verification = await this.getById(id)
     verification.updateStatus(status)
+    
+    if (notes) {
+      verification.updateNotes(notes)
+    }
+    
     return this.repository.save(verification)
   }
 

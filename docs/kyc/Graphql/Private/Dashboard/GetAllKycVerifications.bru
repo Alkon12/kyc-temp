@@ -1,0 +1,58 @@
+meta {
+  name: Get All KYC Verifications
+  type: graphql
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/graphql
+  auth: none
+  body: graphql {
+    query {
+      kycVerifications {
+        id
+        externalReferenceId
+        status
+        riskLevel
+        priority
+        verificationType
+        createdAt
+        updatedAt
+        completedAt
+        company {
+          id
+          companyName
+        }
+        assignedUser {
+          id
+          email
+          firstName
+          lastName
+        }
+        kycPerson {
+          id
+          firstName
+          lastName
+          email
+          phone
+        }
+      }
+    }
+  }
+}
+
+headers {
+  Content-Type: application/json
+  Authorization: Bearer {{token}}
+}
+
+tests {
+  test("Status code is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+  
+  test("Verifications are returned", function() {
+    expect(res.body.data.kycVerifications).to.exist;
+    expect(res.body.data.kycVerifications).to.be.an('array');
+  });
+} 

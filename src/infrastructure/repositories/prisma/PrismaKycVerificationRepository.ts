@@ -106,6 +106,18 @@ export class PrismaKycVerificationRepository implements KycVerificationRepositor
     return verifications.map((v) => KycVerificationFactory.fromDTO(convertPrismaToDTO<KycVerificationEntity>(v)))
   }
 
+  async getAll(): Promise<KycVerificationEntity[]> {
+    const verifications = await prisma.kycVerification.findMany({
+      include: {
+        company: true,
+        assignedUser: true,
+        kycPersons: true,
+      },
+    })
+
+    return verifications.map((v) => KycVerificationFactory.fromDTO(convertPrismaToDTO<KycVerificationEntity>(v)))
+  }
+
   async create(verification: KycVerificationEntity): Promise<KycVerificationEntity> {
     const verificationDTO = verification.toDTO()
     const { company, assignedUser, ...verificationData } = verificationDTO

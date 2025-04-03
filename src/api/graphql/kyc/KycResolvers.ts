@@ -145,7 +145,7 @@ export class KycResolvers {
   ): Promise<boolean> => {
     const kycVerificationService = container.get<AbstractKycVerificationService>(DI.KycVerificationService)
     
-    const statusValue = new KycVerificationStatus(status.toLowerCase().replace('_', '-'))
+    const statusValue = new KycVerificationStatus(status.toLowerCase().replace(/_/g, '-'))
     const notesValue = notes ? new StringValue(notes) : undefined
     
     await kycVerificationService.updateStatus(new KycVerificationId(id), statusValue, notesValue)
@@ -368,7 +368,7 @@ export class KycResolvers {
     const kycVerificationService = container.get<AbstractKycVerificationService>(DI.KycVerificationService)
     
     // Convert GraphQL enum to domain status
-    const statusValue = new KycVerificationStatus(status.toLowerCase().replace('_', '-'))
+    const statusValue = new KycVerificationStatus(status.toLowerCase().replace(/_/g, '-'))
     
     let verifications: KycVerificationEntity[]
     

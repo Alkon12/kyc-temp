@@ -14,4 +14,5 @@ export default interface KycVerificationRepository {
   create(verification: KycVerificationEntity): Promise<KycVerificationEntity>
   save(verification: KycVerificationEntity): Promise<KycVerificationEntity>
   delete(id: KycVerificationId): Promise<boolean>
+  getAll(): Promise<KycVerificationEntity[]>
 }
