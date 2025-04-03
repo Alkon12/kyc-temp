@@ -18,12 +18,10 @@ export function Authorize({
 }: AuthorizeProps) {
   const { hasPermission, hasAnyPermission, hasAllPermissions, hasRole } = usePermissions();
   
-  // Si no hay restricciones, mostrar el contenido
   if (!permissions && !roles) {
     return <>{children}</>;
   }
   
-  // Verificar permisos
   let hasRequiredPermissions = false;
   if (permissions) {
     const permissionArray = Array.isArray(permissions) ? permissions : [permissions];
@@ -32,14 +30,12 @@ export function Authorize({
       : hasAnyPermission(permissionArray);
   }
   
-  // Verificar roles
   let hasRequiredRoles = false;
   if (roles) {
     const roleArray = Array.isArray(roles) ? roles : [roles];
     hasRequiredRoles = roleArray.some(role => hasRole(role));
   }
   
-  // Si se especificaron ambas condiciones, el usuario debe cumplir con ambas
   const isAuthorized = 
     (permissions && roles) ? (hasRequiredPermissions && hasRequiredRoles) :
     permissions ? hasRequiredPermissions :

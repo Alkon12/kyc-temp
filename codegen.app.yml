@@ -6,6 +6,7 @@ schema:
   - './src/api/graphql/kyc/schema.graphql'
   - './src/api/graphql/verification-link/schema.graphql'
   - './src/api/graphql/document/schema.graphql'
+  - './src/api/graphql/company/schema.graphql'
  
   
 documents: null

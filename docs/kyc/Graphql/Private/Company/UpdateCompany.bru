@@ -1,0 +1,29 @@
+meta {
+  name: Update Company
+  type: graphql
+  seq: 3
+}
+
+query {
+  mutation UpdateCompany($companyId: ID!, $input: UpdateCompanyInput!) {
+    updateCompany(companyId: $companyId, input: $input) {
+      id
+      companyName
+      apiKey
+      callbackUrl
+      status
+    }
+  }
+}
+
+variables {
+  "companyId": "{{company_id}}",
+  "input": {
+    "companyName": "Updated Company Name",
+    "callbackUrl": "https://example.com/updated-callback"
+  }
+}
+
+headers {
+  Authorization: Bearer {{auth_token}}
+} 

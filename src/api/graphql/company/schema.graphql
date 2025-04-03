@@ -1,0 +1,23 @@
+extend type Query {
+  getAllCompanies: [Company!]!
+  getCompanyById(companyId: ID!): Company!
+}
+
+extend type Mutation {
+  createCompany(input: CreateCompanyInput!): Company!
+  updateCompany(companyId: ID!, input: UpdateCompanyInput!): Company!
+  deleteCompany(companyId: ID!): Boolean!
+  updateCompanyStatus(companyId: ID!, status: String!): Company!
+}
+
+input CreateCompanyInput {
+  companyName: String!
+  apiKey: String!
+  callbackUrl: String
+}
+
+input UpdateCompanyInput {
+  companyName: String
+  apiKey: String
+  callbackUrl: String
+} 

@@ -1,0 +1,19 @@
+meta {
+  name: Delete Company
+  type: graphql
+  seq: 4
+}
+
+query {
+  mutation DeleteCompany($companyId: ID!) {
+    deleteCompany(companyId: $companyId)
+  }
+}
+
+variables {
+  "companyId": "{{company_id}}"
+}
+
+headers {
+  Authorization: Bearer {{auth_token}}
+} 

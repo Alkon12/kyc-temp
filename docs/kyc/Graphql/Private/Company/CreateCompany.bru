@@ -1,0 +1,29 @@
+meta {
+  name: Create Company
+  type: graphql
+  seq: 2
+}
+
+query {
+  mutation CreateCompany($input: CreateCompanyInput!) {
+    createCompany(input: $input) {
+      id
+      companyName
+      apiKey
+      callbackUrl
+      status
+    }
+  }
+}
+
+variables {
+  "input": {
+    "companyName": "Test Company",
+    "apiKey": "test_api_key_12345",
+    "callbackUrl": "https://example.com/callback"
+  }
+}
+
+headers {
+  Authorization: Bearer {{auth_token}}
+} 

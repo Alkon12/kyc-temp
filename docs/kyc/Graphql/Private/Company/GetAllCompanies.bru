@@ -1,0 +1,21 @@
+meta {
+  name: Get All Companies
+  type: graphql
+  seq: 1
+}
+
+query {
+  query GetAllCompanies {
+    getAllCompanies {
+      id
+      companyName
+      apiKey
+      callbackUrl
+      status
+    }
+  }
+}
+
+headers {
+  Authorization: Bearer {{auth_token}}
+} 

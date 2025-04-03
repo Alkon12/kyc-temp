@@ -48,6 +48,7 @@ import AbstractDocumentService from '@domain/document/DocumentService'
 import { DocumentService } from '@service/DocumentService'
 import { FaceTecDocumentService } from '@service/FaceTecDocumentService'
 import { PaperlessService } from '@service/PaperlessService'
+import { CompanyResolvers } from '@api/graphql/company/CompanyResolvers'
 
 const container = new Container()
 
@@ -59,6 +60,7 @@ container.bind(TestResolvers).toSelf()
 container.bind(KycResolvers).toSelf()
 container.bind(VerificationLinkResolvers).toSelf()
 container.bind(DocumentResolvers).toSelf()
+container.bind(CompanyResolvers).toSelf()
 
 // Services
 container.bind<LoggingService>(DI.LoggingService).to(ConsoleLogger).inSingletonScope()

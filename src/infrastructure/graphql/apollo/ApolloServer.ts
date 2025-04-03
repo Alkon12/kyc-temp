@@ -8,12 +8,14 @@ import { TestSchema } from '@api/graphql/test'
 import { KycSchema } from '@api/graphql/kyc'
 import { VerificationLinkSchema } from '@api/graphql/verification-link'
 import { DocumentSchema } from '@api/graphql/document'
+import { CompanySchema } from '@api/graphql/company'
 import { ApolloLoggingPlugin } from './ApolloLoggingPlugin'
 import { UserResolvers } from '@api/graphql/user/UserResolvers'
 import { TestResolvers } from '@api/graphql/test/TestResolvers'
 import { KycResolvers } from '@api/graphql/kyc/KycResolvers'
 import { VerificationLinkResolvers } from '@api/graphql/verification-link/VerificationLinkResolvers'
 import { DocumentResolvers } from '@api/graphql/document/DocumentResolvers'
+import { CompanyResolvers } from '@api/graphql/company/CompanyResolvers'
 
 @injectable()
 export class ApolloServer {
@@ -44,6 +46,7 @@ export class ApolloServer {
       KycSchema,
       VerificationLinkSchema,
       DocumentSchema,
+      CompanySchema,
     ])
     const mergedResolvers = merge(
       [],
@@ -53,6 +56,7 @@ export class ApolloServer {
         container.get(KycResolvers).build(),
         container.get(VerificationLinkResolvers).build(),
         container.get(DocumentResolvers).build(),
+        container.get(CompanyResolvers).build(),
       ],
     )
 
