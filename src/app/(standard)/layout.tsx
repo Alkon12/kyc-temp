@@ -1,38 +1,54 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Sidebar } from '@/components/dashboard/Sidebar'
-import { Button } from '@/types/components/ui/button'
-import { Icons } from '@/components/icons'
+import { MobileHeader } from '@/components/dashboard/MobileHeader'
+import { useSidebar } from '@/hooks/use-sidebar'
 
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true)
+  // Control de hidratación para evitar errores de SSR
+  const [isMounted, setIsMounted] = useState(false)
+  
+  // Usando nuestro hook personalizado para toda la lógica del sidebar
+  const { 
+    isOpen, 
+    isCollapsed, 
+    isMobile, 
+    toggleSidebar, 
+    toggleCollapsed 
+  } = useSidebar()
 
-  const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen)
+  // Efecto para manejar el montaje del componente
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
+
+  // Prevenir errores de hidratación
+  if (!isMounted) {
+    return null
   }
 
   return (
-    <div className="flex h-screen overflow-hidden">
-      <Sidebar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
+    <div className="flex h-screen overflow-hidden bg-background/50 backdrop-blur-[2px]">
+      {/* Sidebar con todas las propiedades necesarias */}
+      <Sidebar 
+        isOpen={isOpen} 
+        isCollapsed={isCollapsed}
+        isMobile={isMobile}
+        toggleSidebar={toggleSidebar}
+        toggleCollapsed={toggleCollapsed}
+      />
+      
       <main className="flex-1 overflow-y-auto">
-        <div className="flex items-center p-4 lg:hidden">
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={toggleSidebar}
-            className="mr-2"
-          >
-            <Icons.menu className="h-6 w-6" />
-            <span className="sr-only">Toggle Menu</span>
-          </Button>
-          <h1 className="text-xl font-bold">KYC Service</h1>
-        </div>
-        <div className="p-4 md:p-6">
+        {/* Header móvil como componente separado */}
+        <MobileHeader toggleSidebar={toggleSidebar} />
+        
+        {/* Área de contenido */}
+        <div className="px-4 py-4 pt-2 md:px-6 lg:px-8 lg:py-6">
           {children}
         </div>
       </main>

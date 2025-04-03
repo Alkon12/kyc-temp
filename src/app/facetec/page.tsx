@@ -1,10 +1,10 @@
 "use client"
 import React, { useState, useRef, useEffect } from "react";
-import TerminosCondiciones from "../components/kyc/TerminosCondiciones";
-import FaceTecComponent from "../components/kyc/FaceTecComponent";
-import RechazoTerminos from "../components/kyc/RechazoTerminos";
-import EnlaceExpirado from "../components/kyc/EnlaceExpirado";
-import ContactForm from "../components/kyc/ContactForm";
+import TerminosCondiciones from "@/components/kyc/TerminosCondiciones";
+import FaceTecComponent from "@/components/kyc/FaceTecComponent";
+import RechazoTerminos from "@/components/kyc/RechazoTerminos";
+import EnlaceExpirado from "@/components/kyc/EnlaceExpirado";
+import ContactForm from "@/components/kyc/ContactForm";
 import { useSearchParams } from 'next/navigation';
 import { gql, useQuery, useMutation, ApolloProvider } from '@apollo/client';
 import { ApolloClient, InMemoryCache, createHttpLink } from '@apollo/client';

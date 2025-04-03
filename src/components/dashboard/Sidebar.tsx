@@ -6,34 +6,24 @@ import { usePathname } from 'next/navigation'
 import { signOut, useSession } from 'next-auth/react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/types/components/ui/button'
-import { Card } from '@/types/components/ui/card'
 import { Icons } from '@/components/icons'
-
-// Define navigation items
-const navigationItems = [
-  {
-    name: 'Dashboard',
-    href: '/',
-    icon: 'dashboard',
-  },
-  {
-    name: 'Usuarios',
-    href: '/users',
-    icon: 'users',
-  },
-  {
-    name: 'Configuración',
-    href: '/settings',
-    icon: 'settings',
-  },
-]
+import { navigationItems } from '@/config/dashboard'
 
 interface SidebarProps {
   isOpen: boolean;
+  isCollapsed: boolean;
+  isMobile: boolean | undefined;
   toggleSidebar: () => void;
+  toggleCollapsed: () => void;
 }
 
-export function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
+export function Sidebar({ 
+  isOpen, 
+  isCollapsed, 
+  isMobile, 
+  toggleSidebar, 
+  toggleCollapsed 
+}: SidebarProps) {
   const pathname = usePathname()
   const { data: session } = useSession()
 
@@ -41,66 +31,95 @@ export function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
     await signOut({ redirect: true, callbackUrl: '/login' })
   }
 
-  // Base classes for the sidebar
   const sidebarClasses = cn(
-    "fixed inset-y-0 left-0 z-40 flex flex-col border-r bg-background transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0",
+    "fixed inset-y-0 left-0 z-50 flex flex-col border-r bg-background/80 backdrop-blur-sm transition-all duration-300 ease-in-out lg:relative lg:translate-x-0",
     {
       "translate-x-0": isOpen,
       "-translate-x-full": !isOpen,
+      "w-[70px]": isCollapsed && !isMobile,
+      "w-64": !isCollapsed || isMobile,
     }
   )
 
+  const shouldShowFullContent = !isCollapsed || isMobile
+  const isButtonCollapsed = isCollapsed && !isMobile
+
   return (
     <>
-      {/* Mobile overlay when sidebar is open */}
       {isOpen && (
         <div 
-          className="fixed inset-0 z-30 bg-black/50 lg:hidden" 
+          className="fixed inset-0 z-40 bg-black/50 lg:hidden" 
           onClick={toggleSidebar}
           aria-hidden="true"
         />
       )}
 
-      <Card className={cn(sidebarClasses, "w-64")}>
-        <div className="flex items-center justify-between p-4 border-b">
-          <div className="flex items-center">
-            <Icons.logo className="h-6 w-6 mr-2" />
-            <span className="font-bold text-xl">KYC Service</span>
+      <div className={sidebarClasses}>
+        <div className="flex items-center justify-between p-4 h-14 border-b">
+          <div className="flex items-center overflow-hidden">
+            <Icons.logo className="h-6 w-6 flex-shrink-0" />
+            {shouldShowFullContent && (
+              <span className="ml-2 font-medium text-lg truncate">KYC Service</span>
+            )}
           </div>
-          <Button 
-            variant="ghost" 
-            size="icon"
-            onClick={toggleSidebar}
-            className="lg:hidden"
-          >
-            <Icons.close className="h-5 w-5" />
-            <span className="sr-only">Cerrar menú</span>
-          </Button>
+          <div className="flex items-center">
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={toggleCollapsed}
+              className="hidden lg:flex"
+              title={isCollapsed ? "Expandir menú" : "Colapsar menú"}
+            >
+              {isCollapsed ? (
+                <Icons.panelRight className="h-4 w-4" />
+              ) : (
+                <Icons.panelLeft className="h-4 w-4" />
+              )}
+              <span className="sr-only">
+                {isCollapsed ? "Expandir menú" : "Colapsar menú"}
+              </span>
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={toggleSidebar}
+              className="lg:hidden"
+            >
+              <Icons.close className="h-4 w-4" />
+              <span className="sr-only">Cerrar menú</span>
+            </Button>
+          </div>
         </div>
         
-        <nav className="flex-1 p-4 overflow-y-auto">
-          <ul className="space-y-2">
+        <nav className="flex-1 overflow-y-auto py-6">
+          <ul className="space-y-1 px-2">
             {navigationItems.map((item) => {
               const Icon = Icons[item.icon as keyof typeof Icons]
+              const isActive = pathname === item.href
+              
               return (
                 <li key={item.href}>
                   <Link
                     href={item.href as any}
                     className={cn(
-                      'flex items-center px-4 py-2 rounded-md transition-colors',
-                      pathname === item.href
-                        ? 'bg-primary text-primary-foreground'
-                        : 'hover:bg-muted'
+                      'flex items-center rounded-md py-2 transition-colors',
+                      isButtonCollapsed ? 'justify-center px-2' : 'px-3',
+                      isActive
+                        ? 'bg-primary/10 text-primary'
+                        : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                     )}
+                    title={item.name}
                     onClick={() => {
                       // Close sidebar on mobile when a link is clicked
-                      if (window.innerWidth < 1024) {
+                      if (isMobile) {
                         toggleSidebar()
                       }
                     }}
                   >
-                    <Icon className="h-5 w-5 mr-3" />
-                    {item.name}
+                    <Icon className={cn("h-5 w-5", shouldShowFullContent && 'mr-3')} />
+                    {shouldShowFullContent && (
+                      <span className="truncate">{item.name}</span>
+                    )}
                   </Link>
                 </li>
               )
@@ -108,12 +127,12 @@ export function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
           </ul>
         </nav>
         
-        <div className="mt-auto">
+        <div className="mt-auto border-t p-4">
           {/* User profile section */}
-          {session?.user && (
-            <div className="p-4 border-t">
+          {session?.user && shouldShowFullContent && (
+            <div className="mb-4">
               <div className="flex items-center space-x-3">
-                <div className="flex-shrink-0 h-10 w-10 rounded-full bg-primary flex items-center justify-center text-primary-foreground">
+                <div className="flex-shrink-0 h-9 w-9 rounded-full bg-primary/10 text-primary flex items-center justify-center">
                   {session.user.name ? session.user.name.charAt(0).toUpperCase() : 'U'}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -128,18 +147,30 @@ export function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
             </div>
           )}
           
-          <div className="p-4">
+          {isButtonCollapsed ? (
+            <Button 
+              variant="ghost" 
+              size="icon"
+              className="w-full h-9 flex justify-center" 
+              onClick={handleSignOut}
+              title="Cerrar sesión"
+            >
+              <Icons.logout className="h-5 w-5" />
+              <span className="sr-only">Cerrar sesión</span>
+            </Button>
+          ) : (
             <Button 
               variant="outline" 
+              size="sm"
               className="w-full" 
               onClick={handleSignOut}
             >
-              <Icons.logout className="h-5 w-5 mr-2" />
+              <Icons.logout className="h-4 w-4 mr-2" />
               Cerrar sesión
             </Button>
-          </div>
+          )}
         </div>
-      </Card>
+      </div>
     </>
   )
 } 

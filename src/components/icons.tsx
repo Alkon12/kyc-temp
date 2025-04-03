@@ -7,7 +7,9 @@ import {
   Settings, 
   LogOut,
   Menu,
-  X
+  X,
+  PanelLeft,
+  PanelRight
 } from "lucide-react";
 
 export const Icons = {
@@ -18,7 +20,9 @@ export const Icons = {
   settings: Settings,
   logout: LogOut,
   menu: Menu,
-  close: X
+  close: X,
+  panelLeft: PanelLeft,
+  panelRight: PanelRight
 };
 
 export type Icon = keyof typeof Icons; 
