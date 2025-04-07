@@ -1,16 +1,13 @@
 import { StringValueAbstract } from '@domain/shared/base/StringValueAbstract'
 import { ValidationError } from '@domain/error/ValidationError'
 
-export type KycVerificationTypeValue = 'identity' | 'address' | 'face' | 'document' | 'aml' | 'complete'
+export type KycVerificationTypeValue = 'bronze' | 'silver' | 'gold'
 
 export class KycVerificationType extends StringValueAbstract<'KycVerificationType'> {
   private static readonly VALID_TYPES: KycVerificationTypeValue[] = [
-    'identity',
-    'address',
-    'face',
-    'document',
-    'aml',
-    'complete'
+    'bronze',
+    'silver',
+    'gold'
   ]
 
   constructor(value: string) {

@@ -37,12 +37,9 @@ enum KycVerificationStatus {
 }
 
 enum KycVerificationType {
-  IDENTITY
-  ADDRESS
-  FACE
-  DOCUMENT
-  AML
-  COMPLETE
+  BRONZE
+  SILVER
+  GOLD
 }
 
 type KycVerification {

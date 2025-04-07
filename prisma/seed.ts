@@ -331,7 +331,7 @@ async function main() {
       data: {
         companyId: createdCompanies[0].id,
         status: 'pending',
-        verificationType: 'identity',
+        verificationType: 'bronze',
         priority: 1,
         notes: 'Cliente importante, procesar con prioridad',
         externalReferenceId: 'EXT-REF-001',
@@ -356,7 +356,7 @@ async function main() {
       data: {
         companyId: createdCompanies[0].id,
         status: 'in_progress',
-        verificationType: 'complete',
+        verificationType: 'gold',
         priority: 2,
         assignedTo: userReviewer.id,
         notes: 'Documentación pendiente de revisión',
@@ -382,7 +382,7 @@ async function main() {
       data: {
         companyId: createdCompanies[0].id,
         status: 'approved',
-        verificationType: 'identity',
+        verificationType: 'silver',
         priority: 0,
         assignedTo: userReviewer.id,
         notes: 'Verificación completada correctamente',

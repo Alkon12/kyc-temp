@@ -825,7 +825,7 @@
               id: "3a82f7e2-5b4c-4d9a-8f43-9c1ed5d79b68",
               companyId: mockCompanyId,
               status: "approved",
-              verificationType: "face",
+              verificationType: "silver",
               createdAt: new Date(Date.now() - 3600000).toISOString(),
               completedAt: new Date(Date.now() - 3000000).toISOString()
             },
@@ -833,14 +833,14 @@
               id: "7b981c45-6324-4e89-ab75-4d7e72c3f7be",
               companyId: mockCompanyId,
               status: "requires-review",
-              verificationType: "identity",
+              verificationType: "bronze",
               createdAt: new Date(Date.now() - 7200000).toISOString()
             },
             {
               id: currentVerificationId || "e62f3e9c-8d14-4c2a-9de3-1f93e8a7bf29",
               companyId: mockCompanyId,
               status: currentStatus || "in-progress",
-              verificationType: "face",
+              verificationType: "gold",
               createdAt: new Date().toISOString()
             }
           ];
@@ -920,7 +920,7 @@
               id: currentVerificationId,
               companyId: mockCompanyId,
               status: "requires-review",
-              verificationType: "face",
+              verificationType: "gold",
               createdAt: new Date().toISOString(),
               personInfo: {
                 firstName: document.getElementById('personName').value.split(' ')[0],
@@ -941,7 +941,7 @@
               id: "7b981c45-6324-4e89-ab75-4d7e72c3f7be",
               companyId: mockCompanyId,
               status: "requires-review",
-              verificationType: "identity",
+              verificationType: "bronze",
               createdAt: new Date(Date.now() - 7200000).toISOString(),
               personInfo: {
                 firstName: "María",

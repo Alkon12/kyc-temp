@@ -182,12 +182,9 @@ export enum KycVerificationStatus {
 }
 
 export enum KycVerificationType {
-  Address = 'ADDRESS',
-  Aml = 'AML',
-  Complete = 'COMPLETE',
-  Document = 'DOCUMENT',
-  Face = 'FACE',
-  Identity = 'IDENTITY'
+  Bronze = 'BRONZE',
+  Gold = 'GOLD',
+  Silver = 'SILVER'
 }
 
 export type Mutation = {
