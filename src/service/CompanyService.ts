@@ -17,7 +17,11 @@ export class CompanyService implements AbstractCompanyService {
   }
 
   async getByApiKey(apiKey: string): Promise<CompanyEntity> {
-    return this._companyRepository.getByApiKey(apiKey)
+    const company = await this._companyRepository.findByApiKey(new StringValue(apiKey))
+    if (!company) {
+      throw new Error('Company not found with the provided API Key')
+    }
+    return company
   }
 
   async getAll(): Promise<CompanyEntity[]> {
@@ -63,5 +67,11 @@ export class CompanyService implements AbstractCompanyService {
     })
 
     return this._companyRepository.save(updatedCompany)
+  }
+
+  async updateApiKey(companyId: CompanyId, apiKey: StringValue): Promise<CompanyEntity> {
+    const company = await this.getById(companyId)
+    company.setApiKey(apiKey)
+    return this._companyRepository.save(company)
   }
 } 

@@ -10,4 +10,5 @@ export default abstract class AbstractCompanyService {
   abstract create(props: CreateCompanyArgs): Promise<CompanyEntity>
   abstract update(companyId: CompanyId, props: Partial<CreateCompanyArgs>): Promise<CompanyEntity>
   abstract updateStatus(companyId: CompanyId, status: StringValue): Promise<CompanyEntity>
+  abstract updateApiKey(companyId: CompanyId, apiKey: StringValue): Promise<CompanyEntity>
 }

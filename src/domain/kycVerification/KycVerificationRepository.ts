@@ -15,4 +15,6 @@ export default interface KycVerificationRepository {
   save(verification: KycVerificationEntity): Promise<KycVerificationEntity>
   delete(id: KycVerificationId): Promise<boolean>
   getAll(): Promise<KycVerificationEntity[]>
+  getPendingReviews(): Promise<KycVerificationEntity[]>
+  getPendingByCompany(companyId: string): Promise<KycVerificationEntity[]>
 }

@@ -21,4 +21,6 @@ export default abstract class AbstractKycVerificationService {
   abstract delete(id: KycVerificationId): Promise<boolean>
   abstract getAll(): Promise<KycVerificationEntity[]>
   abstract getPendingVerifications(): Promise<KycVerificationEntity[]>
+  abstract getPendingReviews(): Promise<KycVerificationEntity[]>
+  abstract getPendingByCompany(companyId: string): Promise<KycVerificationEntity[]>
 } 

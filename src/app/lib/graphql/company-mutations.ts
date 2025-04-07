@@ -38,4 +38,15 @@ export const UPDATE_COMPANY_STATUS = gql`
       status
     }
   }
+`
+
+export const GENERATE_COMPANY_API_KEY = gql`
+  mutation GenerateCompanyApiKey($companyId: ID!) {
+    generateCompanyApiKey(companyId: $companyId) {
+      id
+      companyName
+      apiKey
+      status
+    }
+  }
 ` 

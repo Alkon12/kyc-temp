@@ -30,6 +30,11 @@ export class CompanyEntity extends AggregateRoot<'CompanyEntity', CompanyEntityP
     return this._props.apiKey
   }
 
+  setApiKey(apiKey: StringValue) {
+    this._props.apiKey = apiKey
+    return this
+  }
+
   getStatus() {
     return this._props.status
   }

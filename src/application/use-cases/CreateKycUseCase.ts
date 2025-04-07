@@ -13,7 +13,7 @@ import { UserId } from '@domain/user/models/UserId'
 import { DateTimeValue } from '@domain/shared/DateTime'
 
 export interface CreateKycVerificationDto {
-  companyId: string
+  companyId?: string
   externalReferenceId?: string
   verificationType: string
   priority?: number
@@ -41,6 +41,11 @@ export class CreateKycUseCase {
   ) {}
 
   async execute(dto: CreateKycVerificationDto) {
+    // Validar que companyId exista
+    if (!dto.companyId) {
+      throw new Error('Company ID is required')
+    }
+    
     // Crear la verificación KYC
     const kycVerification = KycVerificationFactory.create({
       companyId: new CompanyId(dto.companyId),

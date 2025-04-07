@@ -7,6 +7,7 @@ import { StringValue } from '@domain/shared/StringValue'
 import AbstractCompanyService from '@domain/company/CompanyService'
 import { CompanyEntity } from '@domain/company/models/CompanyEntity'
 import { CreateCompanyArgs } from '@domain/company/interfaces/CreateCompanyArgs'
+import { randomUUID } from 'crypto'
 
 type QueryGetCompanyByIdArgs = {
   companyId: string
@@ -15,7 +16,7 @@ type QueryGetCompanyByIdArgs = {
 type MutationCreateCompanyArgs = {
   input: {
     companyName: string
-    apiKey: string
+    apiKey?: string
     callbackUrl?: string
   }
 }
@@ -51,6 +52,7 @@ export class CompanyResolvers {
         updateCompany: this.updateCompany,
         deleteCompany: this.deleteCompany,
         updateCompanyStatus: this.updateCompanyStatus,
+        generateCompanyApiKey: this.generateCompanyApiKey,
       }
     }
   }
@@ -70,9 +72,12 @@ export class CompanyResolvers {
   createCompany = async (_parent: unknown, { input }: MutationCreateCompanyArgs): Promise<DTO<CompanyEntity>> => {
     const companyService = container.get<AbstractCompanyService>(DI.CompanyService)
     
+    // Generar una API Key aleatoria si no se proporciona una
+    const apiKey = input.apiKey || `kyc_${randomUUID().replace(/-/g, '')}`
+    
     const args: CreateCompanyArgs = {
       companyName: new StringValue(input.companyName),
-      apiKey: new StringValue(input.apiKey),
+      apiKey: new StringValue(apiKey),
       callbackUrl: input.callbackUrl ? new StringValue(input.callbackUrl) : undefined
     }
     
@@ -116,6 +121,18 @@ export class CompanyResolvers {
   updateCompanyStatus = async (_parent: unknown, { companyId, status }: MutationUpdateCompanyStatusArgs): Promise<DTO<CompanyEntity>> => {
     const companyService = container.get<AbstractCompanyService>(DI.CompanyService)
     const company = await companyService.updateStatus(new CompanyId(companyId), new StringValue(status))
+    return company.toDTO()
+  }
+
+  generateCompanyApiKey = async (_parent: unknown, { companyId }: { companyId: string }): Promise<DTO<CompanyEntity>> => {
+    const companyService = container.get<AbstractCompanyService>(DI.CompanyService)
+    
+    // Generar una API Key aleatoria con prefijo
+    const apiKey = `kyc_${randomUUID().replace(/-/g, '')}`
+    
+    // Actualizar la compañía con la nueva API Key
+    const company = await companyService.updateApiKey(new CompanyId(companyId), new StringValue(apiKey))
+    
     return company.toDTO()
   }
 } 

@@ -19,11 +19,11 @@ import { UUID } from '@domain/shared/UUID'
 export class KycVerificationService implements AbstractKycVerificationService {
   constructor(
     @inject(DI.KycVerificationRepository)
-    private readonly repository: KycVerificationRepository
+    private readonly _kycVerificationRepository: KycVerificationRepository
   ) {}
 
   async getById(id: KycVerificationId): Promise<KycVerificationEntity> {
-    const verification = await this.repository.getById(id)
+    const verification = await this._kycVerificationRepository.getById(id)
     if (!verification) {
       throw new Error('KYC verification not found')
     }
@@ -31,36 +31,40 @@ export class KycVerificationService implements AbstractKycVerificationService {
   }
 
   async getByExternalReferenceId(externalReferenceId: string, companyId: CompanyId): Promise<KycVerificationEntity | null> {
-    return this.repository.getByExternalReferenceId(externalReferenceId, companyId)
+    return this._kycVerificationRepository.getByExternalReferenceId(externalReferenceId, companyId)
   }
 
   async getByCompanyId(companyId: CompanyId): Promise<KycVerificationEntity[]> {
-    return this.repository.getByCompanyId(companyId)
+    return this._kycVerificationRepository.getByCompanyId(companyId)
   }
 
   async getByStatus(status: KycVerificationStatus): Promise<KycVerificationEntity[]> {
-    return this.repository.getByStatus(status)
+    return this._kycVerificationRepository.getByStatus(status)
   }
 
   async getByAssignedUser(userId: UserId): Promise<KycVerificationEntity[]> {
-    return this.repository.getByAssignedUser(userId)
+    return this._kycVerificationRepository.getByAssignedUser(userId)
   }
 
   async getUnassigned(): Promise<KycVerificationEntity[]> {
-    return this.repository.getUnassigned()
+    return this._kycVerificationRepository.getUnassigned()
   }
 
   async getPendingReviews(): Promise<KycVerificationEntity[]> {
-    return this.repository.getByStatus(new KycVerificationStatus('requires-review'))
+    return this._kycVerificationRepository.getPendingReviews()
+  }
+
+  async getPendingByCompany(companyId: string): Promise<KycVerificationEntity[]> {
+    return this._kycVerificationRepository.getPendingByCompany(companyId)
   }
 
   async getAll(): Promise<KycVerificationEntity[]> {
     // Use the repository instead of directly accessing Prisma
-    return this.repository.getAll()
+    return this._kycVerificationRepository.getAll()
   }
 
   async getPendingVerifications(): Promise<KycVerificationEntity[]> {
-    return this.repository.getByStatus(new KycVerificationStatus('pending'))
+    return this._kycVerificationRepository.getByStatus(new KycVerificationStatus('pending'))
   }
 
   async create(args: CreateKycVerificationArgs): Promise<KycVerificationEntity> {
@@ -73,7 +77,7 @@ export class KycVerificationService implements AbstractKycVerificationService {
       priority: new NumberValue(0),
       status: new KycVerificationStatus('pending')
     })
-    return this.repository.create(verification)
+    return this._kycVerificationRepository.create(verification)
   }
 
   async update(id: KycVerificationId, args: Partial<CreateKycVerificationArgs>): Promise<KycVerificationEntity> {
@@ -91,7 +95,7 @@ export class KycVerificationService implements AbstractKycVerificationService {
       status: props.status
     })
 
-    return this.repository.save(updatedVerification)
+    return this._kycVerificationRepository.save(updatedVerification)
   }
 
   async updateStatus(id: KycVerificationId, status: KycVerificationStatus, notes?: StringValue): Promise<KycVerificationEntity> {
@@ -102,23 +106,23 @@ export class KycVerificationService implements AbstractKycVerificationService {
       verification.updateNotes(notes)
     }
     
-    return this.repository.save(verification)
+    return this._kycVerificationRepository.save(verification)
   }
 
   async assignToUser(id: KycVerificationId, userId: UserId): Promise<KycVerificationEntity> {
     const verification = await this.getById(id)
     verification.assign(userId)
-    return this.repository.save(verification)
+    return this._kycVerificationRepository.save(verification)
   }
 
   async unassignFromUser(id: KycVerificationId): Promise<KycVerificationEntity> {
     const verification = await this.getById(id)
     verification.unassign()
-    return this.repository.save(verification)
+    return this._kycVerificationRepository.save(verification)
   }
 
   async delete(id: KycVerificationId): Promise<boolean> {
-    await this.repository.delete(id)
+    await this._kycVerificationRepository.delete(id)
     return true
   }
 } 

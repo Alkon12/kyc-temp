@@ -6,6 +6,7 @@ import { CompanyEntity } from '@domain/company/models/CompanyEntity'
 import { injectable } from 'inversify'
 import { CompanyId } from '@domain/company/models/CompanyId'
 import { NotFoundError } from '@domain/error'
+import { StringValue } from '@domain/shared/StringValue'
 
 @injectable()
 export class PrismaCompanyRepository implements CompanyRepository {
@@ -23,15 +24,15 @@ export class PrismaCompanyRepository implements CompanyRepository {
     return CompanyFactory.fromDTO(convertPrismaToDTO<CompanyEntity>(company))
   }
 
-  async getByApiKey(apiKey: string): Promise<CompanyEntity> {
+  async findByApiKey(apiKey: StringValue): Promise<CompanyEntity | null> {
     const company = await prisma.company.findUnique({
       where: {
-        apiKey: apiKey,
+        apiKey: apiKey.toDTO(),
       },
     })
 
     if (!company) {
-      throw new NotFoundError('Company not found')
+      return null
     }
 
     return CompanyFactory.fromDTO(convertPrismaToDTO<CompanyEntity>(company))

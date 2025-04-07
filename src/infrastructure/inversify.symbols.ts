@@ -29,4 +29,6 @@ export const DI = {
   
   // Controladores
   KycController: Symbol.for('KycController'),
+  
+  ApiKeyAuthService: Symbol.for('ApiKeyAuthService'),
 }

@@ -6,18 +6,22 @@ import { ValidationError } from '@domain/error/ValidationError'
 import AbstractVerificationLinkService from '@domain/verification-link/VerificationLinkService'
 import { UUID } from '@domain/shared/UUID'
 import { StringValue } from '@domain/shared/StringValue'
+import { randomUUID } from 'crypto'
+import AbstractCompanyService from '@domain/company/CompanyService'
+import { CompanyId } from '@domain/company/models/CompanyId'
+import { NotFoundError } from '@domain/error'
 
 @injectable()
 export class KycController {
   constructor(
     @inject(DI.CreateKycUseCase) private createKycUseCase: CreateKycUseCase,
-    @inject(DI.VerificationLinkService) private verificationLinkService: AbstractVerificationLinkService
+    @inject(DI.VerificationLinkService) private verificationLinkService: AbstractVerificationLinkService,
+    @inject(DI.CompanyService) private companyService: AbstractCompanyService
   ) {}
 
   async createVerification(req: Request, res: Response) {
     try {
       const { 
-        companyId, 
         externalReferenceId, 
         verificationType, 
         priority, 
@@ -27,9 +31,12 @@ export class KycController {
         assignToUserId
       } = req.body as CreateKycVerificationDto
 
-      // Validación básica
+      // Extraer el companyId del header en lugar del body
+      const companyId = req.headers['x-company-id'] as string
+      
+      // Validar que se haya establecido el companyId en el header por el middleware
       if (!companyId) {
-        return res.status(400).json({ error: 'companyId is required' })
+        return res.status(400).json({ error: 'Company ID is missing. Make sure your API Key is valid.' })
       }
 
       if (!verificationType) {
@@ -98,6 +105,48 @@ export class KycController {
       return res.status(500).json({
         success: false,
         error: 'An error occurred while creating the KYC verification'
+      })
+    }
+  }
+
+  async generateApiKey(req: Request, res: Response): Promise<Response> {
+    try {
+      const { companyId } = req.body
+
+      if (!companyId) {
+        return res.status(400).json({
+          success: false,
+          error: 'Company ID is required'
+        })
+      }
+
+      // Generar una API Key aleatoria con prefijo
+      const apiKey = `kyc_${randomUUID().replace(/-/g, '')}`
+
+      // Actualizar la compañía con la nueva API Key
+      const company = await this.companyService.updateApiKey(new CompanyId(companyId), new StringValue(apiKey))
+
+      return res.status(200).json({
+        success: true,
+        data: {
+          companyId: company.getId().toDTO(),
+          companyName: company.getCompanyName().toDTO(),
+          apiKey: company.getApiKey().toDTO()
+        }
+      })
+    } catch (error) {
+      console.error('Error generating API Key:', error)
+      
+      if (error instanceof NotFoundError) {
+        return res.status(404).json({
+          success: false,
+          error: error.message
+        })
+      }
+      
+      return res.status(500).json({
+        success: false,
+        error: 'Internal Server Error'
       })
     }
   }

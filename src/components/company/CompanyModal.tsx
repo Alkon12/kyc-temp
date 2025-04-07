@@ -4,19 +4,18 @@ import { useState, useEffect } from 'react'
 import { Button } from '@type/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@type/components/ui/card'
 import { Input } from '@type/components/ui/input'
-import { Form, FormControl, FormField, FormItem, FormLabel } from '@type/components/ui/form'
+import { Form, FormControl, FormField, FormItem, FormLabel, FormDescription } from '@type/components/ui/form'
 import { toast } from 'sonner'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { RefreshCcw } from 'lucide-react'
 
 const formSchema = z.object({
   companyName: z.string().min(2, {
     message: "Company name must be at least 2 characters.",
   }),
-  apiKey: z.string().min(8, {
-    message: "API Key must be at least 8 characters.",
-  }),
+  apiKey: z.string().optional(),
   callbackUrl: z.string().url({ message: "Must be a valid URL" }).optional().or(z.literal('')),
 })
 
@@ -26,6 +25,7 @@ interface CompanyModalProps {
   isOpen: boolean
   onClose: () => void
   onSubmit: (data: FormValues) => void
+  onRegenerateApiKey?: (companyId: string) => void
   initialData?: {
     id?: string
     companyName?: string
@@ -40,18 +40,21 @@ export default function CompanyModal({
   isOpen,
   onClose,
   onSubmit,
+  onRegenerateApiKey,
   initialData,
   title,
   actionLabel,
 }: CompanyModalProps) {
   
   const [isLoading, setIsLoading] = useState(false)
+  const [isRegenerating, setIsRegenerating] = useState(false)
+  const isEditMode = !!initialData?.id
   
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       companyName: initialData?.companyName || '',
-      apiKey: initialData?.apiKey || '',
+      apiKey: initialData?.apiKey || undefined,
       callbackUrl: initialData?.callbackUrl || '',
     },
   })
@@ -60,13 +63,13 @@ export default function CompanyModal({
     if (initialData) {
       form.reset({
         companyName: initialData.companyName || '',
-        apiKey: initialData.apiKey || '',
+        apiKey: initialData.apiKey || undefined,
         callbackUrl: initialData.callbackUrl || '',
       })
     } else {
       form.reset({
         companyName: '',
-        apiKey: '',
+        apiKey: undefined,
         callbackUrl: '',
       })
     }
@@ -84,6 +87,20 @@ export default function CompanyModal({
       setIsLoading(false)
     }
   })
+  
+  const handleRegenerateApiKey = async () => {
+    if (!initialData?.id || !onRegenerateApiKey) return
+    
+    try {
+      setIsRegenerating(true)
+      await onRegenerateApiKey(initialData.id)
+      toast.success("API Key regenerated successfully")
+    } catch (error) {
+      toast.error("Failed to regenerate API Key")
+    } finally {
+      setIsRegenerating(false)
+    }
+  }
   
   if (!isOpen) return null
   
@@ -113,22 +130,30 @@ export default function CompanyModal({
                 )}
               />
               
-              <FormField
-                control={form.control}
-                name="apiKey"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>API Key</FormLabel>
-                    <FormControl>
-                      <Input 
-                        placeholder="Enter API key" 
-                        disabled={isLoading} 
-                        {...field} 
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
+              {isEditMode && (
+                <FormItem>
+                  <FormLabel>API Key</FormLabel>
+                  <div className="flex items-center gap-2">
+                    <Input 
+                      value={initialData?.apiKey || 'Not generated yet'} 
+                      disabled={true}
+                      className="font-mono text-sm"
+                    />
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="outline"
+                      onClick={handleRegenerateApiKey}
+                      disabled={isLoading || isRegenerating}
+                    >
+                      <RefreshCcw className={`h-4 w-4 ${isRegenerating ? 'animate-spin' : ''}`} />
+                    </Button>
+                  </div>
+                  <FormDescription>
+                    API Keys are generated automatically. Click the refresh button to generate a new one.
+                  </FormDescription>
+                </FormItem>
+              )}
               
               <FormField
                 control={form.control}

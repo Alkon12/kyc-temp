@@ -12,7 +12,8 @@ import {
   CREATE_COMPANY, 
   UPDATE_COMPANY, 
   DELETE_COMPANY,
-  UPDATE_COMPANY_STATUS
+  UPDATE_COMPANY_STATUS,
+  GENERATE_COMPANY_API_KEY
 } from '@/app/lib/graphql/company-mutations'
 
 type Company = {
@@ -34,7 +35,7 @@ export default function CompanyManager() {
   const { data, loading, refetch } = useQuery(GET_ALL_COMPANIES)
   
   const [createCompany] = useMutation(CREATE_COMPANY, {
-    onCompleted: () => {
+    onCompleted: (data) => {
       toast.success('Company created successfully')
       refetch()
     },
@@ -73,13 +74,28 @@ export default function CompanyManager() {
     }
   })
   
+  const [generateApiKey] = useMutation(GENERATE_COMPANY_API_KEY, {
+    onCompleted: (data) => {
+      // Actualizar el selectedCompany con el nuevo API Key
+      if (selectedCompany && data.generateCompanyApiKey) {
+        setSelectedCompany({
+          ...selectedCompany,
+          apiKey: data.generateCompanyApiKey.apiKey
+        })
+      }
+      refetch()
+    },
+    onError: (error) => {
+      toast.error(`Failed to generate API Key: ${error.message}`)
+    }
+  })
+  
   // Event handlers
   const handleCreateSubmit = async (data: any) => {
     await createCompany({
       variables: {
         input: {
           companyName: data.companyName,
-          apiKey: data.apiKey,
           callbackUrl: data.callbackUrl || undefined
         }
       }
@@ -94,9 +110,16 @@ export default function CompanyManager() {
         companyId: selectedCompany.id,
         input: {
           companyName: data.companyName,
-          apiKey: data.apiKey,
           callbackUrl: data.callbackUrl || undefined
         }
+      }
+    })
+  }
+  
+  const handleRegenerateApiKey = async (companyId: string) => {
+    await generateApiKey({
+      variables: {
+        companyId
       }
     })
   }
@@ -228,6 +251,7 @@ export default function CompanyManager() {
         onClose={() => setEditModalOpen(false)}
         onSubmit={handleEditSubmit}
         initialData={selectedCompany || undefined}
+        onRegenerateApiKey={handleRegenerateApiKey}
         title="Edit Company"
         actionLabel="Update"
       />

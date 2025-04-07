@@ -1,21 +1,35 @@
 import { container } from '@infrastructure/inversify.config'
 import { DI } from '@infrastructure/inversify.symbols'
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { KycController } from '@interfaces/controllers/KycController'
 import { KycVerificationService } from '@service/KycVerificationService'
 import { KycVerificationId } from '@domain/kycVerification/models/KycVerificationId'
+import { apiKeyAuth } from '@/middleware/apiKeyAuth'
 
 const kycController = container.get<KycController>(DI.KycController)
 
 export async function POST(req: Request) {
+  // Validar API Key primero
+  const authResponse = await apiKeyAuth(req as NextRequest)
+  if (authResponse instanceof NextResponse && authResponse.status !== 200) {
+    return authResponse
+  }
+
   try {
     const body = await req.json()
+    
+    // Extraer el company ID del header agregado por el middleware
+    const companyId = req.headers.get('x-company-id') || 
+                     (req as any).headers?.get?.('x-company-id')
     
     // Crear un objeto Request y Response compatible con Express
     const expressReq = {
       body,
       method: 'POST',
-      headers: req.headers,
+      headers: {
+        ...Object.fromEntries(req.headers.entries()),
+        'x-company-id': companyId
+      },
       url: req.url
     } as any
 
@@ -47,23 +61,49 @@ export async function POST(req: Request) {
 }
 
 export async function GET(req: Request) {
+  // Validar API Key primero
+  const authResponse = await apiKeyAuth(req as NextRequest)
+  if (authResponse instanceof NextResponse && authResponse.status !== 200) {
+    return authResponse
+  }
+
   try {
     const { searchParams } = new URL(req.url)
     const id = searchParams.get('id')
+
+    // Extraer el company ID del header agregado por el middleware
+    const companyId = req.headers.get('x-company-id') || 
+                     (req as any).headers?.get?.('x-company-id')
+    
+    // Si no hay ID de compañía, algo está mal con el middleware
+    if (!companyId) {
+      return NextResponse.json({
+        success: false,
+        error: 'Company ID missing. Please check your API Key.'
+      }, { status: 400 })
+    }
 
     if (id) {
       // Obtener detalles de una verificación específica
       const kycVerificationService = container.get<KycVerificationService>(DI.KycVerificationService)
       const verification = await kycVerificationService.getById(new KycVerificationId(id))
       
+      // Verificar que la verificación pertenezca a la compañía
+      if (verification.getCompanyId().toDTO() !== companyId) {
+        return NextResponse.json({
+          success: false,
+          error: 'You do not have access to this verification'
+        }, { status: 403 })
+      }
+      
       return NextResponse.json({
         success: true,
         data: verification.toDTO()
       })
     } else {
-      // Obtener todas las verificaciones pendientes
+      // Obtener todas las verificaciones pendientes para la compañía
       const kycVerificationService = container.get<KycVerificationService>(DI.KycVerificationService)
-      const pendingVerifications = await kycVerificationService.getPendingReviews()
+      const pendingVerifications = await kycVerificationService.getPendingByCompany(companyId)
       
       return NextResponse.json({
         success: true,

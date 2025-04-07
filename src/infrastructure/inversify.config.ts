@@ -49,6 +49,7 @@ import { DocumentService } from '@service/DocumentService'
 import { FaceTecDocumentService } from '@service/FaceTecDocumentService'
 import { PaperlessService } from '@service/PaperlessService'
 import { CompanyResolvers } from '@api/graphql/company/CompanyResolvers'
+import { ApiKeyAuthService } from '@/application/service/ApiKeyAuthService'
 
 const container = new Container()
 
@@ -96,6 +97,9 @@ container.bind<AssignManualReviewUseCase>(DI.AssignManualReviewUseCase).to(Assig
 
 // Controladores
 container.bind<KycController>(DI.KycController).to(KycController)
+
+// Auth Services binding
+container.bind<ApiKeyAuthService>(DI.ApiKeyAuthService).to(ApiKeyAuthService).inSingletonScope()
 
 export default container
 export { container }

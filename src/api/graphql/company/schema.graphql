@@ -8,11 +8,12 @@ extend type Mutation {
   updateCompany(companyId: ID!, input: UpdateCompanyInput!): Company!
   deleteCompany(companyId: ID!): Boolean!
   updateCompanyStatus(companyId: ID!, status: String!): Company!
+  generateCompanyApiKey(companyId: ID!): Company!
 }
 
 input CreateCompanyInput {
   companyName: String!
-  apiKey: String!
+  apiKey: String
   callbackUrl: String
 }
 

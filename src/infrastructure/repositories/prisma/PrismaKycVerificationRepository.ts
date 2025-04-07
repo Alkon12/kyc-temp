@@ -164,4 +164,37 @@ export class PrismaKycVerificationRepository implements KycVerificationRepositor
       return false
     }
   }
+
+  async getPendingReviews(): Promise<KycVerificationEntity[]> {
+    const verifications = await prisma.kycVerification.findMany({
+      where: {
+        status: 'requires-review'
+      },
+      include: {
+        company: true,
+        kycPersons: true,
+        facetecResults: true,
+        documents: true,
+      },
+    })
+
+    return verifications.map((v) => KycVerificationFactory.fromDTO(convertPrismaToDTO<KycVerificationEntity>(v)))
+  }
+
+  async getPendingByCompany(companyId: string): Promise<KycVerificationEntity[]> {
+    const verifications = await prisma.kycVerification.findMany({
+      where: {
+        companyId: companyId,
+        status: 'pending'
+      },
+      include: {
+        company: true,
+        kycPersons: true,
+        facetecResults: true,
+        documents: true,
+      },
+    })
+
+    return verifications.map((v) => KycVerificationFactory.fromDTO(convertPrismaToDTO<KycVerificationEntity>(v)))
+  }
 } 
