@@ -1,0 +1,29 @@
+meta {
+  name: Get FacetecResults By Verification ID
+  type: graphql
+  seq: 2
+}
+
+query {
+  query getFacetecResultsByVerificationId($verificationId: String!) {
+    getFacetecResultsByVerificationId(verificationId: $verificationId) {
+      id
+      verificationId
+      sessionId
+      livenessStatus
+      enrollmentStatus
+      matchLevel
+      fullResponse
+      manualReviewRequired
+      createdAt
+    }
+  }
+}
+
+variables {
+  "verificationId": "00000000-0000-0000-0000-000000000000"
+}
+
+headers {
+  Content-Type: application/json
+} 

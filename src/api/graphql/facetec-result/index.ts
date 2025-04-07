@@ -1,0 +1,1 @@
+export { default as FacetecResultSchema } from './schema.graphql' 

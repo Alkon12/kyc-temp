@@ -107,6 +107,20 @@ export type Document = {
   verificationStatus: Scalars['String']['output'];
 };
 
+export type FacetecResult = {
+  __typename?: 'FacetecResult';
+  createdAt: Scalars['DateTime']['output'];
+  enrollmentStatus: Scalars['String']['output'];
+  fullResponse?: Maybe<Scalars['JSON']['output']>;
+  id: Scalars['ID']['output'];
+  kycVerification?: Maybe<KycVerification>;
+  livenessStatus: Scalars['String']['output'];
+  manualReviewRequired: Scalars['Boolean']['output'];
+  matchLevel?: Maybe<Scalars['Float']['output']>;
+  sessionId: Scalars['String']['output'];
+  verificationId: Scalars['String']['output'];
+};
+
 export type Group = {
   __typename?: 'Group';
   id: Scalars['String']['output'];
@@ -347,6 +361,8 @@ export type Query = {
   getDocumentsByStatus: Array<Document>;
   getDocumentsByType: Array<Document>;
   getDocumentsByVerificationId: Array<Document>;
+  getFacetecResultById: FacetecResult;
+  getFacetecResultsByVerificationId: Array<FacetecResult>;
   getKycPersonById?: Maybe<KycPerson>;
   getVerificationLinkById: VerificationLink;
   getVerificationLinkByToken: VerificationLink;
@@ -403,6 +419,16 @@ export type QueryGetDocumentsByTypeArgs = {
 
 
 export type QueryGetDocumentsByVerificationIdArgs = {
+  verificationId: Scalars['String']['input'];
+};
+
+
+export type QueryGetFacetecResultByIdArgs = {
+  facetecResultId: Scalars['String']['input'];
+};
+
+
+export type QueryGetFacetecResultsByVerificationIdArgs = {
   verificationId: Scalars['String']['input'];
 };
 
@@ -613,6 +639,8 @@ export type ResolversTypes = {
   Date: ResolverTypeWrapper<Scalars['Date']['output']>;
   DateTime: ResolverTypeWrapper<Scalars['DateTime']['output']>;
   Document: ResolverTypeWrapper<Document>;
+  FacetecResult: ResolverTypeWrapper<FacetecResult>;
+  Float: ResolverTypeWrapper<Scalars['Float']['output']>;
   Group: ResolverTypeWrapper<Group>;
   ID: ResolverTypeWrapper<Scalars['ID']['output']>;
   Int: ResolverTypeWrapper<Scalars['Int']['output']>;
@@ -648,6 +676,8 @@ export type ResolversParentTypes = {
   Date: Scalars['Date']['output'];
   DateTime: Scalars['DateTime']['output'];
   Document: Document;
+  FacetecResult: FacetecResult;
+  Float: Scalars['Float']['output'];
   Group: Group;
   ID: Scalars['ID']['output'];
   Int: Scalars['Int']['output'];
@@ -715,6 +745,20 @@ export type DocumentResolvers<ContextType = any, ParentType extends ResolversPar
   updatedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   verificationId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   verificationStatus?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type FacetecResultResolvers<ContextType = any, ParentType extends ResolversParentTypes['FacetecResult'] = ResolversParentTypes['FacetecResult']> = {
+  createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  enrollmentStatus?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  fullResponse?: Resolver<Maybe<ResolversTypes['JSON']>, ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  kycVerification?: Resolver<Maybe<ResolversTypes['KycVerification']>, ParentType, ContextType>;
+  livenessStatus?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  manualReviewRequired?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  matchLevel?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
+  sessionId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  verificationId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -811,6 +855,8 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   getDocumentsByStatus?: Resolver<Array<ResolversTypes['Document']>, ParentType, ContextType, RequireFields<QueryGetDocumentsByStatusArgs, 'status'>>;
   getDocumentsByType?: Resolver<Array<ResolversTypes['Document']>, ParentType, ContextType, RequireFields<QueryGetDocumentsByTypeArgs, 'documentType'>>;
   getDocumentsByVerificationId?: Resolver<Array<ResolversTypes['Document']>, ParentType, ContextType, RequireFields<QueryGetDocumentsByVerificationIdArgs, 'verificationId'>>;
+  getFacetecResultById?: Resolver<ResolversTypes['FacetecResult'], ParentType, ContextType, RequireFields<QueryGetFacetecResultByIdArgs, 'facetecResultId'>>;
+  getFacetecResultsByVerificationId?: Resolver<Array<ResolversTypes['FacetecResult']>, ParentType, ContextType, RequireFields<QueryGetFacetecResultsByVerificationIdArgs, 'verificationId'>>;
   getKycPersonById?: Resolver<Maybe<ResolversTypes['KycPerson']>, ParentType, ContextType, RequireFields<QueryGetKycPersonByIdArgs, 'id'>>;
   getVerificationLinkById?: Resolver<ResolversTypes['VerificationLink'], ParentType, ContextType, RequireFields<QueryGetVerificationLinkByIdArgs, 'verificationLinkId'>>;
   getVerificationLinkByToken?: Resolver<ResolversTypes['VerificationLink'], ParentType, ContextType, RequireFields<QueryGetVerificationLinkByTokenArgs, 'token'>>;
@@ -867,6 +913,7 @@ export type Resolvers<ContextType = any> = {
   Date?: GraphQLScalarType;
   DateTime?: GraphQLScalarType;
   Document?: DocumentResolvers<ContextType>;
+  FacetecResult?: FacetecResultResolvers<ContextType>;
   Group?: GroupResolvers<ContextType>;
   JSON?: GraphQLScalarType;
   KycPerson?: KycPersonResolvers<ContextType>;

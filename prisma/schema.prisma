@@ -191,15 +191,11 @@ model FacetecResult {
   id                    String   @id @default(uuid())
   verificationId        String
   sessionId             String
-  matchLevel            Decimal  @db.Decimal(5,2)
-  livenessScore         Decimal  @db.Decimal(5,2)
-  confidenceScore       Decimal  @db.Decimal(5,2)
-  faceScanSecurityLevel String
-  auditTrailImage       String?
-  lowQualityAuditTrailImage String?
-  fullResponse          Json
+  livenessStatus        String   @default("pending")  // "passed", "failed", "pending"
+  enrollmentStatus      String   @default("pending")  // "success", "failed", "pending"
+  matchLevel            Decimal? @db.Decimal(5,2)
+  fullResponse          Json?    // Optional: store complete response for debugging
   manualReviewRequired  Boolean  @default(false)
-  manualReviewReason    String?
   createdAt             DateTime @default(now())
 
   kycVerification       KycVerification @relation(fields: [verificationId], references: [id], onDelete: Cascade)

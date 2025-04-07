@@ -20,6 +20,8 @@ export const DI = {
   
   // FaceTec
   FaceTecService: Symbol.for('FaceTecService'),
+  FacetecResultRepository: Symbol.for('FacetecResultRepository'),
+  FacetecResultService: Symbol.for('FacetecResultService'),
   
   // Casos de uso
   CreateKycUseCase: Symbol.for('CreateKycUseCase'),

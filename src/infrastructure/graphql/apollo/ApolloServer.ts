@@ -9,6 +9,7 @@ import { KycSchema } from '@api/graphql/kyc'
 import { VerificationLinkSchema } from '@api/graphql/verification-link'
 import { DocumentSchema } from '@api/graphql/document'
 import { CompanySchema } from '@api/graphql/company'
+import { FacetecResultSchema } from '@api/graphql/facetec-result'
 import { ApolloLoggingPlugin } from './ApolloLoggingPlugin'
 import { UserResolvers } from '@api/graphql/user/UserResolvers'
 import { TestResolvers } from '@api/graphql/test/TestResolvers'
@@ -16,6 +17,7 @@ import { KycResolvers } from '@api/graphql/kyc/KycResolvers'
 import { VerificationLinkResolvers } from '@api/graphql/verification-link/VerificationLinkResolvers'
 import { DocumentResolvers } from '@api/graphql/document/DocumentResolvers'
 import { CompanyResolvers } from '@api/graphql/company/CompanyResolvers'
+import { FacetecResultResolvers } from '@api/graphql/facetec-result/FacetecResultResolvers'
 
 @injectable()
 export class ApolloServer {
@@ -47,6 +49,7 @@ export class ApolloServer {
       VerificationLinkSchema,
       DocumentSchema,
       CompanySchema,
+      FacetecResultSchema,
     ])
     const mergedResolvers = merge(
       [],
@@ -57,6 +60,7 @@ export class ApolloServer {
         container.get(VerificationLinkResolvers).build(),
         container.get(DocumentResolvers).build(),
         container.get(CompanyResolvers).build(),
+        container.get(FacetecResultResolvers).build(),
       ],
     )
 

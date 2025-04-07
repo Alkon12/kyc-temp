@@ -7,6 +7,7 @@ schema:
   - './src/api/graphql/verification-link/schema.graphql'
   - './src/api/graphql/document/schema.graphql'
   - './src/api/graphql/company/schema.graphql'
+  - './src/api/graphql/facetec-result/schema.graphql'
  
   
 documents: null

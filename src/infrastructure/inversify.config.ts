@@ -50,6 +50,11 @@ import { FaceTecDocumentService } from '@service/FaceTecDocumentService'
 import { PaperlessService } from '@service/PaperlessService'
 import { CompanyResolvers } from '@api/graphql/company/CompanyResolvers'
 import { ApiKeyAuthService } from '@/application/service/ApiKeyAuthService'
+import { FacetecResultService } from '@service/FacetecResultService'
+import AbstractFacetecResultService from '@domain/faceTec/FacetecResultService'
+import FacetecResultRepository from '@domain/faceTec/FacetecResultRepository'
+import { PrismaFacetecResultRepository } from './repositories/prisma/PrismaFacetecResultRepository'
+import { FacetecResultResolvers } from '@api/graphql/facetec-result/FacetecResultResolvers'
 
 const container = new Container()
 
@@ -62,6 +67,7 @@ container.bind(KycResolvers).toSelf()
 container.bind(VerificationLinkResolvers).toSelf()
 container.bind(DocumentResolvers).toSelf()
 container.bind(CompanyResolvers).toSelf()
+container.bind(FacetecResultResolvers).toSelf()
 
 // Services
 container.bind<LoggingService>(DI.LoggingService).to(ConsoleLogger).inSingletonScope()
@@ -77,6 +83,7 @@ container.bind<AbstractKycVerificationService>(DI.KycVerificationService).to(Kyc
 container.bind<AbstractVerificationLinkService>(DI.VerificationLinkService).to(VerificationLinkService).inSingletonScope()
 container.bind<AbstractDocumentService>(DI.DocumentService).to(DocumentService).inSingletonScope()
 container.bind<FaceTecDocumentService>(DI.FaceTecDocumentService).to(FaceTecDocumentService).inSingletonScope()
+container.bind<AbstractFacetecResultService>(DI.FacetecResultService).to(FacetecResultService).inSingletonScope()
 
 // Repositories
 container.bind<UserRepository>(DI.UserRepository).to(PrismaUserRepository)
@@ -85,6 +92,7 @@ container.bind<KycPersonRepository>(DI.KycPersonRepository).to(PrismaKycPersonRe
 container.bind<KycVerificationRepository>(DI.KycVerificationRepository).to(PrismaKycVerificationRepository)
 container.bind<VerificationLinkRepository>(DI.VerificationLinkRepository).to(PrismaVerificationLinkRepository)
 container.bind<DocumentRepository>(DI.DocumentRepository).to(PrismaDocumentRepository)
+container.bind<FacetecResultRepository>(DI.FacetecResultRepository).to(PrismaFacetecResultRepository)
 
 // FaceTec Service (usar MockFaceTecService para desarrollo y pruebas)
 container.bind<FaceTecService>(DI.FaceTecService).to(MockFaceTecService).inSingletonScope()
