@@ -379,7 +379,7 @@ export class PaperlessService {
         console.log(`Paperless: Documento subido exitosamente con ID: ${documentId}`);
         
         // Devolver la URL completa al documento
-        const documentUrl = `${this.apiUrl}/documents/${documentId}/`;
+        const documentUrl = `${this.apiUrl}/documents/${documentId}/details`;
         console.log(`Paperless: URL del documento: ${documentUrl}`);
         return documentUrl;
       } catch (formError) {

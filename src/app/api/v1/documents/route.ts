@@ -87,9 +87,19 @@ export async function POST(req: Request) {
         if (paperlessUrl) {
           console.log(`API: ¡ÉXITO! Documento subido a Paperless: ${paperlessUrl}`)
           
-          // Actualizar la ruta en la base de datos para apuntar a Paperless
-          document.updateFilePath(new StringValue(paperlessUrl))
+          // Ya no actualizamos la ruta en la BD, solo guardamos el ID interno de Paperless
+          // document.updateFilePath(new StringValue(paperlessUrl))
+          
+          // Extraer el ID de Paperless de la URL para referencia
+          const paperlessId = paperlessUrl.split('/').filter(Boolean).pop()?.replace('details', '') || '';
+          
+          // Actualizar el nombre del archivo para reflejar el formato usado en Paperless
+          const paperlessFileName = `${document.getDocumentType().toDTO()} - ${document.getVerificationId().toDTO()}`;
+          document.updateFileName(new StringValue(paperlessFileName))
           document.updateVerificationStatus('saved_paperless')
+          
+          // Guardamos referencia de que está en Paperless sin la URL
+          document.updateFilePath(new StringValue(`paperless:${paperlessId}`))
           
           // Guardar los cambios en la base de datos
           const documentRepository = container.get<DocumentRepository>(DI.DocumentRepository)
@@ -160,7 +170,8 @@ export async function POST(req: Request) {
         documentType: document.getDocumentType().toDTO(),
         filePath: document.getFilePath().toDTO(),
         verificationId: document.getVerificationId().toDTO(),
-        storedIn: savedToPaperless ? 'paperless' : 'local'
+        storedIn: savedToPaperless ? 'paperless' : 'local',
+        paperlessUrl: savedToPaperless ? paperlessUrl : null
       }
     })
   } catch (error) {
