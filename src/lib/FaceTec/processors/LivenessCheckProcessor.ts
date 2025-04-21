@@ -2,6 +2,7 @@ import { Config } from "public/Config";
 import container from '@infrastructure/inversify.config';
 import { DI } from '@infrastructure';
 import { FaceTecDocumentService } from '@service/FaceTecDocumentService';
+import FacetecGraphQLAdapter from '../adapters/FacetecGraphQLAdapter';
 
 declare const FaceTecSDK: any;
 
@@ -13,6 +14,7 @@ class LivenessCheckProcessor {
   private cancelledDueToNetworkError: boolean;
   public latestNetworkRequest: XMLHttpRequest = new XMLHttpRequest();
   public latestSessionResult: any | null;
+  private facetecGraphQLAdapter: FacetecGraphQLAdapter;
 
   // Agregar flag para controlar si ya se subió la selfie
   private selfieUploaded: boolean = false;
@@ -35,6 +37,7 @@ class LivenessCheckProcessor {
     this.sampleAppControllerReference = sampleAppControllerReference;
     this.latestSessionResult = null;
     this.cancelledDueToNetworkError = false;
+    this.facetecGraphQLAdapter = new FacetecGraphQLAdapter();
     
     // Obtener el token actual de la URL
     try {
@@ -348,6 +351,17 @@ class LivenessCheckProcessor {
         try {
           const responseJSON = JSON.parse(this.latestNetworkRequest.responseText);
           const scanResultBlob = responseJSON.scanResultBlob;
+
+          // Store the FaceTec result via GraphQL
+          if (this.verificationToken) {
+            this.facetecGraphQLAdapter.storeLivenessCheckResult(
+              this.verificationToken,
+              sessionResult,
+              responseJSON
+            ).catch(error => {
+              console.error('Error storing liveness check result:', error);
+            });
+          }
 
           // In v9.2.0+, we key off a new property called wasProcessed to determine if we successfully processed the Session result on the Server.
           // Device SDK UI flow is now driven by the proceedToNextStep function, which should receive the scanResultBlob from the Server SDK response.

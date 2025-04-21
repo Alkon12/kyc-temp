@@ -3,6 +3,30 @@ extend type Query {
   getFacetecResultsByVerificationId(verificationId: String!): [FacetecResult!]!
 }
 
+extend type Mutation {
+  createFacetecResult(input: CreateFacetecResultInput!): FacetecResult!
+  updateFacetecResult(input: UpdateFacetecResultInput!): FacetecResult!
+}
+
+input CreateFacetecResultInput {
+  verificationId: String!
+  sessionId: String!
+  livenessStatus: String!
+  enrollmentStatus: String!
+  matchLevel: Float
+  fullResponse: JSON
+  manualReviewRequired: Boolean!
+}
+
+input UpdateFacetecResultInput {
+  id: String!
+  livenessStatus: String
+  enrollmentStatus: String
+  matchLevel: Float
+  manualReviewRequired: Boolean
+  fullResponse: JSON
+}
+
 type FacetecResult {
   id: ID!
   verificationId: String!

@@ -87,4 +87,9 @@ export class FacetecResultEntity extends AggregateRoot<'FacetecResultEntity', Fa
   setManualReviewRequired(required: BooleanValue): void {
     this._props.manualReviewRequired = required
   }
+
+  // Method to update full response
+  updateFullResponse(fullResponse: JsonValue): void {
+    this._props.fullResponse = fullResponse
+  }
 } 

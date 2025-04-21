@@ -2,6 +2,7 @@ import { Config } from "public/Config";
 import container from '@infrastructure/inversify.config';
 import { DI } from '@infrastructure';
 import { FaceTecDocumentService } from '@service/FaceTecDocumentService';
+import FacetecGraphQLAdapter from '../adapters/FacetecGraphQLAdapter';
 
 declare const FaceTecSDK: any;
 
@@ -14,6 +15,7 @@ class PhotoIDMatchProcessor {
   public latestNetworkRequest: XMLHttpRequest = new XMLHttpRequest();
   public latestSessionResult: any | null;
   public latestIDScanResult: any | null;
+  private facetecGraphQLAdapter: FacetecGraphQLAdapter;
 
   // Agregar flags para controlar si ya se subieron las imágenes
   private frontImageUploaded: boolean = false;
@@ -41,6 +43,7 @@ class PhotoIDMatchProcessor {
     this.latestIDScanResult = null;
     this.cancelledDueToNetworkError = false;
     this.externalDatabaseRefID = crypto.randomUUID();
+    this.facetecGraphQLAdapter = new FacetecGraphQLAdapter();
     
     // Obtener el token actual de la URL
     try {
@@ -260,6 +263,17 @@ class PhotoIDMatchProcessor {
           const responseJSON = JSON.parse(this.latestNetworkRequest.responseText);
           const scanResultBlob = responseJSON.scanResultBlob;
 
+          // Store the enrollment result via GraphQL
+          if (this.verificationToken) {
+            this.facetecGraphQLAdapter.storeEnrollmentResult(
+              this.verificationToken,
+              sessionResult,
+              responseJSON
+            ).catch(error => {
+              console.error('Error storing enrollment result:', error);
+            });
+          }
+
           // In v9.2.0+, we key off a new property called wasProcessed to determine if we successfully processed the Session result on the Server.
           // Device SDK UI flow is now driven by the proceedToNextStep function, which should receive the scanResultBlob from the Server SDK response.
           if (responseJSON.wasProcessed === true && responseJSON.error === false) {
@@ -382,6 +396,18 @@ class PhotoIDMatchProcessor {
         try {
           const responseJSON = JSON.parse(this.latestNetworkRequest.responseText);
           const scanResultBlob = responseJSON.scanResultBlob;
+
+          // Store the ID scan match result via GraphQL
+          if (this.verificationToken) {
+            this.facetecGraphQLAdapter.storeIDScanMatchResult(
+              this.verificationToken,
+              this.latestSessionResult,
+              idScanResult,
+              responseJSON
+            ).catch(error => {
+              console.error('Error storing ID scan match result:', error);
+            });
+          }
 
           // In v9.2.0+, we key off a new property called wasProcessed to determine if we successfully processed the Session result on the Server.
           // Device SDK UI flow is now driven by the proceedToNextStep function, which should receive the scanResultBlob from the Server SDK response.

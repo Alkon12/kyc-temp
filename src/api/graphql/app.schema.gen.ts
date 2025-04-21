@@ -49,6 +49,16 @@ export type CreateCompanyInput = {
   companyName: Scalars['String']['input'];
 };
 
+export type CreateFacetecResultInput = {
+  enrollmentStatus: Scalars['String']['input'];
+  fullResponse?: InputMaybe<Scalars['JSON']['input']>;
+  livenessStatus: Scalars['String']['input'];
+  manualReviewRequired: Scalars['Boolean']['input'];
+  matchLevel?: InputMaybe<Scalars['Float']['input']>;
+  sessionId: Scalars['String']['input'];
+  verificationId: Scalars['String']['input'];
+};
+
 export type CreateKycPersonInput = {
   address?: InputMaybe<Scalars['String']['input']>;
   dateOfBirth?: InputMaybe<Scalars['String']['input']>;
@@ -206,6 +216,7 @@ export type Mutation = {
   assignDocumentReviewer: Document;
   assignKycVerification: Scalars['Boolean']['output'];
   createCompany: Company;
+  createFacetecResult: FacetecResult;
   createKycPerson: KycPerson;
   createKycVerification: KycVerification;
   createUser?: Maybe<User>;
@@ -219,6 +230,7 @@ export type Mutation = {
   updateCompanyStatus: Company;
   updateDocumentOcrData: Document;
   updateDocumentStatus: Document;
+  updateFacetecResult: FacetecResult;
   updateKycPerson: KycPerson;
   updateKycPersonContactByToken: KycPerson;
   updateKycVerificationStatus: Scalars['Boolean']['output'];
@@ -243,6 +255,11 @@ export type MutationAssignKycVerificationArgs = {
 
 export type MutationCreateCompanyArgs = {
   input: CreateCompanyInput;
+};
+
+
+export type MutationCreateFacetecResultArgs = {
+  input: CreateFacetecResultInput;
 };
 
 
@@ -312,6 +329,11 @@ export type MutationUpdateDocumentOcrDataArgs = {
 export type MutationUpdateDocumentStatusArgs = {
   documentId: Scalars['String']['input'];
   status: Scalars['String']['input'];
+};
+
+
+export type MutationUpdateFacetecResultArgs = {
+  input: UpdateFacetecResultInput;
 };
 
 
@@ -509,6 +531,15 @@ export type UpdateCompanyInput = {
   companyName?: InputMaybe<Scalars['String']['input']>;
 };
 
+export type UpdateFacetecResultInput = {
+  enrollmentStatus?: InputMaybe<Scalars['String']['input']>;
+  fullResponse?: InputMaybe<Scalars['JSON']['input']>;
+  id: Scalars['String']['input'];
+  livenessStatus?: InputMaybe<Scalars['String']['input']>;
+  manualReviewRequired?: InputMaybe<Scalars['Boolean']['input']>;
+  matchLevel?: InputMaybe<Scalars['Float']['input']>;
+};
+
 export type UpdateKycPersonInput = {
   address?: InputMaybe<Scalars['String']['input']>;
   dateOfBirth?: InputMaybe<Scalars['String']['input']>;
@@ -632,6 +663,7 @@ export type ResolversTypes = {
   Company: ResolverTypeWrapper<Company>;
   CompanyStats: ResolverTypeWrapper<CompanyStats>;
   CreateCompanyInput: CreateCompanyInput;
+  CreateFacetecResultInput: CreateFacetecResultInput;
   CreateKycPersonInput: CreateKycPersonInput;
   CreateKycVerificationInput: CreateKycVerificationInput;
   CreateUserInput: CreateUserInput;
@@ -656,6 +688,7 @@ export type ResolversTypes = {
   String: ResolverTypeWrapper<Scalars['String']['output']>;
   TypeStats: ResolverTypeWrapper<TypeStats>;
   UpdateCompanyInput: UpdateCompanyInput;
+  UpdateFacetecResultInput: UpdateFacetecResultInput;
   UpdateKycPersonInput: UpdateKycPersonInput;
   UpdateUserPersonalInfoInput: UpdateUserPersonalInfoInput;
   User: ResolverTypeWrapper<User>;
@@ -669,6 +702,7 @@ export type ResolversParentTypes = {
   Company: Company;
   CompanyStats: CompanyStats;
   CreateCompanyInput: CreateCompanyInput;
+  CreateFacetecResultInput: CreateFacetecResultInput;
   CreateKycPersonInput: CreateKycPersonInput;
   CreateKycVerificationInput: CreateKycVerificationInput;
   CreateUserInput: CreateUserInput;
@@ -691,6 +725,7 @@ export type ResolversParentTypes = {
   String: Scalars['String']['output'];
   TypeStats: TypeStats;
   UpdateCompanyInput: UpdateCompanyInput;
+  UpdateFacetecResultInput: UpdateFacetecResultInput;
   UpdateKycPersonInput: UpdateKycPersonInput;
   UpdateUserPersonalInfoInput: UpdateUserPersonalInfoInput;
   User: User;
@@ -824,6 +859,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   assignDocumentReviewer?: Resolver<ResolversTypes['Document'], ParentType, ContextType, RequireFields<MutationAssignDocumentReviewerArgs, 'documentId' | 'reviewerId'>>;
   assignKycVerification?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAssignKycVerificationArgs, 'id' | 'userId'>>;
   createCompany?: Resolver<ResolversTypes['Company'], ParentType, ContextType, RequireFields<MutationCreateCompanyArgs, 'input'>>;
+  createFacetecResult?: Resolver<ResolversTypes['FacetecResult'], ParentType, ContextType, RequireFields<MutationCreateFacetecResultArgs, 'input'>>;
   createKycPerson?: Resolver<ResolversTypes['KycPerson'], ParentType, ContextType, RequireFields<MutationCreateKycPersonArgs, 'input'>>;
   createKycVerification?: Resolver<ResolversTypes['KycVerification'], ParentType, ContextType, RequireFields<MutationCreateKycVerificationArgs, 'input'>>;
   createUser?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationCreateUserArgs, 'input'>>;
@@ -837,6 +873,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   updateCompanyStatus?: Resolver<ResolversTypes['Company'], ParentType, ContextType, RequireFields<MutationUpdateCompanyStatusArgs, 'companyId' | 'status'>>;
   updateDocumentOcrData?: Resolver<ResolversTypes['Document'], ParentType, ContextType, RequireFields<MutationUpdateDocumentOcrDataArgs, 'documentId' | 'ocrData'>>;
   updateDocumentStatus?: Resolver<ResolversTypes['Document'], ParentType, ContextType, RequireFields<MutationUpdateDocumentStatusArgs, 'documentId' | 'status'>>;
+  updateFacetecResult?: Resolver<ResolversTypes['FacetecResult'], ParentType, ContextType, RequireFields<MutationUpdateFacetecResultArgs, 'input'>>;
   updateKycPerson?: Resolver<ResolversTypes['KycPerson'], ParentType, ContextType, RequireFields<MutationUpdateKycPersonArgs, 'id' | 'input'>>;
   updateKycPersonContactByToken?: Resolver<ResolversTypes['KycPerson'], ParentType, ContextType, RequireFields<MutationUpdateKycPersonContactByTokenArgs, 'email' | 'phone' | 'token'>>;
   updateKycVerificationStatus?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationUpdateKycVerificationStatusArgs, 'id' | 'status'>>;

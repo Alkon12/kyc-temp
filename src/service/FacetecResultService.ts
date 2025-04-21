@@ -56,6 +56,10 @@ export class FacetecResultService implements AbstractFacetecResultService {
       facetecResult.setManualReviewRequired(props.manualReviewRequired)
     }
 
+    if (props.fullResponse !== undefined) {
+      facetecResult.updateFullResponse(props.fullResponse)
+    }
+
     return this._facetecResultRepository.save(facetecResult)
   }
 } 
