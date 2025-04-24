@@ -4,6 +4,10 @@ export const DI = {
   AuthService: Symbol.for('AuthService'),
   ExternalAuthService: Symbol.for('ExternalAuthService'),
   
+  ValidationService: Symbol.for('ValidationService'),
+  KycValidationService: Symbol.for('KycValidationService'),
+  VerificationFlowService: Symbol.for('VerificationFlowService'),
+  
   UserRepository: Symbol.for('UserRepository'),
   CompanyRepository: Symbol.for('CompanyRepository'),
   CompanyService: Symbol.for('CompanyService'),

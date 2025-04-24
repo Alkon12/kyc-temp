@@ -1,0 +1,149 @@
+extend type Query {
+  """
+  Gets the next step after FaceTec verification based on verification type
+  """
+  getNextStepAfterFaceTec(verificationId: ID!): String!
+  
+  """
+  Determines if the contact form should be shown based on verification type
+  """
+  shouldShowContactForm(verificationId: ID!): Boolean!
+  
+  """
+  Gets all settings for a verification flow based on verification ID
+  """
+  getVerificationFlow(verificationId: ID!): VerificationFlowSettings!
+}
+
+extend type Mutation {
+  """
+  Process FaceTec completion with tier-specific validations
+  """
+  processFaceTecCompletion(
+    verificationId: ID!
+    faceTecSessionId: String!
+    documentImages: [String!]
+  ): ProcessFaceTecCompletionResult!
+  
+  """
+  Validate INE against lista nominal
+  """
+  validateINE(
+    verificationId: ID!
+    cic: String!
+    identificador: String!
+  ): ValidationResult!
+  
+  """
+  Validate CURP
+  """
+  validateCURP(
+    verificationId: ID!
+    curp: String!
+  ): ValidationResult!
+}
+
+"""
+Verification flow settings based on the verification tier
+"""
+type VerificationFlowSettings {
+  """
+  The verification tier (bronze, silver, gold)
+  """
+  type: String!
+  
+  """
+  Whether the contact form is required
+  """
+  isContactFormRequired: Boolean!
+  
+  """
+  Whether timestamp sealing is required
+  """
+  isTimestampSealingRequired: Boolean!
+  
+  """
+  Whether INE validation is required
+  """
+  isINEValidationRequired: Boolean!
+  
+  """
+  Whether CURP validation is required
+  """
+  isCURPValidationRequired: Boolean!
+  
+  """
+  Next step after FaceTec verification completes
+  """
+  nextStepAfterFaceTec: String!
+}
+
+"""
+Result of processing FaceTec completion
+"""
+type ProcessFaceTecCompletionResult {
+  """
+  Whether the operation was successful
+  """
+  success: Boolean!
+  
+  """
+  Verification ID
+  """
+  verificationId: ID!
+  
+  """
+  Timestamp sealing results (if applicable)
+  """
+  timestamps: [TimestampResult]
+  
+  """
+  Error message, if any
+  """
+  error: String
+}
+
+"""
+Result of a timestamp sealing operation
+"""
+type TimestampResult {
+  """
+  Whether the timestamp was successfully created
+  """
+  success: Boolean!
+  
+  """
+  Document hash digest
+  """
+  digestion: String
+  
+  """
+  Timestamp seal
+  """
+  timestamp: String
+  
+  """
+  Timestamp date
+  """
+  date: String
+  
+  """
+  Error message, if any
+  """
+  error: String
+}
+
+"""
+Result of a validation operation
+"""
+type ValidationResult {
+  """
+  Whether the validation was successful
+  """
+  success: Boolean!
+  
+  """
+  Error message, if any
+  """
+  error: String
+} 

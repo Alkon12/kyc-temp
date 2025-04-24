@@ -8,7 +8,11 @@ import { DI } from '@infrastructure'
 import allowCors from '@/utils/cors'
 import { LoggingModule, LoggingService } from '@/application/service/LoggingService'
 
-const handler = startServerAndCreateNextHandler<NextRequest>(container.get(ApolloServer).getServer() as any, {
+// Obtener una referencia al servidor Apollo 
+const apolloServer = container.get(ApolloServer).getServer();
+
+// Usar la misma instancia de servidor para todas las peticiones
+const handler = startServerAndCreateNextHandler<NextRequest>(apolloServer, {
   context: async (request: NextRequest): Promise<ApiContext> => {
     const logger = container.get<LoggingService>(DI.LoggingService)
 

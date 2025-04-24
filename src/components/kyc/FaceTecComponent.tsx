@@ -16,7 +16,7 @@ import { Loader2 } from "lucide-react";
 declare const FaceTecSDK: any;
 
 interface FaceTecComponentProps {
-  onComplete?: () => void;
+  onComplete?: (faceTecSessionId: string, documentImages: string[]) => void;
   onError?: (error: string) => void;
   shouldStartVerification?: boolean;
   token?: string; // Token de verificación
@@ -125,7 +125,10 @@ class FaceTecComponentClass extends React.Component<FaceTecComponentProps, FaceT
   handleScanComplete = () => {
     this.setState({ scanComplete: true });
     if (this.props.onComplete) {
-      this.props.onComplete();
+      // Pass the session ID and captured document images to the parent component
+      const sessionId = this.faceTecSDKWrapper?.getSessionId() || 'unknown-session';
+      const documentImages = this.faceTecSDKWrapper?.getDocumentImages() || [];
+      this.props.onComplete(sessionId, documentImages);
     }
   };
 

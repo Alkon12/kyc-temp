@@ -19,14 +19,17 @@ import { DocumentResolvers } from '@api/graphql/document/DocumentResolvers'
 import { CompanyResolvers } from '@api/graphql/company/CompanyResolvers'
 import { FacetecResultResolvers } from '@api/graphql/facetec-result/FacetecResultResolvers'
 
+// Variable global para almacenar la instancia del servidor
+// Debe estar fuera de la clase para evitar problemas de tipo
+let apolloServerInstance: any = null;
+let apolloServerInitialized = false;
+
 @injectable()
 export class ApolloServer {
   // @inject(DI.LoggingService) private _logger!: LoggingService
 
   private _cors: { enabled: boolean; allowedOrigin: string[] }
-  private _apolloServer
-
-  // constructor(typeDefs: any, resolvers: any) {
+  private _apolloServer: any
 
   constructor() {
     const allowedOrigin = process.env.CORS_ALLOWED_ORIGIN
@@ -42,6 +45,15 @@ export class ApolloServer {
       }
     }
 
+    // Si ya tenemos una instancia, reusarla
+    if (apolloServerInitialized) {
+      console.log('Reutilizando instancia existente de ApolloServer');
+      this._apolloServer = apolloServerInstance;
+      return;
+    }
+
+    console.log('Creando nueva instancia de ApolloServer');
+    // Si no hay instancia, crearla
     const mergedTypeDefs = [BaseSchema].concat([
       UserSchema,
       TestSchema,
@@ -64,12 +76,17 @@ export class ApolloServer {
       ],
     )
 
-    this._apolloServer = new ApolloServerInstance({
+    const newServer = new ApolloServerInstance({
       resolvers: mergedResolvers,
       typeDefs: mergedTypeDefs,
       introspection: process.env.NODE_ENV !== 'production',
       plugins: [ApolloLoggingPlugin],
-    })
+    });
+
+    // Guardar la instancia para reutilizarla
+    apolloServerInstance = newServer;
+    apolloServerInitialized = true;
+    this._apolloServer = newServer;
   }
 
   public getServer() {

@@ -6,6 +6,8 @@ declare const FaceTecSDK: any;
 
 class FaceTecSDKWrapper {
   private onCompleteCallback?: () => void;
+  private latestSessionId: string = '';
+  private documentImages: string[] = [];
 
   constructor(onCompleteCallback?: () => void) {
     this.onCompleteCallback = onCompleteCallback;
@@ -14,6 +16,7 @@ class FaceTecSDKWrapper {
   public startLivenessSession = (): void => {
     // Get a Session Token from the FaceTec SDK, then start the 3D Liveness Check.
     this.getSessionToken((sessionToken?: string): void => {
+      this.latestSessionId = sessionToken || '';
       // eslint-disable-next-line no-new
       new LivenessCheckProcessor(sessionToken as string, this);
     });
@@ -22,6 +25,7 @@ class FaceTecSDKWrapper {
   public startIDScanMatchSession = (): void => {
     // Get a Session Token from the FaceTec SDK, then start the 3D Liveness Check.
     this.getSessionToken((sessionToken?: string): void => {
+      this.latestSessionId = sessionToken || '';
       // eslint-disable-next-line no-new
       new PhotoIDMatchProcessor(sessionToken as string, this);
     });
@@ -32,6 +36,15 @@ class FaceTecSDKWrapper {
 
     if (faceTecIDScanResult != null) {
       console.log("faceTecIDScanResult Status: ", faceTecIDScanResult.status);
+      
+      // Store document images if available
+      if (faceTecIDScanResult.frontImagesCompressedBase64) {
+        this.documentImages.push(faceTecIDScanResult.frontImagesCompressedBase64);
+      }
+      
+      if (faceTecIDScanResult.backImagesCompressedBase64) {
+        this.documentImages.push(faceTecIDScanResult.backImagesCompressedBase64);
+      }
     }
     
     // If scan is complete and successful, call the callback
@@ -39,6 +52,20 @@ class FaceTecSDKWrapper {
       this.onCompleteCallback();
     }
   };
+  
+  /**
+   * Get the session ID of the current FaceTec session
+   */
+  public getSessionId(): string {
+    return this.latestSessionId;
+  }
+  
+  /**
+   * Get the document images captured during the session
+   */
+  public getDocumentImages(): string[] {
+    return this.documentImages;
+  }
 
   private getSessionToken = (sessionTokenCallback: (sessionToken: string) => void): void => {
     try {

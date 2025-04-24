@@ -55,6 +55,11 @@ import AbstractFacetecResultService from '@domain/faceTec/FacetecResultService'
 import FacetecResultRepository from '@domain/faceTec/FacetecResultRepository'
 import { PrismaFacetecResultRepository } from './repositories/prisma/PrismaFacetecResultRepository'
 import { FacetecResultResolvers } from '@api/graphql/facetec-result/FacetecResultResolvers'
+import ValidationService from '@domain/integration/ValidationService'
+import { SoapValidationService } from './repositories/soap/SoapValidationService'
+import { KycValidationService } from '@service/KycValidationService'
+import { VerificationFlowService } from '@service/VerificationFlowService'
+import { VerificationFlowResolvers } from '@api/graphql/verification-flow/VerificationFlowResolvers'
 
 const container = new Container()
 
@@ -68,12 +73,14 @@ container.bind(VerificationLinkResolvers).toSelf()
 container.bind(DocumentResolvers).toSelf()
 container.bind(CompanyResolvers).toSelf()
 container.bind(FacetecResultResolvers).toSelf()
+container.bind(VerificationFlowResolvers).toSelf()
 
 // Services
 container.bind<LoggingService>(DI.LoggingService).to(ConsoleLogger).inSingletonScope()
 container.bind<AuthService>(DI.AuthService).to(NextAuthService).inSingletonScope()
 container.bind<ExternalAuthService>(DI.ExternalAuthService).to(ExternalApiAuthJWT).inSingletonScope()
 container.bind<PaperlessService>(DI.PaperlessService).to(PaperlessService).inSingletonScope()
+container.bind<ValidationService>(DI.ValidationService).to(SoapValidationService).inSingletonScope()
 
 // Domain Services
 container.bind<AbstractUserService>(DI.UserService).to(UserService).inSingletonScope()
@@ -84,6 +91,8 @@ container.bind<AbstractVerificationLinkService>(DI.VerificationLinkService).to(V
 container.bind<AbstractDocumentService>(DI.DocumentService).to(DocumentService).inSingletonScope()
 container.bind<FaceTecDocumentService>(DI.FaceTecDocumentService).to(FaceTecDocumentService).inSingletonScope()
 container.bind<AbstractFacetecResultService>(DI.FacetecResultService).to(FacetecResultService).inSingletonScope()
+container.bind<KycValidationService>(DI.KycValidationService).to(KycValidationService).inSingletonScope()
+container.bind<VerificationFlowService>(DI.VerificationFlowService).to(VerificationFlowService).inSingletonScope()
 
 // Repositories
 container.bind<UserRepository>(DI.UserRepository).to(PrismaUserRepository)
