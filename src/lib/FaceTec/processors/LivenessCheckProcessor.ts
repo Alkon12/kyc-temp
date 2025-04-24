@@ -3,6 +3,8 @@ import container from '@infrastructure/inversify.config';
 import { DI } from '@infrastructure';
 import { FaceTecDocumentService } from '@service/FaceTecDocumentService';
 import FacetecGraphQLAdapter from '../adapters/FacetecGraphQLAdapter';
+import { SoapValidationService } from '@infrastructure/repositories/soap/SoapValidationService';
+import * as crypto from 'crypto';
 
 declare const FaceTecSDK: any;
 
@@ -18,6 +20,9 @@ class LivenessCheckProcessor {
 
   // Agregar flag para controlar si ya se subió la selfie
   private selfieUploaded: boolean = false;
+  
+  // Servicio de validación para sellado de tiempo
+  private soapValidationService: SoapValidationService | null = null;
 
   //
   // DEVELOPER NOTE:  These properties are for demonstration purposes only so the Sample App can get information about what is happening in the processor.
@@ -44,12 +49,13 @@ class LivenessCheckProcessor {
       const url = new URL(window.location.href);
       this.verificationToken = url.searchParams.get('token') || '';
       
-      // Obtener el servicio de documentos del contenedor
+      // Obtener el servicio de documentos y validación del contenedor
       if (container) {
         try {
           this.faceTecDocumentService = container.get<FaceTecDocumentService>(DI.FaceTecDocumentService);
+          this.soapValidationService = container.get<SoapValidationService>(DI.ValidationService);
         } catch (e) {
-          console.error('Error al obtener FaceTecDocumentService:', e);
+          console.error('Error al obtener servicios del contenedor:', e);
         }
       }
     } catch (e) {
@@ -69,7 +75,91 @@ class LivenessCheckProcessor {
     );
   }
 
-  private saveSelfie() {
+  /**
+   * Genera un hash SHA256 para una imagen en formato base64
+   * @param imageBase64 Imagen en formato base64
+   * @returns Hash en formato base64
+   */
+  private generateImageHash(imageBase64: string): string {
+    try {
+      // Limpiar el prefijo de la imagen base64 si existe
+      let cleanImage = imageBase64;
+      if (cleanImage.includes('data:image')) {
+        cleanImage = cleanImage.replace(/^data:image\/\w+;base64,/, '');
+      }
+      
+      // Crear un buffer desde los datos base64
+      const buffer = Buffer.from(cleanImage, 'base64');
+      
+      // Generar el hash SHA256
+      const hash = crypto.createHash('sha256').update(buffer).digest('base64');
+      
+      console.log('Hash generado para la imagen:', hash);
+      return hash;
+    } catch (error) {
+      console.error('Error al generar hash de la imagen:', error);
+      return '';
+    }
+  }
+
+  /**
+   * Obtiene el sello de tiempo para una imagen
+   * @param imageBase64 Imagen en formato base64
+   * @returns Objeto con el hash y el sello de tiempo, o null si falla
+   */
+  private async getTimestampSeal(imageBase64: string): Promise<{hash: string, timestamp: any} | null> {
+    try {
+      // Generar el hash de la imagen
+      const hash = this.generateImageHash(imageBase64);
+      if (!hash) {
+        console.error('No se pudo generar el hash de la imagen');
+        return null;
+      }
+      
+      console.log('Solicitando sello de tiempo para hash:', hash);
+      
+      // En lugar de usar directamente el servicio SOAP, usamos nuestro propio endpoint
+      // que manejará la solicitud al servicio SOAP desde el backend
+      try {
+        const response = await fetch('/api/v1/timestamp', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            hash: hash,
+            token: this.verificationToken
+          })
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Error en la solicitud de sello de tiempo: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        // Verificar que los datos de respuesta sean correctos
+        if (!data.success) {
+          throw new Error(data.message || 'Error al obtener sello de tiempo');
+        }
+        
+        console.log('Sello de tiempo obtenido correctamente');
+        
+        return {
+          hash,
+          timestamp: data.data
+        };
+      } catch (error) {
+        console.error('Error al obtener sello de tiempo:', error);
+        return null;
+      }
+    } catch (error) {
+      console.error('Error general al procesar sello de tiempo:', error);
+      return null;
+    }
+  }
+
+  private async saveSelfie() {
     if (!this.verificationToken) {
       console.error('No se puede guardar la selfie: token inválido');
       return;
@@ -101,11 +191,36 @@ class LivenessCheckProcessor {
       this.selfieUploaded = true;
       
       // Datos adicionales para análisis
-      const faceTecData = {
+      const faceTecData: {
+        sessionId: any;
+        status: any;
+        faceScan: boolean;
+        timestampHash?: string;
+        timestampSeal?: any;
+      } = {
         sessionId: this.latestSessionResult.sessionId,
         status: this.latestSessionResult.status,
         faceScan: this.latestSessionResult.faceScan ? true : false // Solo enviamos un flag, no el objeto completo
       };
+      
+      // Verificar si es una verificación Silver o Gold para aplicar sellado de tiempo
+      const isHighLevelVerification = await this.isHighLevelVerification();
+      
+      // Si es verificación Silver o Gold, obtener sello de tiempo
+      let timestampData = null;
+      if (isHighLevelVerification) {
+        console.log('Verificación Silver o Gold detectada, aplicando sellado de tiempo...');
+        timestampData = await this.getTimestampSeal(selfieImage);
+        
+        // Si se obtuvo el sello de tiempo, agregarlo a los datos
+        if (timestampData) {
+          faceTecData.timestampHash = timestampData.hash;
+          faceTecData.timestampSeal = timestampData.timestamp;
+          console.log('Sello de tiempo aplicado correctamente');
+        } else {
+          console.warn('No se pudo obtener sello de tiempo, continuando sin él');
+        }
+      }
       
       console.log('Intentando guardar selfie con formato correcto en Paperless...');
       
@@ -113,7 +228,7 @@ class LivenessCheckProcessor {
       this.saveImageThumbnail(selfieImage);
       
       // Usar la API para guardar en Paperless primero
-      this.saveDocumentUsingAPI('SELFIE', selfieImage)
+      this.saveDocumentUsingAPI('SELFIE', selfieImage, faceTecData)
         .then((data) => {
           console.log('Selfie guardada correctamente en API/Paperless:', data);
           
@@ -270,7 +385,7 @@ class LivenessCheckProcessor {
     }
   }
   
-  private async saveDocumentUsingAPI(documentType: string, imageData: string): Promise<any> {
+  private async saveDocumentUsingAPI(documentType: string, imageData: string, additionalData: any = null): Promise<any> {
     try {
       console.log(`Enviando solicitud a API para guardar ${documentType}...`);
       const response = await fetch('/api/v1/documents', {
@@ -281,7 +396,8 @@ class LivenessCheckProcessor {
         body: JSON.stringify({
           documentType,
           imageData,
-          token: this.verificationToken
+          token: this.verificationToken,
+          additionalData: additionalData
         })
       });
       
@@ -459,6 +575,27 @@ class LivenessCheckProcessor {
   public isSuccess = (): boolean => {
     return this.success;
   };
+
+  /**
+   * Verifica si el token corresponde a una verificación Silver o Gold
+   */
+  private async isHighLevelVerification(): Promise<boolean> {
+    try {
+      if (!this.verificationToken) return false;
+      
+      // Consultar el tipo de verificación mediante GraphQL
+      const verificationType = await this.facetecGraphQLAdapter.getVerificationType(this.verificationToken);
+      
+      if (!verificationType) return false;
+      
+      // Verificar si es Silver o Gold
+      const type = verificationType.toLowerCase();
+      return type === 'silver' || type === 'gold';
+    } catch (error) {
+      console.error('Error al determinar el nivel de verificación:', error);
+      return false;
+    }
+  }
 }
 
 export default LivenessCheckProcessor;

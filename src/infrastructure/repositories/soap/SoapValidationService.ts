@@ -36,6 +36,8 @@ ${JSON.stringify(command, null, 2)}
     try {
       const envelope = this.createEnvelope(command);
       
+      console.log(`Realizando petición SOAP a ${this.baseUrl} para operación: ${command.oper}`);
+      
       const response = await axios.post(
         this.baseUrl,
         envelope,
@@ -47,6 +49,7 @@ ${JSON.stringify(command, null, 2)}
       );
 
       if (response.status !== 200) {
+        console.error(`Servicio SOAP devolvió estado no exitoso: ${response.status}`);
         throw new ValidationServiceUnavailableError(`Service returned status ${response.status}`);
       }
 
@@ -55,22 +58,44 @@ ${JSON.stringify(command, null, 2)}
       // you'd want to use a proper XML parser
       try {
         const responseText = response.data;
+        console.log('Respuesta XML recibida:', responseText.substring(0, 200) + '...');
+        
         // Extract JSON from the XML response
         // This regex is a simplification and might need adjustment based on actual response format
         const jsonMatch = responseText.match(/<TodoResult>([\s\S]*?)<\/TodoResult>/);
         
         if (!jsonMatch || !jsonMatch[1]) {
-          throw new ValidationError('Invalid response format');
+          console.error('Formato de respuesta inválido, no se encontró TodoResult');
+          throw new ValidationError('Invalid response format - TodoResult not found');
         }
         
-        const jsonResponse = JSON.parse(jsonMatch[1].trim());
+        const jsonContent = jsonMatch[1].trim();
+        console.log('Contenido JSON extraído:', jsonContent);
         
-        if (jsonResponse.error) {
-          throw new ValidationError(jsonResponse.error);
+        try {
+          const jsonResponse = JSON.parse(jsonContent);
+          
+          // Asegurarse de que la respuesta tenga la estructura esperada
+          const result = {
+            success: true,
+            message: jsonResponse.descripcion || '',
+            data: jsonResponse
+          };
+          
+          // Si hay un error en la respuesta
+          if (jsonResponse.error || jsonResponse.estado !== 0) {
+            result.success = false;
+            result.message = jsonResponse.error || jsonResponse.descripcion || 'Unknown error';
+          }
+          
+          console.log('Respuesta parseada:', JSON.stringify(result));
+          return result as T;
+        } catch (jsonError) {
+          console.error('Error al parsear JSON:', jsonError);
+          throw new ValidationError(`Failed to parse JSON: ${(jsonError as Error).message}`);
         }
-        
-        return jsonResponse as T;
       } catch (parseError) {
+        console.error('Error al procesar la respuesta XML:', parseError);
         if (parseError instanceof ValidationError) {
           throw parseError;
         }
@@ -83,6 +108,13 @@ ${JSON.stringify(command, null, 2)}
       
       if (axios.isAxiosError(error)) {
         const axiosError = error as AxiosError;
+        console.error('Error de Axios:', {
+          message: axiosError.message,
+          code: axiosError.code,
+          hasResponse: !!axiosError.response,
+          hasRequest: !!axiosError.request
+        });
+        
         if (axiosError.response) {
           throw new ValidationServiceUnavailableError(
             `Service returned status ${axiosError.response.status}: ${axiosError.message}`
@@ -92,6 +124,7 @@ ${JSON.stringify(command, null, 2)}
         }
       }
       
+      console.error('Error inesperado en el servicio SOAP:', error);
       throw new ValidationError(`Unexpected error: ${(error as Error).message}`);
     }
   }

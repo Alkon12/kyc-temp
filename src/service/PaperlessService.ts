@@ -140,18 +140,192 @@ export class PaperlessService {
   }
 
   /**
+   * Crea y sube archivos adicionales para un documento con sello de tiempo
+   * @param verificationId ID de verificación
+   * @param documentType Tipo de documento
+   * @param timestampData Datos del sello de tiempo
+   * @returns true si se subieron correctamente los archivos adicionales
+   */
+  private async uploadTimestampFiles(
+    verificationId: string, 
+    docCategory: string, 
+    timestampData: any
+  ): Promise<boolean> {
+    try {
+      console.log(`Paperless: Preparando archivos adicionales para sello de tiempo, doc ${docCategory}`);
+      
+      // Obtener tags necesarios
+      const metadata = await this.getMetadataIds();
+      
+      // Crear map de tipos de documento para identificación
+      const docTypeMap: Record<string, string> = {
+        'rostro': 'SELFIE',
+        'ine_frente': 'ID_FRONT',
+        'ine_reverso': 'ID_BACK'
+      };
+      
+      // Obtener tipo de documento original
+      const originalDocType = docTypeMap[docCategory] || docCategory.toUpperCase();
+      
+      // Crear archivo de texto con el hash
+      if (timestampData.hash) {
+        const hashContent = `${timestampData.algorithm || 'SHA-256'}: ${timestampData.hash}`;
+        const hashFileName = `${verificationId}_${docCategory}_hash.txt`;
+        
+        // Crear FormData para subir el archivo
+        const formData = new FormData();
+        const textBlob = new Blob([hashContent], { type: 'text/plain' });
+        formData.append('document', textBlob, hashFileName);
+        
+        // Añadir metadatos básicos - Usar título simplificado sin extensión
+        const title = `${originalDocType} - ${verificationId} - hash`;
+        formData.append('title', title);
+        
+        // Obtener tags específicos para el archivo de hash
+        let hashTagIds: number[] = [];
+        
+        // Añadir tag del documento original
+        if (metadata) {
+          const docTag = metadata.tags.find(t => t.name === originalDocType);
+          if (docTag) {
+            hashTagIds.push(docTag.id);
+          } else {
+            const newDocTagId = await this.createTag(originalDocType);
+            if (newDocTagId) hashTagIds.push(newDocTagId);
+          }
+          
+          // Añadir tag de que es un archivo HASH
+          const hashTag = metadata.tags.find(t => t.name === 'HASH');
+          if (hashTag) {
+            hashTagIds.push(hashTag.id);
+          } else {
+            const newHashTagId = await this.createTag('HASH');
+            if (newHashTagId) hashTagIds.push(newHashTagId);
+          }
+        }
+        
+        // Añadir tags al formData
+        if (hashTagIds.length > 0) {
+          for (const tagId of hashTagIds) {
+            formData.append('tags', tagId.toString());
+          }
+        }
+        
+        // Configurar formato de archivo personalizado para organizar documentos con "carpetas virtuales"
+        formData.append('filename_format', `${verificationId}/${originalDocType}/{title}`);
+        
+        // Subir archivo de hash
+        try {
+          const response = await fetch(`${this.apiUrl}/api/documents/post_document/`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Token ${this.apiToken}`
+            },
+            body: formData
+          });
+          
+          if (response.ok) {
+            console.log(`Paperless: Archivo de hash subido correctamente`);
+          } else {
+            console.error(`Paperless: Error al subir archivo de hash: ${response.status}`);
+          }
+        } catch (error) {
+          console.error(`Paperless: Error al subir archivo de hash:`, error);
+        }
+      }
+      
+      // Crear archivo con el certificado de sello de tiempo si existe
+      if (timestampData.certificate) {
+        const certificateContent = timestampData.certificate;
+        // Usar extensión .txt en lugar de .tsr para Paperless
+        const certFileName = `${verificationId}_${docCategory}_certificate.txt`;
+        
+        // Crear FormData para subir el archivo
+        const formData = new FormData();
+        const certBlob = new Blob([certificateContent], { type: 'text/plain' });
+        formData.append('document', certBlob, certFileName);
+        
+        // Añadir metadatos básicos - Usar título simplificado sin extensión
+        const title = `${originalDocType} - ${verificationId} - certificate`;
+        formData.append('title', title);
+        
+        // Obtener tags específicos para el archivo de certificado
+        let certTagIds: number[] = [];
+        
+        // Añadir tag del documento original
+        if (metadata) {
+          const docTag = metadata.tags.find(t => t.name === originalDocType);
+          if (docTag) {
+            certTagIds.push(docTag.id);
+          } else {
+            const newDocTagId = await this.createTag(originalDocType);
+            if (newDocTagId) certTagIds.push(newDocTagId);
+          }
+          
+          // Añadir tag de que es un archivo CERTIFICATE
+          const certTag = metadata.tags.find(t => t.name === 'CERTIFICATE');
+          if (certTag) {
+            certTagIds.push(certTag.id);
+          } else {
+            const newCertTagId = await this.createTag('CERTIFICATE');
+            if (newCertTagId) certTagIds.push(newCertTagId);
+          }
+        }
+        
+        // Añadir tags al formData
+        if (certTagIds.length > 0) {
+          for (const tagId of certTagIds) {
+            formData.append('tags', tagId.toString());
+          }
+        }
+        
+        // Configurar formato de archivo personalizado para organizar documentos con "carpetas virtuales"
+        formData.append('filename_format', `${verificationId}/${originalDocType}/{title}`);
+        
+        // Subir archivo de certificado
+        try {
+          const response = await fetch(`${this.apiUrl}/api/documents/post_document/`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Token ${this.apiToken}`
+            },
+            body: formData
+          });
+          
+          if (response.ok) {
+            console.log(`Paperless: Archivo de certificado subido correctamente`);
+          } else {
+            console.error(`Paperless: Error al subir archivo de certificado: ${response.status}`);
+          }
+        } catch (error) {
+          console.error(`Paperless: Error al subir archivo de certificado:`, error);
+        }
+      }
+      
+      return true;
+    } catch (error) {
+      console.error(`Paperless: Error al crear y subir archivos adicionales:`, error);
+      return false;
+    }
+  }
+
+  /**
    * Sube un documento a Paperless
-   * @param documentBase64 Documento en formato base64
-   * @param documentName Nombre del documento
-   * @param documentType Tipo de documento (SELFIE, ID_FRONT, ID_BACK)
-   * @param verificationId ID de la verificación asociada
+   * @param documentBase64 Imagen en formato base64
+   * @param documentName Nombre del archivo
+   * @param documentType Tipo de documento (SELFIE, ID_FRONT, ID_BACK, etc.)
+   * @param verificationId ID de la verificación KYC
+   * @param customTags Tags personalizados adicionales
+   * @param additionalMetadata Metadatos adicionales para el documento
    * @returns URL del documento en Paperless o null si falló
    */
   async uploadDocument(
     documentBase64: string,
     documentName: string, 
     documentType: string,
-    verificationId: string
+    verificationId: string,
+    customTags: string[] = [],
+    additionalMetadata: any = null
   ): Promise<string | null> {
     try {
       if (!this.apiToken) {
@@ -199,7 +373,7 @@ export class PaperlessService {
       
       // Obtener o crear metadatos necesarios
       let correspondentId = null;
-      let tagId = null;
+      let tagIds: number[] = [];
       
       // Primero verificar si existe el correspondent
       console.log(`Paperless: Obteniendo metadatos...`);
@@ -222,15 +396,51 @@ export class PaperlessService {
           console.log(`Paperless: Correspondent creado con ID ${correspondentId || 'NULL - Error'}`);
         }
         
-        // Buscar tag que coincida con el tipo de documento
-        const docTypeTag = metadata.tags.find(t => t.name === documentType);
-        if (docTypeTag) {
-          tagId = docTypeTag.id;
-          console.log(`Paperless: Usando tag existente para ${documentType} con ID ${tagId}`);
+        // Procesar tags personalizados - simplificar para usar solo el tipo de documento
+        if (customTags && customTags.length > 0) {
+          console.log(`Paperless: Procesando tags personalizados`);
+          
+          // Solo conservamos el tag de tipo de documento, eliminamos TIMESTAMP y otros tags redundantes
+          const relevantTags = customTags.filter(tag => ['SELFIE', 'ID_FRONT', 'ID_BACK'].includes(tag));
+          
+          if (relevantTags.length > 0) {
+            for (const tagName of relevantTags) {
+              // Verificar si el tag ya existe
+              const existingTag = metadata.tags.find(t => t.name === tagName);
+              if (existingTag) {
+                tagIds.push(existingTag.id);
+                console.log(`Paperless: Usando tag existente para ${tagName} con ID ${existingTag.id}`);
+              } else {
+                // Crear el tag
+                const newTagId = await this.createTag(tagName);
+                if (newTagId) {
+                  tagIds.push(newTagId);
+                  console.log(`Paperless: Tag personalizado creado con ID ${newTagId}`);
+                } else {
+                  console.log(`Paperless: Error al crear tag para ${tagName}`);
+                }
+              }
+            }
+          }
+        }
+        
+        // En lugar de añadir el tag KYC_{verificationId}, asegurarse de que exista el tag del tipo de documento
+        const docType = documentType;
+        const existingDocTypeTag = metadata.tags.find(t => t.name === docType);
+        if (existingDocTypeTag) {
+          if (!tagIds.includes(existingDocTypeTag.id)) {
+            tagIds.push(existingDocTypeTag.id);
+            console.log(`Paperless: Usando tag existente para tipo de documento ${docType} con ID ${existingDocTypeTag.id}`);
+          }
         } else {
           // Crear el tag
-          tagId = await this.createTag(documentType);
-          console.log(`Paperless: Tag creado con ID ${tagId || 'NULL - Error'}`);
+          const newTagId = await this.createTag(docType);
+          if (newTagId) {
+            tagIds.push(newTagId);
+            console.log(`Paperless: Tag de tipo de documento creado con ID ${newTagId}`);
+          } else {
+            console.log(`Paperless: Error al crear tag para tipo de documento ${docType}`);
+          }
         }
       }
       
@@ -298,7 +508,25 @@ export class PaperlessService {
           }
         }
         
-        // Añadir título - Este siempre es requerido
+        // Generar un título que incluya fecha, tipo de documento y verificación para mejor organización
+        // Este enfoque ayuda a que se organice correctamente en Paperless
+        const currentDate = new Date();
+        const dateStr = currentDate.toISOString().split('T')[0]; // YYYY-MM-DD
+        
+        // Determinar subtipo de documento para organizarlo mejor
+        let docCategory = '';
+        if (documentType === 'SELFIE') {
+          docCategory = 'rostro';
+        } else if (documentType === 'ID_FRONT') {
+          docCategory = 'ine_frente';
+        } else if (documentType === 'ID_BACK') {
+          docCategory = 'ine_reverso';
+        } else {
+          docCategory = documentType.toLowerCase();
+        }
+        
+        // Construir un título estructurado para mejor organización en Paperless
+        // Usamos un formato más simplificado que será visible en la interfaz - Ajustado al formato tipo - id
         const title = `${documentType} - ${verificationId}`;
         formData.append('title', title);
         console.log(`Paperless: title añadido: "${title}"`);
@@ -311,15 +539,107 @@ export class PaperlessService {
           console.log(`Paperless: No se añadió correspondent (valor null)`);
         }
         
-        // Añadir tags si existen (opcional)
-        if (tagId) {
-          formData.append('tags', tagId.toString());
-          console.log(`Paperless: tag añadido: ${tagId}`);
+        // Añadir tags si existen (opcional) - Ahora con soporte para múltiples tags
+        if (tagIds.length > 0) {
+          // En Paperless DMS, los tags múltiples se añaden como parámetros separados con el mismo nombre
+          for (const tagId of tagIds) {
+            formData.append('tags', tagId.toString());
+          }
+          console.log(`Paperless: ${tagIds.length} tags añadidos: ${tagIds.join(', ')}`);
         } else {
-          console.log(`Paperless: No se añadió tag (valor null)`);
+          console.log(`Paperless: No se añadieron tags (array vacío)`);
+        }
+        
+        // Crear un objeto de metadatos completo
+        const completeMetadata = {
+          ...(additionalMetadata || {}),
+          verificationId: verificationId,
+          documentType: documentType,
+          uploadDate: dateStr,
+          category: docCategory
+        };
+        
+        // Variable para almacenar los datos de timestamp para archivos adicionales
+        let timestampData = null;
+        
+        // Si hay timestamp, añadirlo de forma estructurada
+        if (additionalMetadata && (additionalMetadata.timestamp || additionalMetadata.timestampHash)) {
+          // Si existe la nueva estructura de timestamp, usarla
+          if (additionalMetadata.timestamp) {
+            timestampData = additionalMetadata.timestamp;
+            completeMetadata.timestampHash = timestampData.hash;
+            completeMetadata.timestampDate = timestampData.date;
+            completeMetadata.timestampProvider = timestampData.provider?.name;
+            
+            if (timestampData.certificate) {
+              completeMetadata.hasCertificate = true;
+            }
+          } else if (additionalMetadata.timestampHash) {
+            // Estructura anterior - construir un objeto para archivos adicionales
+            timestampData = {
+              hash: additionalMetadata.timestampHash,
+              algorithm: additionalMetadata.timestampSeal?.hash_algorithm || 'SHA-256',
+              date: additionalMetadata.timestampSeal?.data?.fechaSello,
+              provider: {
+                name: additionalMetadata.timestampSeal?.data?.tsa || 'Unknown',
+                url: additionalMetadata.timestampSeal?.data?.url
+              },
+              certificate: additionalMetadata.timestampSeal?.data?.sello,
+              verified: true
+            };
+            
+            completeMetadata.timestampHash = additionalMetadata.timestampHash;
+            if (additionalMetadata.timestampSeal?.data?.fechaSello) {
+              completeMetadata.timestampDate = additionalMetadata.timestampSeal.data.fechaSello;
+              completeMetadata.timestampProvider = additionalMetadata.timestampSeal.data.tsa;
+              completeMetadata.hasCertificate = !!additionalMetadata.timestampSeal.data.sello;
+            }
+          }
+        }
+        
+        // Añadir los metadatos completos
+        try {
+          console.log(`Paperless: Añadiendo metadatos completos:`, completeMetadata);
+          
+          // 1. Convertir los metadatos a JSON string con formato para el campo document_metadata
+          const metadataJson = JSON.stringify(completeMetadata);
+          formData.append('document_metadata', metadataJson);
+          
+          // 2. Añadir cada metadato simple como campo individual para mayor compatibilidad
+          Object.entries(completeMetadata).forEach(([key, value]) => {
+            // Añadir solo si es una string o número
+            if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+              formData.append(`metadata_${key}`, value.toString());
+            }
+          });
+          
+          // 3. Crear un mensaje informativo para las notas
+          let notes = `Documento KYC - Verificación: ${verificationId} - Tipo: ${docCategory}`;
+          
+          // Añadir información sobre el sello de tiempo si existe
+          if (completeMetadata.timestampDate) {
+            notes += `\nSello de tiempo: ${completeMetadata.timestampDate}`;
+            if (completeMetadata.timestampProvider) {
+              notes += ` - Proveedor: ${completeMetadata.timestampProvider}`;
+            }
+            if (completeMetadata.timestampHash) {
+              notes += `\nHash: ${completeMetadata.timestampHash.substring(0, 16)}...`;
+            }
+          }
+          
+          formData.append('notes', notes);
+          console.log(`Paperless: Notas añadidas: "${notes}"`);
+          
+          console.log(`Paperless: ${Object.keys(completeMetadata).length} metadatos añadidos`);
+        } catch (metadataError) {
+          console.error(`Paperless: Error al añadir metadatos adicionales:`, metadataError);
         }
         
         console.log(`Paperless: FormData preparado correctamente`);
+        
+        // 4. Configurar formato de archivo personalizado para organizar documentos con "carpetas virtuales"
+        // usando PAPERLESS_FILENAME_FORMAT para estructurar como {id_verificacion}/{tipo_documento}
+        formData.append('filename_format', `${verificationId}/{document_type}/{title}`);
         
         // Mostrar el tamaño aproximado del FormData (no es preciso)
         try {
@@ -376,7 +696,20 @@ export class PaperlessService {
           console.log(`Paperless: No es JSON válido, ID extraído: ${documentId}`);
         }
         
-        console.log(`Paperless: Documento subido exitosamente con ID: ${documentId}`);
+        console.log(`Paperless: Documento principal subido exitosamente con ID: ${documentId}`);
+        
+        // Si tenemos datos de timestamp, subir archivos adicionales
+        if (timestampData) {
+          console.log(`Paperless: Se dispone de datos de timestamp, procesando archivos adicionales...`);
+          // Llamar a la función para subir archivos adicionales
+          const filesUploaded = await this.uploadTimestampFiles(verificationId, docCategory, timestampData);
+          
+          if (filesUploaded) {
+            console.log(`Paperless: Archivos adicionales de timestamp subidos correctamente`);
+          } else {
+            console.error(`Paperless: Error al subir algunos archivos adicionales de timestamp`);
+          }
+        }
         
         // Devolver la URL completa al documento
         const documentUrl = `${this.apiUrl}/documents/${documentId}/details`;

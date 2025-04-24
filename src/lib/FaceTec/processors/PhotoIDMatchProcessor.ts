@@ -3,8 +3,36 @@ import container from '@infrastructure/inversify.config';
 import { DI } from '@infrastructure';
 import { FaceTecDocumentService } from '@service/FaceTecDocumentService';
 import FacetecGraphQLAdapter from '../adapters/FacetecGraphQLAdapter';
+import { SoapValidationService } from '@infrastructure/repositories/soap/SoapValidationService';
+import * as crypto from 'crypto';
 
 declare const FaceTecSDK: any;
+
+/**
+ * Genera un UUID v4 de manera compatible con todos los navegadores
+ * Alternativa a crypto.randomUUID() que no está disponible en todos los entornos
+ */
+function generateUUID(): string {
+  // Si la API randomUUID está disponible, usarla directamente
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  
+  // Implementación de respaldo utilizando getRandomValues que tiene mejor soporte
+  if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
+    return '10000000-1000-4000-8000-100000000000'.replace(/[018]/g, c => {
+      const n = Number(c);
+      return (n ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> n / 4).toString(16);
+    });
+  }
+  
+  // Última alternativa usando Math.random (menos segura pero es un fallback)
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
 
 //
 // This is an example self-contained class to perform Photo ID Scans with the FaceTec SDK.
@@ -21,6 +49,9 @@ class PhotoIDMatchProcessor {
   private frontImageUploaded: boolean = false;
   private backImageUploaded: boolean = false;
   private selfieUploaded: boolean = false;
+  
+  // Servicio de validación para sellado de tiempo
+  private soapValidationService: SoapValidationService | null = null;
 
   //
   // DEVELOPER NOTE:  These properties are for demonstration purposes only so the Sample App can get information about what is happening in the processor.
@@ -42,7 +73,7 @@ class PhotoIDMatchProcessor {
     this.latestSessionResult = null;
     this.latestIDScanResult = null;
     this.cancelledDueToNetworkError = false;
-    this.externalDatabaseRefID = crypto.randomUUID();
+    this.externalDatabaseRefID = generateUUID();
     this.facetecGraphQLAdapter = new FacetecGraphQLAdapter();
     
     // Obtener el token actual de la URL
@@ -50,12 +81,13 @@ class PhotoIDMatchProcessor {
       const url = new URL(window.location.href);
       this.verificationToken = url.searchParams.get('token') || '';
       
-      // Obtener el servicio de documentos del contenedor
+      // Obtener el servicio de documentos y de validación del contenedor
       if (container) {
         try {
           this.faceTecDocumentService = container.get<FaceTecDocumentService>(DI.FaceTecDocumentService);
+          this.soapValidationService = container.get<SoapValidationService>(DI.ValidationService);
         } catch (e) {
-          console.error('Error al obtener FaceTecDocumentService:', e);
+          console.error('Error al obtener servicios del contenedor:', e);
         }
       }
     } catch (e) {
@@ -92,7 +124,111 @@ class PhotoIDMatchProcessor {
     );
   }
 
-  private async saveDocumentUsingAPI(documentType: string, imageData: string): Promise<any> {
+  /**
+   * Genera un hash SHA256 para una imagen en formato base64
+   * @param imageBase64 Imagen en formato base64
+   * @returns Hash en formato base64
+   */
+  private generateImageHash(imageBase64: string): string {
+    try {
+      // Limpiar el prefijo de la imagen base64 si existe
+      let cleanImage = imageBase64;
+      if (cleanImage.includes('data:image')) {
+        cleanImage = cleanImage.replace(/^data:image\/\w+;base64,/, '');
+      }
+      
+      // Crear un buffer desde los datos base64
+      const buffer = Buffer.from(cleanImage, 'base64');
+      
+      // Generar el hash SHA256
+      const hash = crypto.createHash('sha256').update(buffer).digest('base64');
+      
+      return hash;
+    } catch (error) {
+      console.error('Error al generar hash de la imagen:', error);
+      return '';
+    }
+  }
+
+  /**
+   * Obtiene el sello de tiempo para una imagen
+   * @param imageBase64 Imagen en formato base64
+   * @returns Objeto con el hash y el sello de tiempo, o null si falla
+   */
+  private async getTimestampSeal(imageBase64: string): Promise<{hash: string, timestamp: any} | null> {
+    try {
+      // Generar el hash de la imagen
+      const hash = this.generateImageHash(imageBase64);
+      if (!hash) {
+        console.error('No se pudo generar el hash de la imagen');
+        return null;
+      }
+      
+      console.log('Solicitando sello de tiempo para hash:', hash);
+      
+      // En lugar de usar directamente el servicio SOAP, usamos nuestro propio endpoint
+      // que manejará la solicitud al servicio SOAP desde el backend
+      try {
+        const response = await fetch('/api/v1/timestamp', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            hash: hash,
+            token: this.verificationToken
+          })
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Error en la solicitud de sello de tiempo: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        // Verificar que los datos de respuesta sean correctos
+        if (!data.success) {
+          throw new Error(data.message || 'Error al obtener sello de tiempo');
+        }
+        
+        console.log('Sello de tiempo obtenido correctamente');
+        
+        return {
+          hash,
+          timestamp: data.data
+        };
+      } catch (error) {
+        console.error('Error al obtener sello de tiempo:', error);
+        return null;
+      }
+    } catch (error) {
+      console.error('Error general al procesar sello de tiempo:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Verifica si el token corresponde a una verificación Silver o Gold
+   */
+  private async isHighLevelVerification(): Promise<boolean> {
+    try {
+      if (!this.verificationToken) return false;
+      
+      // Consultar el tipo de verificación mediante GraphQL
+      const verificationType = await this.facetecGraphQLAdapter.getVerificationType(this.verificationToken);
+      
+      if (!verificationType) return false;
+      
+      // Verificar si es Silver o Gold
+      const type = verificationType.toLowerCase();
+      return type === 'silver' || type === 'gold';
+    } catch (error) {
+      console.error('Error al determinar el nivel de verificación:', error);
+      return false;
+    }
+  }
+
+  private async saveDocumentUsingAPI(documentType: string, imageData: string, additionalData: any = null): Promise<any> {
     try {
       const response = await fetch('/api/v1/documents', {
         method: 'POST',
@@ -102,7 +238,8 @@ class PhotoIDMatchProcessor {
         body: JSON.stringify({
           documentType,
           imageData,
-          token: this.verificationToken
+          token: this.verificationToken,
+          additionalData: additionalData
         })
       });
       
@@ -119,21 +256,53 @@ class PhotoIDMatchProcessor {
   }
 
   // Guardar la imagen de la selfie inmediatamente después del escáner facial
-  private saveSelfie() {
+  private async saveSelfie() {
     if (!this.verificationToken || !this.latestSessionResult || this.selfieUploaded) {
       return;
     }
     
     try {
       // Extraer la selfie del resultado del escaneo facial
-      const selfieImage = this.latestSessionResult.auditTrail[0];
+      let selfieImage = this.latestSessionResult.auditTrail[0];
+      
+      // Si la imagen no tiene el prefijo data:image, añadirlo
+      if (selfieImage && !selfieImage.startsWith('data:image')) {
+        console.log('Añadiendo prefijo data:image/jpeg;base64, a la imagen selfie');
+        selfieImage = `data:image/jpeg;base64,${selfieImage}`;
+      }
       
       // Marcar como subida para evitar duplicados
       this.selfieUploaded = true;
       
+      // Datos adicionales para análisis
+      const faceTecData: any = {
+        sessionId: this.latestSessionResult.sessionId,
+        status: this.latestSessionResult.status,
+        faceScan: this.latestSessionResult.faceScan ? true : false // Solo enviamos un flag, no el objeto completo
+      };
+      
+      // Verificar si es una verificación Silver o Gold para aplicar sellado de tiempo
+      const isHighLevelVerification = await this.isHighLevelVerification();
+      
+      // Si es verificación Silver o Gold, obtener sello de tiempo
+      let timestampData = null;
+      if (isHighLevelVerification) {
+        console.log('Verificación Silver o Gold detectada, aplicando sellado de tiempo a selfie...');
+        timestampData = await this.getTimestampSeal(selfieImage);
+        
+        // Si se obtuvo el sello de tiempo, agregarlo a los datos
+        if (timestampData) {
+          faceTecData.timestampHash = timestampData.hash;
+          faceTecData.timestampSeal = timestampData.timestamp;
+          console.log('Sello de tiempo aplicado correctamente a selfie');
+        } else {
+          console.warn('No se pudo obtener sello de tiempo para selfie, continuando sin él');
+        }
+      }
+      
       // Guardar la selfie usando la API
       console.log("Guardando selfie inmediatamente después del escaneo facial...");
-      this.saveDocumentUsingAPI('SELFIE', selfieImage)
+      this.saveDocumentUsingAPI('SELFIE', selfieImage, faceTecData)
         .then((data) => {
           console.log('Selfie guardada correctamente después del escaneo facial:', data);
         })
@@ -150,25 +319,53 @@ class PhotoIDMatchProcessor {
   }
   
   // Guardar las imágenes de la identificación inmediatamente después del escaneo del ID
-  private saveIDImages() {
+  private async saveIDImages() {
     if (!this.verificationToken || !this.latestIDScanResult) {
       return;
     }
     
     try {
+      // Verificar si es una verificación Silver o Gold para aplicar sellado de tiempo
+      const isHighLevelVerification = await this.isHighLevelVerification();
+      
       // Extraer imágenes del ID escaneado
       if (this.latestIDScanResult.frontImages && 
           this.latestIDScanResult.frontImages.length > 0 && 
           !this.frontImageUploaded) {
           
-        const idFrontImage = this.latestIDScanResult.frontImages[0];
+        let idFrontImage = this.latestIDScanResult.frontImages[0];
+        
+        // Si la imagen no tiene el prefijo data:image, añadirlo
+        if (idFrontImage && !idFrontImage.startsWith('data:image')) {
+          idFrontImage = `data:image/jpeg;base64,${idFrontImage}`;
+        }
         
         // Marcar como subida para evitar duplicados
         this.frontImageUploaded = true;
         
+        // Datos adicionales para el documento frontal
+        const frontDocData: any = {
+          scanSessionId: this.latestIDScanResult.sessionId
+        };
+        
+        // Si es verificación Silver o Gold, obtener sello de tiempo
+        if (isHighLevelVerification) {
+          console.log('Aplicando sellado de tiempo a frente de ID...');
+          const timestampData = await this.getTimestampSeal(idFrontImage);
+          
+          // Si se obtuvo el sello de tiempo, agregarlo a los datos
+          if (timestampData) {
+            frontDocData.timestampHash = timestampData.hash;
+            frontDocData.timestampSeal = timestampData.timestamp;
+            console.log('Sello de tiempo aplicado correctamente a frente de ID');
+          } else {
+            console.warn('No se pudo obtener sello de tiempo para frente de ID, continuando sin él');
+          }
+        }
+        
         // Guardar imagen frontal del ID
         console.log("Guardando frente del ID inmediatamente después del escaneo...");
-        this.saveDocumentUsingAPI('ID_FRONT', idFrontImage)
+        this.saveDocumentUsingAPI('ID_FRONT', idFrontImage, frontDocData)
           .then((data) => {
             console.log('Frente del ID guardado correctamente:', data);
           })
@@ -184,14 +381,39 @@ class PhotoIDMatchProcessor {
           this.latestIDScanResult.backImages.length > 0 && 
           !this.backImageUploaded) {
           
-        const idBackImage = this.latestIDScanResult.backImages[0];
+        let idBackImage = this.latestIDScanResult.backImages[0];
+        
+        // Si la imagen no tiene el prefijo data:image, añadirlo
+        if (idBackImage && !idBackImage.startsWith('data:image')) {
+          idBackImage = `data:image/jpeg;base64,${idBackImage}`;
+        }
         
         // Marcar como subida para evitar duplicados
         this.backImageUploaded = true;
         
+        // Datos adicionales para el documento trasero
+        const backDocData: any = {
+          scanSessionId: this.latestIDScanResult.sessionId
+        };
+        
+        // Si es verificación Silver o Gold, obtener sello de tiempo
+        if (isHighLevelVerification) {
+          console.log('Aplicando sellado de tiempo a reverso de ID...');
+          const timestampData = await this.getTimestampSeal(idBackImage);
+          
+          // Si se obtuvo el sello de tiempo, agregarlo a los datos
+          if (timestampData) {
+            backDocData.timestampHash = timestampData.hash;
+            backDocData.timestampSeal = timestampData.timestamp;
+            console.log('Sello de tiempo aplicado correctamente a reverso de ID');
+          } else {
+            console.warn('No se pudo obtener sello de tiempo para reverso de ID, continuando sin él');
+          }
+        }
+        
         // Guardar imagen trasera del ID
         console.log("Guardando reverso del ID inmediatamente después del escaneo...");
-        this.saveDocumentUsingAPI('ID_BACK', idBackImage)
+        this.saveDocumentUsingAPI('ID_BACK', idBackImage, backDocData)
           .then((data) => {
             console.log('Reverso del ID guardado correctamente:', data);
           })

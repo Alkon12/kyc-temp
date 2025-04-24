@@ -516,6 +516,41 @@ export class FacetecGraphQLAdapter {
     
     return data.createFacetecResult
   }
+
+  /**
+   * Gets the verification type (bronze, silver, gold) for a given token
+   * @param token The token of the verification link
+   * @returns The verification type or null if not found
+   */
+  async getVerificationType(token: string): Promise<string | null> {
+    try {
+      const GET_VERIFICATION_TYPE = gql`
+        query GetVerificationTypeByToken($token: String!) {
+          getVerificationLinkByToken(token: $token) {
+            kycVerification {
+              verificationType
+            }
+          }
+        }
+      `
+      
+      const { data } = await this.client.query({
+        query: GET_VERIFICATION_TYPE,
+        variables: { token },
+        fetchPolicy: 'no-cache' // No usar caché para esta operación sensible
+      })
+      
+      if (data?.getVerificationLinkByToken?.kycVerification?.verificationType) {
+        return data.getVerificationLinkByToken.kycVerification.verificationType
+      }
+      
+      console.warn('Verification type not found for token:', token)
+      return null
+    } catch (error) {
+      console.error('Error retrieving verification type:', error)
+      return null
+    }
+  }
 }
 
 export default FacetecGraphQLAdapter 

@@ -7,6 +7,10 @@ import { JsonValue } from '@domain/shared/JsonValue'
 import { DocumentEntity } from '@domain/document/models/DocumentEntity'
 import { KycVerificationId } from '@domain/kycVerification/models/KycVerificationId'
 import type VerificationLinkRepository from '@domain/verification-link/VerificationLinkRepository'
+import { DocumentId } from '@domain/document/models/DocumentId'
+import { v4 } from 'uuid'
+import { NumberValue } from '@domain/shared/NumberValue'
+import { DateTimeValue } from '@domain/shared/DateTime'
 
 @injectable()
 export class FaceTecDocumentService {
@@ -154,6 +158,100 @@ export class FaceTecDocumentService {
     } catch (error) {
       console.error('Error al guardar documentos de verificación:', error)
       return false
+    }
+  }
+
+  /**
+   * Crea y guarda un documento auxiliar de texto en la base de datos
+   * @param verificationId ID de verificación a la que pertenece el documento
+   * @param documentType Tipo de documento (como "ID_FRONT_HASH")
+   * @param content Contenido del documento
+   * @param filename Nombre del archivo
+   * @returns DocumentEntity del documento creado o null si falla
+   */
+  async saveTextDocument(
+    verificationId: string,
+    documentType: string,
+    content: string,
+    filename: string
+  ): Promise<DocumentEntity | null> {
+    try {
+      console.log(`FaceTecDocumentService: Guardando documento auxiliar ${documentType} para verificación ${verificationId}`);
+      
+      // 1. Crear la entidad de documento usando los argumentos correctos
+      const document = DocumentFactory.create({
+        id: v4(), // UUID como string, no DocumentId
+        verificationId: new KycVerificationId(verificationId),
+        documentType: new StringValue(documentType),
+        filePath: new StringValue('paperless'), // Solo indicamos que está en paperless sin URL específica
+        fileName: new StringValue(filename),
+        fileSize: content.length, // número primitivo, no NumberValue
+        mimeType: new StringValue(documentType.includes('HASH') || documentType.includes('CERTIFICATE') ? 'text/plain' : 'application/json'),
+        verificationStatus: new StringValue('saved_paperless'),
+        // Guardamos el contenido como metadata OCR para que sea accesible
+        ocrData: new JsonValue({ textContent: content }),
+        // No necesitamos pasar createdAt y updatedAt, se establecen por defecto
+      })
+      
+      // 2. Guardar en la base de datos
+      return await this._documentRepository.create(document)
+    } catch (error) {
+      console.error(`Error al guardar documento auxiliar:`, error);
+      return null;
+    }
+  }
+
+  /**
+   * Guarda documentos auxiliares de timestamp
+   * @param documentId ID del documento original
+   * @param verificationId ID de verificación
+   * @param originalType Tipo de documento original (SELFIE, ID_FRONT, ID_BACK)
+   * @param timestampData Datos del timestamp
+   * @returns true si se guardaron correctamente
+   */
+  async saveTimestampAuxiliaryDocuments(
+    documentId: string,
+    verificationId: string,
+    originalType: string,
+    timestampData: any
+  ): Promise<boolean> {
+    try {
+      console.log(`FaceTecDocumentService: Guardando documentos auxiliares de timestamp para ${originalType}`);
+      
+      // 1. Guardar archivo de hash
+      if (timestampData.hash) {
+        const hashContent = `${timestampData.algorithm || 'SHA-256'}: ${timestampData.hash}`;
+        // Usar nombre simplificado sin extensión para base de datos
+        const hashFileName = `${originalType} - ${verificationId} - hash`;
+        const hashType = `${originalType}_HASH`;
+        
+        await this.saveTextDocument(
+          verificationId,
+          hashType,
+          hashContent,
+          hashFileName
+        );
+      }
+      
+      // 2. Guardar archivo de certificado (el archivo de metadatos ya no se guarda)
+      if (timestampData.certificate) {
+        const certificateContent = timestampData.certificate;
+        // Usar nombre simplificado sin extensión para base de datos
+        const certFileName = `${originalType} - ${verificationId} - certificate`;
+        const certType = `${originalType}_CERTIFICATE`;
+        
+        await this.saveTextDocument(
+          verificationId,
+          certType,
+          certificateContent,
+          certFileName
+        );
+      }
+      
+      return true;
+    } catch (error) {
+      console.error(`Error al guardar documentos auxiliares:`, error);
+      return false;
     }
   }
 } 
