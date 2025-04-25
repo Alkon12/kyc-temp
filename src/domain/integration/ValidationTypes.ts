@@ -11,6 +11,13 @@ export interface ListaNominalResult {
     vigencia?: string;
     claveElector?: string;
     curp?: string;
+    estado?: number;
+    descripcion?: string;
+    numeroEmision?: string;
+    anioRegistro?: string;
+    anioEmision?: string;
+    identificador?: string;
+    cic?: string;
     // Add other potential fields from the response
   };
   error?: string;

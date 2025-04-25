@@ -12,6 +12,7 @@ import FacetecDataExtractor, { PersonalData } from '@/lib/FaceTec/adapters/Facet
 import ClientVerificationFlowService from '@/services/ClientVerificationFlowService';
 import { useVerificationFlow } from '@/hooks/useVerificationFlow';
 import { useCurpValidation } from '@/hooks/useCurpValidation';
+import { useListaNominalValidation } from '@/hooks/useListaNominalValidation';
 
 // Consulta para obtener verificación usando token en lugar del ID
 const GET_VERIFICATION_BY_TOKEN = gql`
@@ -121,13 +122,23 @@ const FaceTecContent: React.FC = () => {
   
   // Incorporar el hook de validación de CURP con datos adicionales
   const { 
-    isValidating, 
-    isSaving,
-    validationResult, 
-    savedVerificationId,
+    isValidating: isCurpValidating, 
+    isSaving: isCurpSaving,
+    validationResult: curpValidationResult, 
+    savedVerificationId: curpSavedVerificationId,
     error: curpValidationError,
     validateCurpFromPersonalData 
   } = useCurpValidation();
+  
+  // Incorporar el hook de validación de Lista Nominal
+  const {
+    isValidating: isListaNominalValidating,
+    isSaving: isListaNominalSaving,
+    validationResult: listaNominalValidationResult,
+    savedVerificationId: listaNominalSavedVerificationId,
+    error: listaNominalValidationError,
+    validateListaNominalFromPersonalData
+  } = useListaNominalValidation();
 
   // Configurar el servicio de flujo de verificación con el cliente Apollo
   useEffect(() => {
@@ -168,6 +179,13 @@ const FaceTecContent: React.FC = () => {
     }
   }, [flowError]);
 
+  // Añadir este useEffect al grupo existente
+  useEffect(() => {
+    if (listaNominalValidationError) {
+      setError(listaNominalValidationError);
+    }
+  }, [listaNominalValidationError]);
+
   // Agregar query para FaceTecResults (no se ejecuta automáticamente)
   const [getFacetecResults, { loading: loadingFaceTecResults }] = useLazyQuery(GET_FACETEC_RESULTS, {
     onCompleted: async (data) => {
@@ -204,75 +222,119 @@ const FaceTecContent: React.FC = () => {
             if (personalData) {
               setExtractedPersonalData(personalData);
               
+              // Obtener el ID de verificación para ambas validaciones
+              const verificationId = latestResult.verificationId || 
+                                    data.getFacetecResultsByVerificationId[0].verificationId ||
+                                    verificationIdFromQuery ||
+                                    data?.getVerificationLinkByToken?.verificationId;
+              
+              console.log('Usando verificationId para guardar resultados:', verificationId);
+              
+              if (!verificationId) {
+                console.error('No se pudo determinar el ID de verificación. Datos disponibles:', {
+                  latestResultId: latestResult.verificationId,
+                  facetecResultsId: data.getFacetecResultsByVerificationId[0]?.verificationId,
+                  verificationIdFromQuery,
+                  verificationLinkId: data?.getVerificationLinkByToken?.verificationId
+                });
+                
+                console.warn('⚠️ Se continuará con las validaciones pero no se guardarán los resultados');
+              }
+              
+              const shouldSave = Boolean(verificationId);
+                            
               // Verificar si la validación CURP es requerida usando el servicio centralizado
               if (ClientVerificationFlowService.isCURPValidationRequired()) {
                 console.log('Validación CURP requerida por el flujo de verificación');
                 
                 // Validar CURP utilizando el hook y guardar el resultado
                 try {
-                  // Obtener el ID de verificación
-                  const verificationId = latestResult.verificationId || 
-                                         data.getFacetecResultsByVerificationId[0].verificationId ||
-                                         verificationIdFromQuery ||
-                                         data?.getVerificationLinkByToken?.verificationId;
+                  const result = await validateCurpFromPersonalData(personalData, token || null, {
+                    verificationId,
+                    saveResult: shouldSave
+                  });
                   
-                  console.log('Usando verificationId para guardar resultado:', verificationId);
-                  
-                  if (!verificationId) {
-                    console.error('No se pudo determinar el ID de verificación. Datos disponibles:', {
-                      latestResultId: latestResult.verificationId,
-                      facetecResultsId: data.getFacetecResultsByVerificationId[0]?.verificationId,
-                      verificationIdFromQuery,
-                      verificationLinkId: data?.getVerificationLinkByToken?.verificationId
-                    });
-                    
-                    console.warn('⚠️ Se continuará con la validación de CURP pero no se guardará el resultado');
+                  if (shouldSave) {
+                    console.log('Validación de CURP completada', 
+                      curpSavedVerificationId ? `y guardada con ID: ${curpSavedVerificationId}` : 'pero no se guardó el resultado'
+                    );
+                  } else {
+                    console.log('Validación de CURP completada pero no se guardó por falta de ID de verificación');
                   }
                   
-                  // Llamar a la validación con la opción de guardar el resultado solo si tenemos ID
-                  // La validación CURP se guardará como una verificación externa de tipo IDENTITY
-                  const shouldSave = Boolean(verificationId);
+                  // Imprimir el resultado de la validación para referencia
+                  console.log('Resultado de validación CURP:', result.success ? 'Exitoso' : 'Fallido');
+                } catch (validationError) {
+                  console.error('Error durante la validación o guardado de CURP:', validationError);
                   
-                  try {
-                    const result = await validateCurpFromPersonalData(personalData, token || null, {
-                      verificationId,
-                      saveResult: shouldSave
-                    });
-                    
-                    if (shouldSave) {
-                      console.log('Validación de CURP completada', 
-                        savedVerificationId ? `y guardada con ID: ${savedVerificationId}` : 'pero no se guardó el resultado'
+                  // Intentar validar sin guardar como fallback
+                  if (shouldSave) {
+                    console.log('Intentando validar CURP sin guardar como fallback...');
+                    try {
+                      const resultWithoutSaving = await validateCurpFromPersonalData(personalData, token || null, {
+                        saveResult: false
+                      });
+                      console.log('Validación de CURP sin guardado completada:', 
+                        resultWithoutSaving.success ? 'Exitoso' : 'Fallido'
                       );
-                    } else {
-                      console.log('Validación de CURP completada pero no se guardó por falta de ID de verificación');
-                    }
-                    
-                    // Imprimir el resultado de la validación para referencia
-                    console.log('Resultado de validación CURP:', result.success ? 'Exitoso' : 'Fallido');
-                  } catch (validationError) {
-                    console.error('Error durante la validación o guardado de CURP:', validationError);
-                    
-                    // Intentar validar sin guardar como fallback
-                    if (shouldSave) {
-                      console.log('Intentando validar CURP sin guardar como fallback...');
-                      try {
-                        const resultWithoutSaving = await validateCurpFromPersonalData(personalData, token || null, {
-                          saveResult: false
-                        });
-                        console.log('Validación de CURP sin guardado completada:', 
-                          resultWithoutSaving.success ? 'Exitoso' : 'Fallido'
-                        );
-                      } catch (fallbackError) {
-                        console.error('Error incluso en validación de fallback:', fallbackError);
-                      }
+                    } catch (fallbackError) {
+                      console.error('Error incluso en validación de fallback:', fallbackError);
                     }
                   }
-                } catch (error) {
-                  console.error('Error durante la validación de CURP:', error);
                 }
               } else {
                 console.log('Validación de CURP no requerida para este flujo');
               }
+              
+              // Verificar si la validación de Lista Nominal es requerida
+              // Solo para Gold o cuando INEValidationRequired es true
+              if (ClientVerificationFlowService.isINEValidationRequired()) {
+                console.log('Validación de Lista Nominal requerida por el flujo de verificación');
+                
+                try {
+                  const result = await validateListaNominalFromPersonalData(personalData, token || null, {
+                    verificationId,
+                    saveResult: shouldSave
+                  });
+                  
+                  // Imprimir el resultado de la validación para referencia
+                  console.log('Resultado de validación Lista Nominal:', result);
+                  
+                  // Estado 3 significa "vigente" para Lista Nominal y debe considerarse como éxito
+                  const isListaNominalSuccess = result.success || result.data?.estado === 3;
+                  console.log('Validación de Lista Nominal:', isListaNominalSuccess ? 'Exitosa' : 'Fallida', 
+                    'Estado:', result.data?.estado, 
+                    'Mensaje:', result.message);
+                  
+                  if (shouldSave) {
+                    console.log('Validación de Lista Nominal completada', 
+                      listaNominalSavedVerificationId ? `y guardada con ID: ${listaNominalSavedVerificationId}` : 'pero no se guardó el resultado'
+                    );
+                  } else {
+                    console.log('Validación de Lista Nominal completada pero no se guardó por falta de ID de verificación');
+                  }
+                } catch (validationError) {
+                  console.error('Error durante la validación o guardado de Lista Nominal:', validationError);
+                  
+                  // Intentar validar sin guardar como fallback
+                  if (shouldSave) {
+                    console.log('Intentando validar Lista Nominal sin guardar como fallback...');
+                    try {
+                      const resultWithoutSaving = await validateListaNominalFromPersonalData(personalData, token || null, {
+                        saveResult: false
+                      });
+                      console.log('Validación de Lista Nominal sin guardado completada:', 
+                        resultWithoutSaving.success ? 'Exitoso' : 'Fallido'
+                      );
+                    } catch (fallbackError) {
+                      console.error('Error incluso en validación de fallback:', fallbackError);
+                    }
+                  }
+                }
+              } else {
+                console.log('Validación de Lista Nominal no requerida para este flujo');
+              }
+              
             } else {
               console.warn('No se pudieron extraer datos personales del documento');
             }
@@ -462,19 +524,23 @@ const FaceTecContent: React.FC = () => {
     const isBronzeVerification = ClientVerificationFlowService.isBronzeVerification();
     const isGoldVerification = ClientVerificationFlowService.isGoldVerification();
     const requiresCurpValidation = ClientVerificationFlowService.isCURPValidationRequired();
+    const requiresIneValidation = ClientVerificationFlowService.isINEValidationRequired();
     
     console.log('Información del tipo de verificación (desde servicio):', {
       isBronze: isBronzeVerification,
       isGold: isGoldVerification,
       requiresCurp: requiresCurpValidation,
+      requiresIne: requiresIneValidation,
       nextStep: ClientVerificationFlowService.getNextStepAfterFaceTec()
     });
     
     // Verificar si necesitamos obtener FaceTecResult para validaciones adicionales
     const forceGetFaceTecResults = true; // Cambiar a false cuando todo funcione correctamente
     
-    if (ClientVerificationFlowService.isCURPValidationRequired() || forceGetFaceTecResults) {
-      console.log('Obteniendo FaceTecResult para validación CURP o validación adicional');
+    if (ClientVerificationFlowService.isCURPValidationRequired() || 
+        ClientVerificationFlowService.isINEValidationRequired() || 
+        forceGetFaceTecResults) {
+      console.log('Obteniendo FaceTecResult para validaciones adicionales');
       
       // Utilizamos la query a través de Apollo hooks para mantener la integración con React
       getFacetecResults({
@@ -660,9 +726,9 @@ const FaceTecContent: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
-      {(error || curpValidationError) && !enlaceExpirado && (
+      {(error || curpValidationError || listaNominalValidationError) && !enlaceExpirado && (
         <div className="max-w-4xl mx-auto mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
-          {error || curpValidationError}
+          {error || curpValidationError || listaNominalValidationError}
         </div>
       )}
 
@@ -677,25 +743,31 @@ const FaceTecContent: React.FC = () => {
         />
       </div>
 
-      {/* Mostrar indicador de validación de CURP si está en proceso */}
-      {isValidating && (
+      {/* Mostrar indicadores de validación */}
+      {(isCurpValidating || isListaNominalValidating) && (
         <div className="max-w-md mx-auto mb-4 p-4 bg-yellow-50 border border-yellow-200 text-yellow-700 rounded">
-          Validando CURP y datos personales...
+          {isCurpValidating && <p>Validando CURP y datos personales...</p>}
+          {isListaNominalValidating && <p>Validando INE con Lista Nominal...</p>}
         </div>
       )}
 
       {/* Mostrar indicador de guardado de resultados */}
-      {isSaving && (
+      {(isCurpSaving || isListaNominalSaving) && (
         <div className="max-w-md mx-auto mb-4 p-4 bg-blue-50 border border-blue-200 text-blue-700 rounded">
-          Guardando resultados de validación CURP...
+          {isCurpSaving && <p>Guardando resultados de validación CURP...</p>}
+          {isListaNominalSaving && <p>Guardando resultados de validación Lista Nominal...</p>}
         </div>
       )}
 
       {/* Mostrar confirmación de guardado exitoso */}
-      {savedVerificationId && (
+      {(curpSavedVerificationId || listaNominalSavedVerificationId) && (
         <div className="max-w-md mx-auto mb-4 p-4 bg-green-50 border border-green-200 text-green-700 rounded">
-          <p>Resultados de validación CURP guardados exitosamente</p>
-          <p className="text-xs mt-1">ID: {savedVerificationId}</p>
+          {curpSavedVerificationId && (
+            <p>Resultados de validación CURP guardados exitosamente</p>
+          )}
+          {listaNominalSavedVerificationId && (
+            <p>Resultados de validación Lista Nominal guardados exitosamente</p>
+          )}
         </div>
       )}
 

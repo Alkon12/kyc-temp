@@ -93,4 +93,33 @@ export class FaceTecDataExtractor {
     const result = this.extractFromFullResponse(jsonResponse);
     return result.mrzLine1 || null;
   }
+
+  /**
+   * Extract CIC and Identificador from MRZ Line 1
+   * Format: IDMEX2559692949<<3136127785553
+   * CIC: First 9 digits after IDMEX (255969294)
+   * Identificador: Last 9 digits after << (127785553)
+   */
+  static extractCicAndIdentificador(mrzLine1: string | null): { cic: string | null; identificador: string | null } {
+    if (!mrzLine1) {
+      return { cic: null, identificador: null };
+    }
+    
+    try {
+      // Extract CIC (first 9 digits after IDMEX)
+      const cicMatch = mrzLine1.match(/IDMEX(\d{9})/);
+      const cic = cicMatch ? cicMatch[1] : null;
+      
+      // Extract Identificador (last 9 digits after <<)
+      const idMatch = mrzLine1.match(/<<\d+(\d{9})$/);
+      const identificador = idMatch ? idMatch[1] : null;
+      
+      console.log('Extracted CIC and Identificador from MRZ:', { cic, identificador });
+      
+      return { cic, identificador };
+    } catch (error) {
+      console.error('Error extracting CIC and Identificador from MRZ:', error);
+      return { cic: null, identificador: null };
+    }
+  }
 } 

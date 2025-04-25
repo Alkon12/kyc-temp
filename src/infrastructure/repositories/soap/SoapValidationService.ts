@@ -83,9 +83,17 @@ ${JSON.stringify(command, null, 2)}
           };
           
           // Si hay un error en la respuesta
-          if (jsonResponse.error || jsonResponse.estado !== 0) {
+          if (jsonResponse.error || 
+              (jsonResponse.estado !== 0 && 
+               command.oper !== 'ListaNominal')) { // Para ListaNominal, estado 3 significa éxito
             result.success = false;
             result.message = jsonResponse.error || jsonResponse.descripcion || 'Unknown error';
+          }
+          
+          // Caso especial para ListaNominal donde estado 3 indica éxito (vigente)
+          if (command.oper === 'ListaNominal' && jsonResponse.estado === 3) {
+            result.success = true;
+            result.message = jsonResponse.descripcion || 'INE vigente como medio de identificación';
           }
           
           console.log('Respuesta parseada:', JSON.stringify(result));
@@ -185,4 +193,4 @@ ${JSON.stringify(command, null, 2)}
 
     return this.makeRequest<CurpValidationResult>(command);
   }
-} 
+}
