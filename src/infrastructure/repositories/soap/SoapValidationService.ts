@@ -1,5 +1,5 @@
 import ValidationService from '@domain/integration/ValidationService';
-import { ListaNominalResult, SelloTiempoResult, ValidaCurpResult } from '@domain/integration/ValidationTypes';
+import { ListaNominalResult, SelloTiempoResult, ValidaCurpResult, CurpValidationResult } from '@domain/integration/ValidationTypes';
 import { ValidationError, ValidationServiceUnavailableError, ValidationInvalidDataError } from '@domain/integration/ValidationError';
 import axios, { AxiosError } from 'axios';
 import { injectable } from 'inversify';
@@ -171,7 +171,7 @@ ${JSON.stringify(command, null, 2)}
   /**
    * Validates a CURP
    */
-  async validateCurp(curp: string): Promise<ValidaCurpResult> {
+  async validateCurp(curp: string): Promise<CurpValidationResult> {
     if (!curp) {
       throw new ValidationInvalidDataError('CURP is required for validation');
     }
@@ -183,6 +183,6 @@ ${JSON.stringify(command, null, 2)}
       curp,
     };
 
-    return this.makeRequest<ValidaCurpResult>(command);
+    return this.makeRequest<CurpValidationResult>(command);
   }
 } 

@@ -1,4 +1,4 @@
-import { ListaNominalResult, SelloTiempoResult, ValidaCurpResult } from './ValidationTypes';
+import { ListaNominalResult, SelloTiempoResult, CurpValidationResult } from './ValidationTypes';
 
 /**
  * Service interface for external validation services via SOAP
@@ -21,5 +21,5 @@ export default interface ValidationService {
    * Validates a CURP
    * @param curp - CURP string to validate
    */
-  validateCurp(curp: string): Promise<ValidaCurpResult>;
+  validateCurp(curp: string): Promise<CurpValidationResult>;
 } 

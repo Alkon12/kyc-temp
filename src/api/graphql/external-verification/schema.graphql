@@ -1,0 +1,43 @@
+extend type Query {
+  externalVerification(id: ID!): ExternalVerification
+  externalVerificationsByKycId(kycVerificationId: ID!): [ExternalVerification!]
+}
+
+extend type Mutation {
+  createExternalVerification(input: CreateExternalVerificationInput!): ExternalVerification!
+  updateExternalVerificationStatus(id: ID!, status: String!): Boolean!
+  updateExternalVerificationResponse(id: ID!, responseData: JSON!): Boolean!
+  deleteExternalVerification(id: ID!): Boolean!
+}
+
+type ExternalVerification {
+  id: ID!
+  verificationId: ID!
+  provider: String!
+  verificationType: String!
+  requestData: JSON
+  responseData: JSON
+  status: String!
+  createdAt: String!
+  
+  kycVerification: KycVerification
+}
+
+input CreateExternalVerificationInput {
+  verificationId: ID!
+  provider: String!
+  verificationType: ExternalVerificationType!
+  requestData: JSON
+  responseData: JSON
+  status: String
+}
+
+enum ExternalVerificationType {
+  IDENTITY
+  DOCUMENT
+  ADDRESS
+  BIOMETRIC
+  AML
+}
+
+scalar JSON 

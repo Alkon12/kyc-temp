@@ -1,0 +1,32 @@
+meta {
+  name: Create External Verification
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/api/graphql
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "query": "mutation CreateExternalVerification($input: CreateExternalVerificationInput!) { createExternalVerification(input: $input) { id verificationId provider verificationType requestData responseData status createdAt } }",
+    "variables": {
+      "input": {
+        "verificationId": "kyc-verification-id",
+        "provider": "example-provider",
+        "verificationType": "IDENTITY",
+        "requestData": {
+          "data": "example request data"
+        },
+        "status": "pending"
+      }
+    }
+  }
+} 

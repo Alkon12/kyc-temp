@@ -33,8 +33,9 @@ export interface SelloTiempoResult {
 
 /**
  * Result interface for CURP validation
+ * Esta es la interfaz estándar para resultados de validación CURP en todo el proyecto
  */
-export interface ValidaCurpResult {
+export interface CurpValidationResult {
   success: boolean;
   message: string;
   data?: {
@@ -45,7 +46,10 @@ export interface ValidaCurpResult {
     sexo?: string;
     fechaNacimiento?: string;
     entidadNacimiento?: string;
-    // Add other potential fields from the response
+    [key: string]: any;  // Para campos adicionales
   };
-  error?: string;
-} 
+  error?: any;
+}
+
+// Alias para mantener compatibilidad con código existente
+export type ValidaCurpResult = CurpValidationResult; 

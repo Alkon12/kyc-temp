@@ -60,6 +60,10 @@ import { SoapValidationService } from './repositories/soap/SoapValidationService
 import { KycValidationService } from '@service/KycValidationService'
 import { VerificationFlowService } from '@service/VerificationFlowService'
 import { VerificationFlowResolvers } from '@api/graphql/verification-flow/VerificationFlowResolvers'
+import { ExternalVerificationRepository } from '@domain/externalVerification/ExternalVerificationRepository'
+import { PrismaExternalVerificationRepository } from './repositories/prisma/PrismaExternalVerificationRepository'
+import { ExternalVerificationService } from '@domain/externalVerification/ExternalVerificationService'
+import { ExternalVerificationResolvers } from '@api/graphql/external-verification/ExternalVerificationResolvers'
 
 const container = new Container()
 
@@ -74,6 +78,7 @@ container.bind(DocumentResolvers).toSelf()
 container.bind(CompanyResolvers).toSelf()
 container.bind(FacetecResultResolvers).toSelf()
 container.bind(VerificationFlowResolvers).toSelf()
+container.bind(ExternalVerificationResolvers).toSelf()
 
 // Services
 container.bind<LoggingService>(DI.LoggingService).to(ConsoleLogger).inSingletonScope()
@@ -93,6 +98,7 @@ container.bind<FaceTecDocumentService>(DI.FaceTecDocumentService).to(FaceTecDocu
 container.bind<AbstractFacetecResultService>(DI.FacetecResultService).to(FacetecResultService).inSingletonScope()
 container.bind<KycValidationService>(DI.KycValidationService).to(KycValidationService).inSingletonScope()
 container.bind<VerificationFlowService>(DI.VerificationFlowService).to(VerificationFlowService).inSingletonScope()
+container.bind<ExternalVerificationService>(DI.ExternalVerificationService).to(ExternalVerificationService).inSingletonScope()
 
 // Repositories
 container.bind<UserRepository>(DI.UserRepository).to(PrismaUserRepository)
@@ -102,6 +108,7 @@ container.bind<KycVerificationRepository>(DI.KycVerificationRepository).to(Prism
 container.bind<VerificationLinkRepository>(DI.VerificationLinkRepository).to(PrismaVerificationLinkRepository)
 container.bind<DocumentRepository>(DI.DocumentRepository).to(PrismaDocumentRepository)
 container.bind<FacetecResultRepository>(DI.FacetecResultRepository).to(PrismaFacetecResultRepository)
+container.bind<ExternalVerificationRepository>(DI.ExternalVerificationRepository).to(PrismaExternalVerificationRepository)
 
 // FaceTec Service (usar MockFaceTecService para desarrollo y pruebas)
 container.bind<FaceTecService>(DI.FaceTecService).to(MockFaceTecService).inSingletonScope()

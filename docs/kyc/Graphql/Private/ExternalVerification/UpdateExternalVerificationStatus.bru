@@ -1,0 +1,25 @@
+meta {
+  name: Update External Verification Status
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/api/graphql
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "query": "mutation UpdateExternalVerificationStatus($id: ID!, $status: String!) { updateExternalVerificationStatus(id: $id, status: $status) }",
+    "variables": {
+      "id": "external-verification-id",
+      "status": "completed"
+    }
+  }
+} 

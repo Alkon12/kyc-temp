@@ -1,0 +1,24 @@
+meta {
+  name: Get External Verifications by KYC ID
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/api/graphql
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "query": "query GetExternalVerificationsByKycId($kycVerificationId: ID!) { externalVerificationsByKycId(kycVerificationId: $kycVerificationId) { id verificationId provider verificationType requestData responseData status createdAt } }",
+    "variables": {
+      "kycVerificationId": "kyc-verification-id"
+    }
+  }
+} 

@@ -22,6 +22,10 @@ export const DI = {
   FaceTecDocumentService: Symbol.for('FaceTecDocumentService'),
   PaperlessService: Symbol.for('PaperlessService'),
   
+  // External Verification
+  ExternalVerificationRepository: Symbol.for('ExternalVerificationRepository'),
+  ExternalVerificationService: Symbol.for('ExternalVerificationService'),
+  
   // FaceTec
   FaceTecService: Symbol.for('FaceTecService'),
   FacetecResultRepository: Symbol.for('FacetecResultRepository'),

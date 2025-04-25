@@ -1,0 +1,24 @@
+meta {
+  name: Get External Verification by ID
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/graphql
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "query": "query GetExternalVerification($id: ID!) { externalVerification(id: $id) { id verificationId provider verificationType requestData responseData status createdAt kycVerification { id } } }",
+    "variables": {
+      "id": "external-verification-id"
+    }
+  }
+} 

@@ -10,6 +10,7 @@ import { VerificationLinkSchema } from '@api/graphql/verification-link'
 import { DocumentSchema } from '@api/graphql/document'
 import { CompanySchema } from '@api/graphql/company'
 import { FacetecResultSchema } from '@api/graphql/facetec-result'
+import { ExternalVerificationSchema } from '@api/graphql/external-verification'
 import { ApolloLoggingPlugin } from './ApolloLoggingPlugin'
 import { UserResolvers } from '@api/graphql/user/UserResolvers'
 import { TestResolvers } from '@api/graphql/test/TestResolvers'
@@ -18,6 +19,7 @@ import { VerificationLinkResolvers } from '@api/graphql/verification-link/Verifi
 import { DocumentResolvers } from '@api/graphql/document/DocumentResolvers'
 import { CompanyResolvers } from '@api/graphql/company/CompanyResolvers'
 import { FacetecResultResolvers } from '@api/graphql/facetec-result/FacetecResultResolvers'
+import { ExternalVerificationResolvers } from '@api/graphql/external-verification/ExternalVerificationResolvers'
 
 // Variable global para almacenar la instancia del servidor
 // Debe estar fuera de la clase para evitar problemas de tipo
@@ -62,6 +64,7 @@ export class ApolloServer {
       DocumentSchema,
       CompanySchema,
       FacetecResultSchema,
+      ExternalVerificationSchema,
     ])
     const mergedResolvers = merge(
       [],
@@ -73,6 +76,7 @@ export class ApolloServer {
         container.get(DocumentResolvers).build(),
         container.get(CompanyResolvers).build(),
         container.get(FacetecResultResolvers).build(),
+        container.get(ExternalVerificationResolvers).build(),
       ],
     )
 

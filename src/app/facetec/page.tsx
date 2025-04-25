@@ -6,8 +6,12 @@ import RechazoTerminos from "@/components/kyc/RechazoTerminos";
 import EnlaceExpirado from "@/components/kyc/EnlaceExpirado";
 import ContactForm from "@/components/kyc/ContactForm";
 import { useSearchParams } from 'next/navigation';
-import { gql, useQuery, useMutation, ApolloProvider } from '@apollo/client';
+import { gql, useQuery, useMutation, ApolloProvider, useLazyQuery } from '@apollo/client';
 import { ApolloClient, InMemoryCache, createHttpLink } from '@apollo/client';
+import FacetecDataExtractor, { PersonalData } from '@/lib/FaceTec/adapters/FacetecDataExtractor';
+import ClientVerificationFlowService from '@/services/ClientVerificationFlowService';
+import { useVerificationFlow } from '@/hooks/useVerificationFlow';
+import { useCurpValidation } from '@/hooks/useCurpValidation';
 
 // Consulta para obtener verificación usando token en lugar del ID
 const GET_VERIFICATION_BY_TOKEN = gql`
@@ -33,16 +37,19 @@ const GET_VERIFICATION_BY_TOKEN = gql`
   }
 `;
 
-// Consulta para obtener el flujo de verificación
-const GET_VERIFICATION_FLOW = gql`
-  query GetVerificationFlow($verificationId: ID!) {
-    getVerificationFlow(verificationId: $verificationId) {
-      type
-      isContactFormRequired
-      isTimestampSealingRequired
-      isINEValidationRequired
-      isCURPValidationRequired
-      nextStepAfterFaceTec
+// Nueva consulta para obtener FaceTecResult por verification ID
+const GET_FACETEC_RESULTS = gql`
+  query GetFacetecResultsByVerificationId($verificationId: String!) {
+    getFacetecResultsByVerificationId(verificationId: $verificationId) {
+      id
+      verificationId
+      sessionId
+      livenessStatus
+      enrollmentStatus
+      matchLevel
+      fullResponse
+      manualReviewRequired
+      createdAt
     }
   }
 `;
@@ -98,28 +105,187 @@ const publicClient = new ApolloClient({
   cache: new InMemoryCache(),
 });
 
+// Crear instancia del extractor de datos FaceTec
+const facetecDataExtractor = new FacetecDataExtractor(publicClient);
+
 const FaceTecContent: React.FC = () => {
   const [step, setStep] = useState<'terminos' | 'verificacion' | 'rechazo' | 'contacto' | 'completado'>('terminos');
   const [error, setError] = useState<string | null>(null);
   const [enlaceExpirado, setEnlaceExpirado] = useState(false);
-  const [flowSettings, setFlowSettings] = useState<any>(null);
   const faceTecRef = useRef<any>(null);
   const searchParams = useSearchParams();
   const token = searchParams?.get('token');
   const [accessRecorded, setAccessRecorded] = useState(false);
+  // Estado para almacenar los datos personales extraídos
+  const [extractedPersonalData, setExtractedPersonalData] = useState<PersonalData | null>(null);
+  
+  // Incorporar el hook de validación de CURP con datos adicionales
+  const { 
+    isValidating, 
+    isSaving,
+    validationResult, 
+    savedVerificationId,
+    error: curpValidationError,
+    validateCurpFromPersonalData 
+  } = useCurpValidation();
+
+  // Configurar el servicio de flujo de verificación con el cliente Apollo
+  useEffect(() => {
+    ClientVerificationFlowService.setApolloClient(publicClient);
+  }, []);
 
   const { loading, data, error: queryError } = useQuery(GET_VERIFICATION_BY_TOKEN, {
     variables: { token },
     skip: !token,
   });
 
-  // Get verification flow settings once we have the verification ID
-  const { data: flowData } = useQuery(GET_VERIFICATION_FLOW, {
-    variables: { verificationId: data?.getVerificationLinkByToken?.verificationId },
-    skip: !data?.getVerificationLinkByToken?.verificationId,
-    onCompleted: (data) => {
-      console.log('Flow settings:', data);
-      setFlowSettings(data.getVerificationFlow);
+  // Usar el hook personalizado para la inicialización del flujo
+  const verificationIdFromQuery = data?.getVerificationLinkByToken?.verificationId;
+  const verificationTypeFromQuery = data?.getVerificationLinkByToken?.kycVerification?.verificationType;
+  
+  // Depuración para verificar IDs disponibles
+  useEffect(() => {
+    if (data?.getVerificationLinkByToken) {
+      console.log('🔍 Información de verificación disponible:', {
+        verificationIdFromLink: data.getVerificationLinkByToken.verificationId,
+        verificationLinkId: data.getVerificationLinkByToken.id,
+        kycVerificationId: data.getVerificationLinkByToken.kycVerification?.id
+      });
+    }
+  }, [data]);
+  
+  const { 
+    flowServiceInitialized, 
+    flowSettings, 
+    error: flowError,
+    setError: setFlowError
+  } = useVerificationFlow(verificationIdFromQuery, verificationTypeFromQuery);
+  
+  // Sincronizar error del flujo con el error del componente
+  useEffect(() => {
+    if (flowError) {
+      setError(flowError);
+    }
+  }, [flowError]);
+
+  // Agregar query para FaceTecResults (no se ejecuta automáticamente)
+  const [getFacetecResults, { loading: loadingFaceTecResults }] = useLazyQuery(GET_FACETEC_RESULTS, {
+    onCompleted: async (data) => {
+      console.log('FaceTec Results obtenidos:', data);
+      if (data.getFacetecResultsByVerificationId && data.getFacetecResultsByVerificationId.length > 0) {
+        const latestResult = data.getFacetecResultsByVerificationId[0];
+        
+        // Usar el extractor de datos para procesar la respuesta
+        if (latestResult.fullResponse) {
+          try {
+            // Verificar primero si tenemos los datos de verificación necesarios
+            if (!ClientVerificationFlowService.isInitialized()) {
+              console.log('ADVERTENCIA: Flujo de verificación no inicializado todavía');
+              
+              // Intentar inicializar el servicio con los datos del token si están disponibles
+              const verificationType = data?.getVerificationLinkByToken?.kycVerification?.verificationType;
+              
+              if (verificationType) {
+                ClientVerificationFlowService.initialize(verificationType);
+                console.log(`Flujo de verificación inicializado con tipo: ${verificationType}`);
+              } else {
+                console.log('No se pudo determinar el tipo de verificación, continuando con validación básica');
+              }
+            }
+            
+            // Extraer datos del documento
+            const personalData = facetecDataExtractor.extractPersonalDataFromFaceTecResult(
+              latestResult.fullResponse
+            );
+            
+            console.log('Procesando datos personales extraídos');
+            
+            // Guardar los datos extraídos en el estado
+            if (personalData) {
+              setExtractedPersonalData(personalData);
+              
+              // Verificar si la validación CURP es requerida usando el servicio centralizado
+              if (ClientVerificationFlowService.isCURPValidationRequired()) {
+                console.log('Validación CURP requerida por el flujo de verificación');
+                
+                // Validar CURP utilizando el hook y guardar el resultado
+                try {
+                  // Obtener el ID de verificación
+                  const verificationId = latestResult.verificationId || 
+                                         data.getFacetecResultsByVerificationId[0].verificationId ||
+                                         verificationIdFromQuery ||
+                                         data?.getVerificationLinkByToken?.verificationId;
+                  
+                  console.log('Usando verificationId para guardar resultado:', verificationId);
+                  
+                  if (!verificationId) {
+                    console.error('No se pudo determinar el ID de verificación. Datos disponibles:', {
+                      latestResultId: latestResult.verificationId,
+                      facetecResultsId: data.getFacetecResultsByVerificationId[0]?.verificationId,
+                      verificationIdFromQuery,
+                      verificationLinkId: data?.getVerificationLinkByToken?.verificationId
+                    });
+                    
+                    console.warn('⚠️ Se continuará con la validación de CURP pero no se guardará el resultado');
+                  }
+                  
+                  // Llamar a la validación con la opción de guardar el resultado solo si tenemos ID
+                  // La validación CURP se guardará como una verificación externa de tipo IDENTITY
+                  const shouldSave = Boolean(verificationId);
+                  
+                  try {
+                    const result = await validateCurpFromPersonalData(personalData, token || null, {
+                      verificationId,
+                      saveResult: shouldSave
+                    });
+                    
+                    if (shouldSave) {
+                      console.log('Validación de CURP completada', 
+                        savedVerificationId ? `y guardada con ID: ${savedVerificationId}` : 'pero no se guardó el resultado'
+                      );
+                    } else {
+                      console.log('Validación de CURP completada pero no se guardó por falta de ID de verificación');
+                    }
+                    
+                    // Imprimir el resultado de la validación para referencia
+                    console.log('Resultado de validación CURP:', result.success ? 'Exitoso' : 'Fallido');
+                  } catch (validationError) {
+                    console.error('Error durante la validación o guardado de CURP:', validationError);
+                    
+                    // Intentar validar sin guardar como fallback
+                    if (shouldSave) {
+                      console.log('Intentando validar CURP sin guardar como fallback...');
+                      try {
+                        const resultWithoutSaving = await validateCurpFromPersonalData(personalData, token || null, {
+                          saveResult: false
+                        });
+                        console.log('Validación de CURP sin guardado completada:', 
+                          resultWithoutSaving.success ? 'Exitoso' : 'Fallido'
+                        );
+                      } catch (fallbackError) {
+                        console.error('Error incluso en validación de fallback:', fallbackError);
+                      }
+                    }
+                  }
+                } catch (error) {
+                  console.error('Error durante la validación de CURP:', error);
+                }
+              } else {
+                console.log('Validación de CURP no requerida para este flujo');
+              }
+            } else {
+              console.warn('No se pudieron extraer datos personales del documento');
+            }
+          } catch (error) {
+            console.error('Error al procesar datos del documento:', error);
+          }
+        } else {
+          console.warn('No se encontró información del documento en el resultado de FaceTec');
+        }
+      }
+    },
+    onError: (error) => {
+      console.error('Error al obtener FaceTec Results:', error);
     }
   });
 
@@ -269,15 +435,52 @@ const FaceTecContent: React.FC = () => {
       return;
     }
     
+    const verificationId = data.getVerificationLinkByToken.verificationId;
+    
     console.log('FaceTec completado, actualizando estado...', {
-      verificationType: data.getVerificationLinkByToken.kycVerification?.verificationType,
+      verificationType: ClientVerificationFlowService.getVerificationType(),
       token: token?.substring(0, 8) + '...',
       documentImagesCount: documentImages?.length || 0
     });
     
-    // Verificar si es Bronze para optimizar el flujo
-    const isBronzeVerification = 
-      data.getVerificationLinkByToken.kycVerification?.verificationType?.toLowerCase() === 'bronze';
+    // Verificar si el servicio de flujo está inicializado
+    if (!ClientVerificationFlowService.isInitialized()) {
+      console.log('ADVERTENCIA: Servicio de flujo no inicializado, intentando inicializar...');
+      
+      // Intentar inicializar el servicio con los datos del token si están disponibles
+      const verificationType = data?.getVerificationLinkByToken?.kycVerification?.verificationType;
+      
+      if (verificationType) {
+        ClientVerificationFlowService.initialize(verificationType);
+        console.log(`Servicio inicializado tardíamente con tipo: ${verificationType}`);
+      } else {
+        console.warn('No se pudo determinar el tipo de verificación, procediendo con precaución');
+      }
+    }
+    
+    // Obtener información del tipo de verificación desde el servicio centralizado
+    const isBronzeVerification = ClientVerificationFlowService.isBronzeVerification();
+    const isGoldVerification = ClientVerificationFlowService.isGoldVerification();
+    const requiresCurpValidation = ClientVerificationFlowService.isCURPValidationRequired();
+    
+    console.log('Información del tipo de verificación (desde servicio):', {
+      isBronze: isBronzeVerification,
+      isGold: isGoldVerification,
+      requiresCurp: requiresCurpValidation,
+      nextStep: ClientVerificationFlowService.getNextStepAfterFaceTec()
+    });
+    
+    // Verificar si necesitamos obtener FaceTecResult para validaciones adicionales
+    const forceGetFaceTecResults = true; // Cambiar a false cuando todo funcione correctamente
+    
+    if (ClientVerificationFlowService.isCURPValidationRequired() || forceGetFaceTecResults) {
+      console.log('Obteniendo FaceTecResult para validación CURP o validación adicional');
+      
+      // Utilizamos la query a través de Apollo hooks para mantener la integración con React
+      getFacetecResults({
+        variables: { verificationId }
+      });
+    }
     
     // Para Bronze, actualizar directamente a verification_completed
     if (isBronzeVerification && token) {
@@ -348,14 +551,20 @@ const FaceTecContent: React.FC = () => {
     
     // Función para continuar al siguiente paso según tipo de verificación
     function continueToNextStep() {
-      console.log('Determinando el siguiente paso basado en el tipo de verificación:', {
-        verificationType: data?.getVerificationLinkByToken?.kycVerification?.verificationType || 'desconocido',
-        flowSettings
+      console.log('Determinando el siguiente paso basado en el servicio de verificación');
+      
+      // Obtener el siguiente paso del servicio centralizado
+      const nextStep = ClientVerificationFlowService.getNextStepAfterFaceTec();
+      const isBronze = ClientVerificationFlowService.isBronzeVerification();
+      
+      console.log('Información de flujo (desde servicio):', {
+        nextStep,
+        isBronze,
+        requiresContactForm: ClientVerificationFlowService.isContactFormRequired()
       });
       
-      // Para bronze, saltar directamente a completado
-      if (data?.getVerificationLinkByToken?.kycVerification?.verificationType?.toLowerCase() === 'bronze' ||
-          (flowSettings && flowSettings.nextStepAfterFaceTec === 'complete')) {
+      // Para bronze o cuando el siguiente paso es 'complete', saltar directamente a completado
+      if (isBronze || nextStep === 'complete') {
         console.log('Verificación Bronze o flujo completo, finalizando verificación');
         handleVerificationCompleted();
       } else {
@@ -451,9 +660,9 @@ const FaceTecContent: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
-      {error && !enlaceExpirado && (
+      {(error || curpValidationError) && !enlaceExpirado && (
         <div className="max-w-4xl mx-auto mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
-          {error}
+          {error || curpValidationError}
         </div>
       )}
 
@@ -467,6 +676,28 @@ const FaceTecContent: React.FC = () => {
           token={token || undefined}
         />
       </div>
+
+      {/* Mostrar indicador de validación de CURP si está en proceso */}
+      {isValidating && (
+        <div className="max-w-md mx-auto mb-4 p-4 bg-yellow-50 border border-yellow-200 text-yellow-700 rounded">
+          Validando CURP y datos personales...
+        </div>
+      )}
+
+      {/* Mostrar indicador de guardado de resultados */}
+      {isSaving && (
+        <div className="max-w-md mx-auto mb-4 p-4 bg-blue-50 border border-blue-200 text-blue-700 rounded">
+          Guardando resultados de validación CURP...
+        </div>
+      )}
+
+      {/* Mostrar confirmación de guardado exitoso */}
+      {savedVerificationId && (
+        <div className="max-w-md mx-auto mb-4 p-4 bg-green-50 border border-green-200 text-green-700 rounded">
+          <p>Resultados de validación CURP guardados exitosamente</p>
+          <p className="text-xs mt-1">ID: {savedVerificationId}</p>
+        </div>
+      )}
 
       {/* Terms and conditions */}
       {step === 'terminos' && (

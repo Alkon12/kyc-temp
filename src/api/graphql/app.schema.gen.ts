@@ -49,6 +49,15 @@ export type CreateCompanyInput = {
   companyName: Scalars['String']['input'];
 };
 
+export type CreateExternalVerificationInput = {
+  provider: Scalars['String']['input'];
+  requestData?: InputMaybe<Scalars['JSON']['input']>;
+  responseData?: InputMaybe<Scalars['JSON']['input']>;
+  status?: InputMaybe<Scalars['String']['input']>;
+  verificationId: Scalars['ID']['input'];
+  verificationType: ExternalVerificationType;
+};
+
 export type CreateFacetecResultInput = {
   enrollmentStatus: Scalars['String']['input'];
   fullResponse?: InputMaybe<Scalars['JSON']['input']>;
@@ -116,6 +125,27 @@ export type Document = {
   verificationId: Scalars['String']['output'];
   verificationStatus: Scalars['String']['output'];
 };
+
+export type ExternalVerification = {
+  __typename?: 'ExternalVerification';
+  createdAt: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  kycVerification?: Maybe<KycVerification>;
+  provider: Scalars['String']['output'];
+  requestData?: Maybe<Scalars['JSON']['output']>;
+  responseData?: Maybe<Scalars['JSON']['output']>;
+  status: Scalars['String']['output'];
+  verificationId: Scalars['ID']['output'];
+  verificationType: Scalars['String']['output'];
+};
+
+export enum ExternalVerificationType {
+  Address = 'ADDRESS',
+  Aml = 'AML',
+  Biometric = 'BIOMETRIC',
+  Document = 'DOCUMENT',
+  Identity = 'IDENTITY'
+}
 
 export type FacetecResult = {
   __typename?: 'FacetecResult';
@@ -216,6 +246,7 @@ export type Mutation = {
   assignDocumentReviewer: Document;
   assignKycVerification: Scalars['Boolean']['output'];
   createCompany: Company;
+  createExternalVerification: ExternalVerification;
   createFacetecResult: FacetecResult;
   createKycPerson: KycPerson;
   createKycVerification: KycVerification;
@@ -223,6 +254,7 @@ export type Mutation = {
   createVerificationLink: VerificationLink;
   deleteCompany: Scalars['Boolean']['output'];
   deleteDocument: Scalars['Boolean']['output'];
+  deleteExternalVerification: Scalars['Boolean']['output'];
   generateCompanyApiKey: Company;
   invalidateVerificationLink: Scalars['Boolean']['output'];
   recordVerificationLinkAccess: VerificationLink;
@@ -230,6 +262,8 @@ export type Mutation = {
   updateCompanyStatus: Company;
   updateDocumentOcrData: Document;
   updateDocumentStatus: Document;
+  updateExternalVerificationResponse: Scalars['Boolean']['output'];
+  updateExternalVerificationStatus: Scalars['Boolean']['output'];
   updateFacetecResult: FacetecResult;
   updateKycPerson: KycPerson;
   updateKycPersonContactByToken: KycPerson;
@@ -255,6 +289,11 @@ export type MutationAssignKycVerificationArgs = {
 
 export type MutationCreateCompanyArgs = {
   input: CreateCompanyInput;
+};
+
+
+export type MutationCreateExternalVerificationArgs = {
+  input: CreateExternalVerificationInput;
 };
 
 
@@ -293,6 +332,11 @@ export type MutationDeleteDocumentArgs = {
 };
 
 
+export type MutationDeleteExternalVerificationArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
 export type MutationGenerateCompanyApiKeyArgs = {
   companyId: Scalars['ID']['input'];
 };
@@ -328,6 +372,18 @@ export type MutationUpdateDocumentOcrDataArgs = {
 
 export type MutationUpdateDocumentStatusArgs = {
   documentId: Scalars['String']['input'];
+  status: Scalars['String']['input'];
+};
+
+
+export type MutationUpdateExternalVerificationResponseArgs = {
+  id: Scalars['ID']['input'];
+  responseData: Scalars['JSON']['input'];
+};
+
+
+export type MutationUpdateExternalVerificationStatusArgs = {
+  id: Scalars['ID']['input'];
   status: Scalars['String']['input'];
 };
 
@@ -376,6 +432,8 @@ export type Query = {
   __typename?: 'Query';
   assignedKycVerifications?: Maybe<Array<KycVerification>>;
   authWithCredentials: ClientApiAuthResponse;
+  externalVerification?: Maybe<ExternalVerification>;
+  externalVerificationsByKycId?: Maybe<Array<ExternalVerification>>;
   getAllCompanies: Array<Company>;
   getCompanyById: Company;
   getDocumentById: Document;
@@ -412,6 +470,16 @@ export type QueryAuthWithCredentialsArgs = {
   email: Scalars['String']['input'];
   password?: InputMaybe<Scalars['String']['input']>;
   provider?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type QueryExternalVerificationArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type QueryExternalVerificationsByKycIdArgs = {
+  kycVerificationId: Scalars['ID']['input'];
 };
 
 
@@ -663,6 +731,7 @@ export type ResolversTypes = {
   Company: ResolverTypeWrapper<Company>;
   CompanyStats: ResolverTypeWrapper<CompanyStats>;
   CreateCompanyInput: CreateCompanyInput;
+  CreateExternalVerificationInput: CreateExternalVerificationInput;
   CreateFacetecResultInput: CreateFacetecResultInput;
   CreateKycPersonInput: CreateKycPersonInput;
   CreateKycVerificationInput: CreateKycVerificationInput;
@@ -671,6 +740,8 @@ export type ResolversTypes = {
   Date: ResolverTypeWrapper<Scalars['Date']['output']>;
   DateTime: ResolverTypeWrapper<Scalars['DateTime']['output']>;
   Document: ResolverTypeWrapper<Document>;
+  ExternalVerification: ResolverTypeWrapper<ExternalVerification>;
+  ExternalVerificationType: ExternalVerificationType;
   FacetecResult: ResolverTypeWrapper<FacetecResult>;
   Float: ResolverTypeWrapper<Scalars['Float']['output']>;
   Group: ResolverTypeWrapper<Group>;
@@ -702,6 +773,7 @@ export type ResolversParentTypes = {
   Company: Company;
   CompanyStats: CompanyStats;
   CreateCompanyInput: CreateCompanyInput;
+  CreateExternalVerificationInput: CreateExternalVerificationInput;
   CreateFacetecResultInput: CreateFacetecResultInput;
   CreateKycPersonInput: CreateKycPersonInput;
   CreateKycVerificationInput: CreateKycVerificationInput;
@@ -710,6 +782,7 @@ export type ResolversParentTypes = {
   Date: Scalars['Date']['output'];
   DateTime: Scalars['DateTime']['output'];
   Document: Document;
+  ExternalVerification: ExternalVerification;
   FacetecResult: FacetecResult;
   Float: Scalars['Float']['output'];
   Group: Group;
@@ -780,6 +853,19 @@ export type DocumentResolvers<ContextType = any, ParentType extends ResolversPar
   updatedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   verificationId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   verificationStatus?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type ExternalVerificationResolvers<ContextType = any, ParentType extends ResolversParentTypes['ExternalVerification'] = ResolversParentTypes['ExternalVerification']> = {
+  createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  kycVerification?: Resolver<Maybe<ResolversTypes['KycVerification']>, ParentType, ContextType>;
+  provider?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  requestData?: Resolver<Maybe<ResolversTypes['JSON']>, ParentType, ContextType>;
+  responseData?: Resolver<Maybe<ResolversTypes['JSON']>, ParentType, ContextType>;
+  status?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  verificationId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  verificationType?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -859,6 +945,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   assignDocumentReviewer?: Resolver<ResolversTypes['Document'], ParentType, ContextType, RequireFields<MutationAssignDocumentReviewerArgs, 'documentId' | 'reviewerId'>>;
   assignKycVerification?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAssignKycVerificationArgs, 'id' | 'userId'>>;
   createCompany?: Resolver<ResolversTypes['Company'], ParentType, ContextType, RequireFields<MutationCreateCompanyArgs, 'input'>>;
+  createExternalVerification?: Resolver<ResolversTypes['ExternalVerification'], ParentType, ContextType, RequireFields<MutationCreateExternalVerificationArgs, 'input'>>;
   createFacetecResult?: Resolver<ResolversTypes['FacetecResult'], ParentType, ContextType, RequireFields<MutationCreateFacetecResultArgs, 'input'>>;
   createKycPerson?: Resolver<ResolversTypes['KycPerson'], ParentType, ContextType, RequireFields<MutationCreateKycPersonArgs, 'input'>>;
   createKycVerification?: Resolver<ResolversTypes['KycVerification'], ParentType, ContextType, RequireFields<MutationCreateKycVerificationArgs, 'input'>>;
@@ -866,6 +953,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   createVerificationLink?: Resolver<ResolversTypes['VerificationLink'], ParentType, ContextType, RequireFields<MutationCreateVerificationLinkArgs, 'input'>>;
   deleteCompany?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeleteCompanyArgs, 'companyId'>>;
   deleteDocument?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeleteDocumentArgs, 'documentId'>>;
+  deleteExternalVerification?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeleteExternalVerificationArgs, 'id'>>;
   generateCompanyApiKey?: Resolver<ResolversTypes['Company'], ParentType, ContextType, RequireFields<MutationGenerateCompanyApiKeyArgs, 'companyId'>>;
   invalidateVerificationLink?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationInvalidateVerificationLinkArgs, 'token'>>;
   recordVerificationLinkAccess?: Resolver<ResolversTypes['VerificationLink'], ParentType, ContextType, RequireFields<MutationRecordVerificationLinkAccessArgs, 'token'>>;
@@ -873,6 +961,8 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   updateCompanyStatus?: Resolver<ResolversTypes['Company'], ParentType, ContextType, RequireFields<MutationUpdateCompanyStatusArgs, 'companyId' | 'status'>>;
   updateDocumentOcrData?: Resolver<ResolversTypes['Document'], ParentType, ContextType, RequireFields<MutationUpdateDocumentOcrDataArgs, 'documentId' | 'ocrData'>>;
   updateDocumentStatus?: Resolver<ResolversTypes['Document'], ParentType, ContextType, RequireFields<MutationUpdateDocumentStatusArgs, 'documentId' | 'status'>>;
+  updateExternalVerificationResponse?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationUpdateExternalVerificationResponseArgs, 'id' | 'responseData'>>;
+  updateExternalVerificationStatus?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationUpdateExternalVerificationStatusArgs, 'id' | 'status'>>;
   updateFacetecResult?: Resolver<ResolversTypes['FacetecResult'], ParentType, ContextType, RequireFields<MutationUpdateFacetecResultArgs, 'input'>>;
   updateKycPerson?: Resolver<ResolversTypes['KycPerson'], ParentType, ContextType, RequireFields<MutationUpdateKycPersonArgs, 'id' | 'input'>>;
   updateKycPersonContactByToken?: Resolver<ResolversTypes['KycPerson'], ParentType, ContextType, RequireFields<MutationUpdateKycPersonContactByTokenArgs, 'email' | 'phone' | 'token'>>;
@@ -885,6 +975,8 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
   assignedKycVerifications?: Resolver<Maybe<Array<ResolversTypes['KycVerification']>>, ParentType, ContextType, RequireFields<QueryAssignedKycVerificationsArgs, 'userId'>>;
   authWithCredentials?: Resolver<ResolversTypes['ClientApiAuthResponse'], ParentType, ContextType, RequireFields<QueryAuthWithCredentialsArgs, 'email'>>;
+  externalVerification?: Resolver<Maybe<ResolversTypes['ExternalVerification']>, ParentType, ContextType, RequireFields<QueryExternalVerificationArgs, 'id'>>;
+  externalVerificationsByKycId?: Resolver<Maybe<Array<ResolversTypes['ExternalVerification']>>, ParentType, ContextType, RequireFields<QueryExternalVerificationsByKycIdArgs, 'kycVerificationId'>>;
   getAllCompanies?: Resolver<Array<ResolversTypes['Company']>, ParentType, ContextType>;
   getCompanyById?: Resolver<ResolversTypes['Company'], ParentType, ContextType, RequireFields<QueryGetCompanyByIdArgs, 'companyId'>>;
   getDocumentById?: Resolver<ResolversTypes['Document'], ParentType, ContextType, RequireFields<QueryGetDocumentByIdArgs, 'documentId'>>;
@@ -950,6 +1042,7 @@ export type Resolvers<ContextType = any> = {
   Date?: GraphQLScalarType;
   DateTime?: GraphQLScalarType;
   Document?: DocumentResolvers<ContextType>;
+  ExternalVerification?: ExternalVerificationResolvers<ContextType>;
   FacetecResult?: FacetecResultResolvers<ContextType>;
   Group?: GroupResolvers<ContextType>;
   JSON?: GraphQLScalarType;
