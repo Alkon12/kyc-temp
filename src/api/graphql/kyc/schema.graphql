@@ -13,6 +13,13 @@ extend type Query {
   
   # New KycPerson query
   getKycPersonById(id: ID!): KycPerson
+  
+  # Comprehensive queries
+  kycVerificationWithRelations(id: ID!): KycVerificationWithRelations
+  kycVerificationsWithRelations(companyId: ID, limit: Int, offset: Int): [KycVerificationWithRelations!]
+  kycVerificationsWithRelationsByStatus(status: KycVerificationStatus!, companyId: ID, limit: Int, offset: Int): [KycVerificationWithRelations!]
+  kycVerificationsWithRelationsByPriority(priority: Int!, companyId: ID, limit: Int, offset: Int): [KycVerificationWithRelations!]
+  kycVerificationsWithRelationsByAssignee(userId: ID!, limit: Int, offset: Int): [KycVerificationWithRelations!]
 }
 
 extend type Mutation {
@@ -61,6 +68,32 @@ type KycVerification {
   kycPerson: KycPerson
 }
 
+# Comprehensive type with all related entities
+type KycVerificationWithRelations {
+  id: ID!
+  externalReferenceId: String
+  companyId: ID!
+  status: String!
+  riskLevel: String
+  priority: Int!
+  verificationType: String!
+  assignedTo: ID
+  notes: String
+  createdAt: String
+  updatedAt: String
+  completedAt: String
+  
+  company: Company
+  assignedUser: User
+  kycPersons: [KycPerson!]
+  facetecResults: [FacetecResult!]
+  documents: [Document!]
+  activityLogs: [ActivityLog!]
+  externalVerifications: [ExternalVerification!]
+  verificationWorkflows: [VerificationWorkflow!]
+  verificationLinks: [VerificationLink!]
+}
+
 type KycPerson {
   id: ID!
   verificationId: ID!
@@ -81,6 +114,32 @@ type Company {
   apiKey: String
   status: String!
   callbackUrl: String
+}
+
+# Activity log type
+type ActivityLog {
+  id: ID!
+  verificationId: ID!
+  actionType: String!
+  description: String!
+  performedBy: ID
+  createdAt: String!
+  
+  performer: User
+  kycVerification: KycVerification
+}
+
+# Verification workflow type
+type VerificationWorkflow {
+  id: ID!
+  verificationId: ID!
+  step: String!
+  status: String!
+  metadata: JSON
+  startedAt: String
+  completedAt: String
+  
+  kycVerification: KycVerification
 }
 
 input KycPersonInput {

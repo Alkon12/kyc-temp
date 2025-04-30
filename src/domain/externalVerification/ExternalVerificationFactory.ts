@@ -8,6 +8,7 @@ import { ExternalVerificationStatus } from './models/ExternalVerificationStatus'
 import { ExternalVerificationType } from './models/ExternalVerificationType'
 import { ExternalVerificationEntity, ExternalVerificationEntityProps } from './models/ExternalVerificationEntity'
 import { KycVerificationEntity } from '@domain/kycVerification/models/KycVerificationEntity'
+import { DTO } from '@domain/kernel/DTO'
 
 export type CreateExternalVerificationArgs = {
   id?: string
@@ -20,6 +21,27 @@ export type CreateExternalVerificationArgs = {
 }
 
 export class ExternalVerificationFactory {
+  static fromDTO(dto: DTO<ExternalVerificationEntity>, kycVerification?: KycVerificationEntity): ExternalVerificationEntity {
+    const props: ExternalVerificationEntityProps = {
+      id: new ExternalVerificationId(dto.id),
+      verificationId: new KycVerificationId(dto.verificationId),
+      provider: new StringValue(dto.provider),
+      verificationType: new ExternalVerificationType(dto.verificationType),
+      status: new ExternalVerificationStatus(dto.status || 'pending'),
+      createdAt: new DateTimeValue(dto.createdAt || new Date()),
+    }
+
+    if (dto.requestData) {
+      props.requestData = new JsonValue(dto.requestData)
+    }
+
+    if (dto.responseData) {
+      props.responseData = new JsonValue(dto.responseData)
+    }
+
+    return new ExternalVerificationEntity(props)
+  }
+
   static create(args: CreateExternalVerificationArgs): ExternalVerification {
     const props: ExternalVerificationProps = {
       id: new ExternalVerificationId(args.id),

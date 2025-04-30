@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { PersonalData } from '@/lib/FaceTec/adapters/FacetecDataExtractor';
 import { CurpValidationService } from '@/services/CurpValidationService';
 import { CurpValidationResult } from '@/domain/integration/ValidationTypes';
-import { gql, useMutation } from '@apollo/client';
+import { gql, useMutation, useApolloClient } from '@apollo/client';
+import ValidationStatusService from '@/services/ValidationStatusService';
 
 // Definir la mutación para guardar resultados de verificación externa
 const CREATE_EXTERNAL_VERIFICATION = gql`
@@ -25,10 +26,15 @@ const CREATE_EXTERNAL_VERIFICATION = gql`
  * Utiliza el servicio centralizado CurpValidationService y mantiene estado de UI
  */
 export const useCurpValidation = () => {
+  const apolloClient = useApolloClient();
   const [isValidating, setIsValidating] = useState(false);
   const [validationResult, setValidationResult] = useState<CurpValidationResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [savedVerificationId, setSavedVerificationId] = useState<string | null>(null);
+  const [isUpdatingKycStatus, setIsUpdatingKycStatus] = useState(false);
+
+  // Inicializar el servicio de estado de validación
+  const validationStatusService = new ValidationStatusService(apolloClient);
 
   // Configurar la mutación para guardar resultados
   const [createExternalVerification, { loading: isSaving }] = useMutation(CREATE_EXTERNAL_VERIFICATION, {
@@ -58,6 +64,33 @@ export const useCurpValidation = () => {
   };
 
   /**
+   * Actualiza el estado de la verificación KYC basado en el resultado de la validación
+   */
+  const updateKycVerificationStatus = async (
+    verificationId: string,
+    result: CurpValidationResult
+  ): Promise<boolean> => {
+    if (!verificationId) {
+      return false;
+    }
+
+    setIsUpdatingKycStatus(true);
+    try {
+      const success = await validationStatusService.updateKycStatusFromValidation(
+        verificationId,
+        result,
+        'CURP'
+      );
+      return success;
+    } catch (error) {
+      console.error('Error al actualizar estado de verificación KYC para CURP:', error);
+      return false;
+    } finally {
+      setIsUpdatingKycStatus(false);
+    }
+  };
+
+  /**
    * Guarda el resultado de la validación CURP mediante GraphQL
    */
   const saveValidationResult = async (
@@ -74,30 +107,51 @@ export const useCurpValidation = () => {
       // Determinar el estado usando los valores válidos
       const status = result.success ? "completed" : "failed";
       
-      await createExternalVerification({
-        variables: {
-          input: {
-            verificationId,
-            provider: "RENAPO",
-            verificationType: "IDENTITY", // CURP validation is an IDENTITY verification type
-            requestData: JSON.stringify({ 
-              curp,
-              type: "CURP_VALIDATION" // Incluir el tipo específico en los datos de la solicitud
-            }),
-            responseData: JSON.stringify({
-              ...result,
-              validationType: "CURP", // Agregar el tipo específico de validación en la respuesta
-              savedAt: new Date().toISOString() // Añadir timestamp para referencia
-            }),
-            status: status // Usar el estado determinado
-          }
+      // Crea una función para guardar el resultado en la validación externa
+      const saveExternalVerification = async () => {
+        try {
+          const response = await createExternalVerification({
+            variables: {
+              input: {
+                verificationId,
+                provider: "RENAPO",
+                verificationType: "IDENTITY", // CURP validation is an IDENTITY verification type
+                requestData: JSON.stringify({ 
+                  curp,
+                  type: "CURP_VALIDATION" // Incluir el tipo específico en los datos de la solicitud
+                }),
+                responseData: JSON.stringify({
+                  ...result,
+                  validationType: "CURP", // Agregar el tipo específico de validación en la respuesta
+                  savedAt: new Date().toISOString() // Añadir timestamp para referencia
+                }),
+                status: status // Usar el estado determinado
+              }
+            }
+          });
+          
+          console.log(`Resultado de validación CURP guardado con estado: ${status}`);
+          return !!response.data?.createExternalVerification;
+        } catch (error) {
+          console.error('Error al guardar validación CURP:', error);
+          return false;
         }
-      });
+      };
       
-      console.log(`Resultado de validación CURP guardado con estado: ${status}`);
-      return true;
+      setIsUpdatingKycStatus(true);
+      try {
+        // Usar el servicio para guardar el resultado y actualizar el estado KYC si es necesario
+        return await validationStatusService.handleValidationResult(
+          verificationId,
+          result,
+          saveExternalVerification,
+          'CURP'
+        );
+      } finally {
+        setIsUpdatingKycStatus(false);
+      }
     } catch (error) {
-      console.error('Error al guardar validación CURP:', error);
+      console.error('Error al procesar validación CURP:', error);
       return false;
     }
   };
@@ -132,6 +186,12 @@ export const useCurpValidation = () => {
         };
         
         setValidationResult(result);
+        
+        // Si tenemos ID de verificación y error de validación, actualizar el estado de la verificación
+        if (options.verificationId) {
+          await updateKycVerificationStatus(options.verificationId, result);
+        }
+        
         return result;
       }
       
@@ -149,6 +209,10 @@ export const useCurpValidation = () => {
       if (options.saveResult && options.verificationId && extractedCurp) {
         await saveValidationResult(options.verificationId, extractedCurp, result);
       }
+      // Si tenemos ID de verificación y la validación falló pero no se pidió guardar, actualizar el estado de la verificación
+      else if (!result.success && options.verificationId && !options.saveResult) {
+        await updateKycVerificationStatus(options.verificationId, result);
+      }
       
       return result;
     } catch (error) {
@@ -162,6 +226,12 @@ export const useCurpValidation = () => {
       };
       
       setValidationResult(result);
+      
+      // Si tenemos ID de verificación y error en la validación, actualizar el estado de la verificación
+      if (options.verificationId) {
+        await updateKycVerificationStatus(options.verificationId, result);
+      }
+      
       return result;
     } finally {
       setIsValidating(false);
@@ -195,6 +265,10 @@ export const useCurpValidation = () => {
       if (options.saveResult && options.verificationId) {
         await saveValidationResult(options.verificationId, curp, result);
       }
+      // Si tenemos ID de verificación y la validación falló pero no se pidió guardar, actualizar el estado de la verificación
+      else if (!result.success && options.verificationId && !options.saveResult) {
+        await updateKycVerificationStatus(options.verificationId, result);
+      }
       
       return result;
     } catch (error) {
@@ -208,6 +282,12 @@ export const useCurpValidation = () => {
       };
       
       setValidationResult(result);
+      
+      // Si tenemos ID de verificación y error en la validación, actualizar el estado de la verificación
+      if (options.verificationId) {
+        await updateKycVerificationStatus(options.verificationId, result);
+      }
+      
       return result;
     } finally {
       setIsValidating(false);
@@ -217,12 +297,14 @@ export const useCurpValidation = () => {
   return {
     isValidating,
     isSaving,
+    isUpdatingKycStatus,
     validationResult,
     error,
     savedVerificationId,
     validateCurp,
     validateCurpFromPersonalData,
     extractCurpFromPersonalData,
-    saveValidationResult
+    saveValidationResult,
+    updateKycVerificationStatus
   };
 }; 

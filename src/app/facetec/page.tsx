@@ -13,6 +13,8 @@ import ClientVerificationFlowService from '@/services/ClientVerificationFlowServ
 import { useVerificationFlow } from '@/hooks/useVerificationFlow';
 import { useCurpValidation } from '@/hooks/useCurpValidation';
 import { useListaNominalValidation } from '@/hooks/useListaNominalValidation';
+import { useVerificationStatus } from '@/hooks/useVerificationStatus';
+import { Icons } from "@/components/icons";
 
 // Consulta para obtener verificación usando token en lugar del ID
 const GET_VERIFICATION_BY_TOKEN = gql`
@@ -87,17 +89,6 @@ const RECORD_VERIFICATION_LINK_ACCESS = gql`
   }
 `;
 
-// Mutación para actualizar el estado del enlace
-const UPDATE_VERIFICATION_LINK_STATUS = gql`
-  mutation UpdateVerificationLinkStatus($token: String!, $status: String!) {
-    updateVerificationLinkStatus(token: $token, status: $status) {
-      id
-      status
-      updatedAt
-    }
-  }
-`;
-
 // Crear el cliente de Apollo para el endpoint público
 const publicClient = new ApolloClient({
   link: createHttpLink({
@@ -108,6 +99,16 @@ const publicClient = new ApolloClient({
 
 // Crear instancia del extractor de datos FaceTec
 const facetecDataExtractor = new FacetecDataExtractor(publicClient);
+
+// Loading component for a consistent style
+const LoadingScreen = ({ message = "Procesando datos..." }) => (
+  <div className="min-h-screen bg-gray-50 py-8 flex items-center justify-center">
+    <div className="flex flex-col items-center justify-center space-y-4">
+      <Icons.spinner className="h-8 w-8 text-primary animate-spin" />
+      <div className="text-xl text-gray-700">{message}</div>
+    </div>
+  </div>
+);
 
 const FaceTecContent: React.FC = () => {
   const [step, setStep] = useState<'terminos' | 'verificacion' | 'rechazo' | 'contacto' | 'completado'>('terminos');
@@ -120,10 +121,21 @@ const FaceTecContent: React.FC = () => {
   // Estado para almacenar los datos personales extraídos
   const [extractedPersonalData, setExtractedPersonalData] = useState<PersonalData | null>(null);
   
+  // Usar el nuevo hook de verificación de estados
+  const { 
+    isUpdating: isStatusUpdating,
+    error: statusUpdateError,
+    acceptTerms,
+    rejectTerms,
+    completeFaceTec,
+    completeVerification
+  } = useVerificationStatus();
+  
   // Incorporar el hook de validación de CURP con datos adicionales
   const { 
     isValidating: isCurpValidating, 
     isSaving: isCurpSaving,
+    isUpdatingKycStatus: isCurpUpdatingKycStatus,
     validationResult: curpValidationResult, 
     savedVerificationId: curpSavedVerificationId,
     error: curpValidationError,
@@ -134,11 +146,14 @@ const FaceTecContent: React.FC = () => {
   const {
     isValidating: isListaNominalValidating,
     isSaving: isListaNominalSaving,
+    isUpdatingKycStatus: isListaNominalUpdatingKycStatus,
     validationResult: listaNominalValidationResult,
     savedVerificationId: listaNominalSavedVerificationId,
     error: listaNominalValidationError,
     validateListaNominalFromPersonalData
   } = useListaNominalValidation();
+
+  const [isProcessing, setIsProcessing] = useState(false);
 
   // Configurar el servicio de flujo de verificación con el cliente Apollo
   useEffect(() => {
@@ -185,6 +200,27 @@ const FaceTecContent: React.FC = () => {
       setError(listaNominalValidationError);
     }
   }, [listaNominalValidationError]);
+
+  // Actualizar el estado de procesamiento cuando cualquier validación comienza
+  useEffect(() => {
+    const isAnyProcessing = isStatusUpdating || 
+                           isCurpValidating || 
+                           isListaNominalValidating || 
+                           isCurpSaving || 
+                           isListaNominalSaving || 
+                           isCurpUpdatingKycStatus || 
+                           isListaNominalUpdatingKycStatus;
+    
+    setIsProcessing(isAnyProcessing);
+  }, [
+    isStatusUpdating,
+    isCurpValidating,
+    isListaNominalValidating,
+    isCurpSaving,
+    isListaNominalSaving,
+    isCurpUpdatingKycStatus,
+    isListaNominalUpdatingKycStatus
+  ]);
 
   // Agregar query para FaceTecResults (no se ejecuta automáticamente)
   const [getFacetecResults, { loading: loadingFaceTecResults }] = useLazyQuery(GET_FACETEC_RESULTS, {
@@ -381,16 +417,6 @@ const FaceTecContent: React.FC = () => {
     }
   });
 
-  const [updateStatus] = useMutation(UPDATE_VERIFICATION_LINK_STATUS, {
-    onCompleted: (data) => {
-      console.log('Estado actualizado:', data);
-    },
-    onError: (error) => {
-      console.error('Error al actualizar estado:', error);
-      setError('Error al actualizar el estado: ' + error.message);
-    }
-  });
-
   useEffect(() => {
     if (queryError) {
       console.error('GraphQL Error:', queryError);
@@ -448,42 +474,59 @@ const FaceTecContent: React.FC = () => {
         setError('No se encontró la verificación asociada a este enlace');
         return;
       }
-      
-      const kycStatus = data.getVerificationLinkByToken.kycVerification.status;
-      if (kycStatus !== 'pending') {
-        setError('Esta verificación ya no está pendiente');
-      }
     }
   }, [token, loading, data]);
 
   const handleAceptarTerminos = () => {
-    if (token) {
-      // Actualizar estado a "accepted"
-      updateStatus({ 
-        variables: { 
-          token,
-          status: 'accepted'
-        }
-      });
+    if (token && data?.getVerificationLinkByToken?.verificationId) {
+      const verificationId = data.getVerificationLinkByToken.verificationId;
       
-      // Continuar con el proceso de verificación
-      setStep('verificacion');
+      // Utilizar el hook para actualizar los estados
+      acceptTerms(token, verificationId)
+        .then(response => {
+          if (response.verificationLinkSuccess) {
+            console.log('Estado del enlace actualizado a accepted');
+            // Continuar con el proceso de verificación
+            setStep('verificacion');
+          } else {
+            setError('Error al actualizar el estado del enlace');
+          }
+        })
+        .catch(error => {
+          console.error('Error al aceptar términos:', error);
+          setError('Error al aceptar los términos: ' + (error instanceof Error ? error.message : 'Error desconocido'));
+        });
+    } else {
+      setError('No se pudo determinar el ID de verificación');
     }
   };
 
   const handleRechazarTerminos = () => {
-    if (token) {
-      // Actualizar estado a "rejected"
-      updateStatus({ 
-        variables: { 
-          token, 
-          status: 'rejected'
-        }
-      });
+    if (token && data?.getVerificationLinkByToken?.verificationId) {
+      const verificationId = data.getVerificationLinkByToken.verificationId;
+      
+      // Utilizar el hook para actualizar los estados
+      rejectTerms(token, verificationId)
+        .then(response => {
+          if (response.verificationLinkSuccess) {
+            console.log('Estado del enlace actualizado a rejected');
+            // Mostrar la pantalla de rechazo
+            setStep('rechazo');
+          } else {
+            setError('Error al actualizar el estado del enlace');
+          }
+        })
+        .catch(error => {
+          console.error('Error al rechazar términos:', error);
+          setError('Error al rechazar los términos: ' + (error instanceof Error ? error.message : 'Error desconocido'));
+          // A pesar del error, mostramos la pantalla de rechazo
+          setStep('rechazo');
+        });
+    } else {
+      setError('No se pudo determinar el ID de verificación');
+      // A pesar del error, mostramos la pantalla de rechazo
+      setStep('rechazo');
     }
-    
-    // Mostrar la pantalla de rechazo
-    setStep('rechazo');
   };
 
   const handleError = (error: string) => {
@@ -551,68 +594,72 @@ const FaceTecContent: React.FC = () => {
     // Para Bronze, actualizar directamente a verification_completed
     if (isBronzeVerification && token) {
       console.log('Verificación Bronze detectada, saltando a verification_completed');
-      updateStatus({ 
-        variables: { 
-          token,
-          status: 'verification_completed'
-        }
-      })
-      .then(() => {
-        console.log('Estado actualizado a verification_completed correctamente');
-        setStep('completado');
-      })
-      .catch(error => {
-        console.error('Error al actualizar estado:', error);
-        setError('Error al actualizar el estado: ' + error.message);
-      });
+      completeVerification(token, verificationId)
+        .then(response => {
+          if (response.verificationLinkSuccess) {
+            console.log('Estado actualizado a verification_completed correctamente');
+            setStep('completado');
+          } else {
+            console.error('Error al actualizar estado:', response.verificationLinkError);
+            setError('Error al actualizar el estado: ' + response.verificationLinkError);
+          }
+        })
+        .catch(error => {
+          console.error('Error al completar verificación:', error);
+          setError('Error al actualizar el estado: ' + (error instanceof Error ? error.message : 'Error desconocido'));
+        });
       return;
     }
     
     // Para Silver y Gold, continuar con el flujo normal
     // Primero actualiza el estado a facetec_completed
     if (token) {
-      updateStatus({ 
-        variables: { 
-          token,
-          status: 'facetec_completed'
-        }
-      })
-      .then(() => {
-        console.log('Estado actualizado a facetec_completed correctamente');
-        
-        // Luego ejecuta el procesamiento adicional según el nivel de verificación
-        if (flowSettings && flowSettings.isTimestampSealingRequired && documentImages?.length > 0) {
-          console.log('Requiere sellado de tiempo, procesando imágenes...');
-          // Sanitizar imágenes para evitar problemas
-          const sanitizedImages = documentImages
-            .filter(img => typeof img === 'string' && img.length > 0)
-            .map(img => img.substring(0, 50000)); // Limitar tamaño si necesario
+      completeFaceTec(token, verificationId)
+        .then(response => {
+          if (response.verificationLinkSuccess) {
+            console.log('Estado actualizado a facetec_completed correctamente');
             
-          processFaceTecCompletion({
-            variables: {
-              verificationId: data.getVerificationLinkByToken.verificationId,
-              faceTecSessionId: faceTecSessionId || 'unknown-session',
-              documentImages: sanitizedImages
-            },
-            onCompleted: (result) => {
-              console.log('Procesamiento FaceTec completado:', result);
-              continueToNextStep();
-            },
-            onError: (error) => {
-              console.error('Error en procesamiento FaceTec (continuando):', error);
-              // A pesar del error, continuamos con el flujo
+            // Luego ejecuta el procesamiento adicional según el nivel de verificación
+            if (flowSettings && flowSettings.isTimestampSealingRequired && documentImages?.length > 0) {
+              console.log('Requiere sellado de tiempo, procesando imágenes...');
+              // Sanitizar imágenes para evitar problemas
+              const sanitizedImages = documentImages
+                .filter(img => typeof img === 'string' && img.length > 0)
+                .map(img => img.substring(0, 50000)); // Limitar tamaño si necesario
+                
+              processFaceTecCompletion({
+                variables: {
+                  verificationId: data.getVerificationLinkByToken.verificationId,
+                  faceTecSessionId: faceTecSessionId || 'unknown-session',
+                  documentImages: sanitizedImages
+                },
+                onCompleted: (result) => {
+                  console.log('Procesamiento FaceTec completado:', result);
+                  continueToNextStep();
+                },
+                onError: (error) => {
+                  console.error('Error en procesamiento FaceTec (continuando):', error);
+                  // A pesar del error, continuamos con el flujo
+                  continueToNextStep();
+                }
+              });
+            } else {
+              console.log('No requiere procesamiento adicional, continuando...');
               continueToNextStep();
             }
-          });
-        } else {
-          console.log('No requiere procesamiento adicional, continuando...');
+          } else {
+            console.error('Error al actualizar estado:', response.verificationLinkError);
+            setError('Error al actualizar el estado: ' + response.verificationLinkError);
+            // A pesar del error, intentamos continuar
+            continueToNextStep();
+          }
+        })
+        .catch(error => {
+          console.error('Error al actualizar estado a facetec_completed:', error);
+          setError('Error al actualizar el estado: ' + (error instanceof Error ? error.message : 'Error desconocido'));
+          // A pesar del error, intentamos continuar
           continueToNextStep();
-        }
-      })
-      .catch(error => {
-        console.error('Error al actualizar estado:', error);
-        setError('Error al actualizar el estado: ' + error.message);
-      });
+        });
     }
     
     // Función para continuar al siguiente paso según tipo de verificación
@@ -648,13 +695,20 @@ const FaceTecContent: React.FC = () => {
   
   const handleVerificationCompleted = () => {
     // Actualizar el estado del enlace a "verification_completed"
-    if (token) {
-      updateStatus({ 
-        variables: { 
-          token,
-          status: 'verification_completed'
-        }
-      });
+    if (token && data?.getVerificationLinkByToken?.verificationId) {
+      const verificationId = data.getVerificationLinkByToken.verificationId;
+      
+      completeVerification(token, verificationId)
+        .then(response => {
+          if (response.verificationLinkSuccess) {
+            console.log('Estado actualizado a verification_completed correctamente');
+          } else {
+            console.error('Error al actualizar estado:', response.verificationLinkError);
+          }
+        })
+        .catch(error => {
+          console.error('Error al completar verificación:', error);
+        });
     }
     
     // Mostrar pantalla de verificación completada
@@ -665,33 +719,33 @@ const FaceTecContent: React.FC = () => {
     console.log('Contact info submitted:', email, phone);
     
     // Actualizar el estado a verification_completed
-    if (token) {
-      updateStatus({ 
-        variables: { 
-          token,
-          status: 'verification_completed'
-        }
-      })
-      .then(() => {
-        console.log('Estado actualizado a verification_completed correctamente');
-        setStep('completado');
-      })
-      .catch(error => {
-        console.error('Error al actualizar estado a verification_completed:', error);
-        // A pesar del error, mostramos la pantalla de completado
-        setStep('completado');
-      });
+    if (token && data?.getVerificationLinkByToken?.verificationId) {
+      const verificationId = data.getVerificationLinkByToken.verificationId;
+      
+      completeVerification(token, verificationId)
+        .then(response => {
+          if (response.verificationLinkSuccess) {
+            console.log('Estado actualizado a verification_completed correctamente');
+            setStep('completado');
+          } else {
+            console.error('Error al actualizar estado:', response.verificationLinkError);
+            // A pesar del error, mostramos la pantalla de completado
+            setStep('completado');
+          }
+        })
+        .catch(error => {
+          console.error('Error al actualizar estado a verification_completed:', error);
+          // A pesar del error, mostramos la pantalla de completado
+          setStep('completado');
+        });
     } else {
       setStep('completado');
     }
   };
 
+  // Loading state
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 py-8 flex items-center justify-center">
-        <div className="text-xl">Cargando...</div>
-      </div>
-    );
+    return <LoadingScreen message="Cargando..." />;
   }
 
   if (!data?.getVerificationLinkByToken) {
@@ -725,10 +779,20 @@ const FaceTecContent: React.FC = () => {
   const verificationType = kycVerification.verificationType || 'bronze';
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      {(error || curpValidationError || listaNominalValidationError) && !enlaceExpirado && (
+    <div className="min-h-screen bg-gray-50 py-8 relative">
+      {/* Overlay de carga con transición suave */}
+      <div 
+        className={`fixed inset-0 bg-gray-50 z-50 flex items-center justify-center transition-opacity duration-300 ease-in-out ${
+          isProcessing ? 'opacity-100' : 'opacity-0 pointer-events-none'
+        }`}
+      >
+        <LoadingScreen />
+      </div>
+
+      {/* Mensaje de error genérico */}
+      {error && !enlaceExpirado && !isProcessing && (
         <div className="max-w-4xl mx-auto mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
-          {error || curpValidationError || listaNominalValidationError}
+          Ha ocurrido un error. Por favor, inténtalo de nuevo más tarde.
         </div>
       )}
 
@@ -742,34 +806,6 @@ const FaceTecContent: React.FC = () => {
           token={token || undefined}
         />
       </div>
-
-      {/* Mostrar indicadores de validación */}
-      {(isCurpValidating || isListaNominalValidating) && (
-        <div className="max-w-md mx-auto mb-4 p-4 bg-yellow-50 border border-yellow-200 text-yellow-700 rounded">
-          {isCurpValidating && <p>Validando CURP y datos personales...</p>}
-          {isListaNominalValidating && <p>Validando INE con Lista Nominal...</p>}
-        </div>
-      )}
-
-      {/* Mostrar indicador de guardado de resultados */}
-      {(isCurpSaving || isListaNominalSaving) && (
-        <div className="max-w-md mx-auto mb-4 p-4 bg-blue-50 border border-blue-200 text-blue-700 rounded">
-          {isCurpSaving && <p>Guardando resultados de validación CURP...</p>}
-          {isListaNominalSaving && <p>Guardando resultados de validación Lista Nominal...</p>}
-        </div>
-      )}
-
-      {/* Mostrar confirmación de guardado exitoso */}
-      {(curpSavedVerificationId || listaNominalSavedVerificationId) && (
-        <div className="max-w-md mx-auto mb-4 p-4 bg-green-50 border border-green-200 text-green-700 rounded">
-          {curpSavedVerificationId && (
-            <p>Resultados de validación CURP guardados exitosamente</p>
-          )}
-          {listaNominalSavedVerificationId && (
-            <p>Resultados de validación Lista Nominal guardados exitosamente</p>
-          )}
-        </div>
-      )}
 
       {/* Terms and conditions */}
       {step === 'terminos' && (

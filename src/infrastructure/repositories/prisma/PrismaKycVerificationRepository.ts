@@ -21,6 +21,7 @@ export class PrismaKycVerificationRepository implements KycVerificationRepositor
         company: true,
         assignedUser: true,
         kycPersons: true,
+        externalVerifications: true,
       },
     })
 
@@ -40,6 +41,7 @@ export class PrismaKycVerificationRepository implements KycVerificationRepositor
       include: {
         company: true,
         assignedUser: true,
+        externalVerifications: true,
       },
     })
 
@@ -58,6 +60,7 @@ export class PrismaKycVerificationRepository implements KycVerificationRepositor
       include: {
         company: true,
         assignedUser: true,
+        externalVerifications: true,
       },
     })
 
@@ -72,6 +75,7 @@ export class PrismaKycVerificationRepository implements KycVerificationRepositor
       include: {
         company: true,
         assignedUser: true,
+        externalVerifications: true,
       },
     })
 
@@ -86,6 +90,7 @@ export class PrismaKycVerificationRepository implements KycVerificationRepositor
       include: {
         company: true,
         assignedUser: true,
+        externalVerifications: true,
       },
     })
 
@@ -100,6 +105,7 @@ export class PrismaKycVerificationRepository implements KycVerificationRepositor
       include: {
         company: true,
         assignedUser: true,
+        externalVerifications: true,
       },
     })
 
@@ -112,6 +118,7 @@ export class PrismaKycVerificationRepository implements KycVerificationRepositor
         company: true,
         assignedUser: true,
         kycPersons: true,
+        externalVerifications: true,
       },
     })
 
@@ -120,13 +127,14 @@ export class PrismaKycVerificationRepository implements KycVerificationRepositor
 
   async create(verification: KycVerificationEntity): Promise<KycVerificationEntity> {
     const verificationDTO = verification.toDTO()
-    const { company, assignedUser, ...verificationData } = verificationDTO
+    const { company, assignedUser, externalVerifications, ...verificationData } = verificationDTO
 
     const createdVerification = await prisma.kycVerification.create({
       data: verificationData,
       include: {
         company: true,
         assignedUser: true,
+        externalVerifications: true,
       },
     })
 
@@ -135,7 +143,7 @@ export class PrismaKycVerificationRepository implements KycVerificationRepositor
 
   async save(verification: KycVerificationEntity): Promise<KycVerificationEntity> {
     const verificationDTO = verification.toDTO()
-    const { company, assignedUser, ...verificationData } = verificationDTO
+    const { company, assignedUser, externalVerifications, ...verificationData } = verificationDTO
 
     const updatedVerification = await prisma.kycVerification.update({
       where: {
@@ -145,6 +153,7 @@ export class PrismaKycVerificationRepository implements KycVerificationRepositor
       include: {
         company: true,
         assignedUser: true,
+        externalVerifications: true,
       },
     })
 
@@ -175,6 +184,7 @@ export class PrismaKycVerificationRepository implements KycVerificationRepositor
         kycPersons: true,
         facetecResults: true,
         documents: true,
+        externalVerifications: true,
       },
     })
 
@@ -192,6 +202,7 @@ export class PrismaKycVerificationRepository implements KycVerificationRepositor
         kycPersons: true,
         facetecResults: true,
         documents: true,
+        externalVerifications: true,
       },
     })
 

@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { PersonalData } from '@/lib/FaceTec/adapters/FacetecDataExtractor';
 import { ListaNominalValidationService } from '@/services/ListaNominalValidationService';
 import { ListaNominalResult } from '@/domain/integration/ValidationTypes';
-import { gql, useMutation } from '@apollo/client';
+import { gql, useMutation, useApolloClient } from '@apollo/client';
+import ValidationStatusService from '@/services/ValidationStatusService';
 
 // Definir la mutación para guardar resultados de verificación externa
 const CREATE_EXTERNAL_VERIFICATION = gql`
@@ -25,10 +26,15 @@ const CREATE_EXTERNAL_VERIFICATION = gql`
  * Utiliza el servicio centralizado ListaNominalValidationService y mantiene estado de UI
  */
 export const useListaNominalValidation = () => {
+  const apolloClient = useApolloClient();
   const [isValidating, setIsValidating] = useState(false);
   const [validationResult, setValidationResult] = useState<ListaNominalResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [savedVerificationId, setSavedVerificationId] = useState<string | null>(null);
+  const [isUpdatingKycStatus, setIsUpdatingKycStatus] = useState(false);
+
+  // Inicializar el servicio de estado de validación
+  const validationStatusService = new ValidationStatusService(apolloClient);
 
   // Configurar la mutación para guardar resultados
   const [createExternalVerification, { loading: isSaving }] = useMutation(CREATE_EXTERNAL_VERIFICATION, {
@@ -58,6 +64,33 @@ export const useListaNominalValidation = () => {
   };
 
   /**
+   * Actualiza el estado de la verificación KYC basado en el resultado de la validación
+   */
+  const updateKycVerificationStatus = async (
+    verificationId: string,
+    result: ListaNominalResult
+  ): Promise<boolean> => {
+    if (!verificationId) {
+      return false;
+    }
+
+    setIsUpdatingKycStatus(true);
+    try {
+      const success = await validationStatusService.updateKycStatusFromValidation(
+        verificationId,
+        result,
+        'Lista Nominal'
+      );
+      return success;
+    } catch (error) {
+      console.error('Error al actualizar estado de verificación KYC para Lista Nominal:', error);
+      return false;
+    } finally {
+      setIsUpdatingKycStatus(false);
+    }
+  };
+
+  /**
    * Guarda el resultado de la validación Lista Nominal mediante GraphQL
    */
   const saveValidationResult = async (
@@ -83,31 +116,53 @@ export const useListaNominalValidation = () => {
         status = "completed";
       }
       
-      await createExternalVerification({
-        variables: {
-          input: {
-            verificationId,
-            provider: "INE",
-            verificationType: "IDENTITY", // Lista Nominal validation is an IDENTITY verification type
-            requestData: JSON.stringify({ 
-              cic,
-              identificador,
-              type: "LISTA_NOMINAL_VALIDATION" // Incluir el tipo específico en los datos de la solicitud
-            }),
-            responseData: JSON.stringify({
-              ...result,
-              validationType: "LISTA_NOMINAL", // Agregar el tipo específico de validación en la respuesta
-              savedAt: new Date().toISOString() // Añadir timestamp para referencia
-            }),
-            status: status // Usar el estado determinado
-          }
+      // Crea una función para guardar el resultado en la validación externa
+      const saveExternalVerification = async () => {
+        try {
+          const response = await createExternalVerification({
+            variables: {
+              input: {
+                verificationId,
+                provider: "INE",
+                verificationType: "IDENTITY", // Lista Nominal validation is an IDENTITY verification type
+                requestData: JSON.stringify({ 
+                  cic,
+                  identificador,
+                  type: "LISTA_NOMINAL_VALIDATION" // Incluir el tipo específico en los datos de la solicitud
+                }),
+                responseData: JSON.stringify({
+                  ...result,
+                  validationType: "LISTA_NOMINAL", // Agregar el tipo específico de validación en la respuesta
+                  savedAt: new Date().toISOString() // Añadir timestamp para referencia
+                }),
+                status: status // Usar el estado determinado
+              }
+            }
+          });
+          
+          console.log(`Resultado de validación Lista Nominal guardado con estado: ${status}`);
+          return !!response.data?.createExternalVerification;
+        } catch (error) {
+          console.error('Error al guardar validación Lista Nominal:', error);
+          return false;
         }
-      });
+      };
       
-      console.log(`Resultado de validación Lista Nominal guardado con estado: ${status}`);
-      return true;
+      setIsUpdatingKycStatus(true);
+      try {
+        // Si el estado es "failed", se actualizará el KYC status a través del servicio
+        // Si es "completed", no afectará al KYC status
+        return await validationStatusService.handleValidationResult(
+          verificationId,
+          result,
+          saveExternalVerification,
+          'Lista Nominal'
+        );
+      } finally {
+        setIsUpdatingKycStatus(false);
+      }
     } catch (error) {
-      console.error('Error al guardar validación Lista Nominal:', error);
+      console.error('Error al procesar validación Lista Nominal:', error);
       return false;
     }
   };
@@ -142,6 +197,12 @@ export const useListaNominalValidation = () => {
         };
         
         setValidationResult(result);
+        
+        // Si tenemos ID de verificación y error de validación, actualizar el estado de la verificación
+        if (options.verificationId) {
+          await updateKycVerificationStatus(options.verificationId, result);
+        }
+        
         return result;
       }
       
@@ -158,6 +219,12 @@ export const useListaNominalValidation = () => {
         };
         
         setValidationResult(result);
+        
+        // Si tenemos ID de verificación y error de validación, actualizar el estado de la verificación
+        if (options.verificationId) {
+          await updateKycVerificationStatus(options.verificationId, result);
+        }
+        
         return result;
       }
       
@@ -181,6 +248,10 @@ export const useListaNominalValidation = () => {
       // Si se especificó guardar el resultado y tenemos ID de verificación
       if (options.saveResult && options.verificationId && cic && identificador) {
         await saveValidationResult(options.verificationId, cic, identificador, result);
+      } 
+      // Si tenemos ID de verificación y la validación falló pero no se pidió guardar, actualizar el estado de la verificación
+      else if (!result.success && options.verificationId && !options.saveResult) {
+        await updateKycVerificationStatus(options.verificationId, result);
       }
       
       return result;
@@ -195,6 +266,12 @@ export const useListaNominalValidation = () => {
       };
       
       setValidationResult(result);
+      
+      // Si tenemos ID de verificación y error en la validación, actualizar el estado de la verificación
+      if (options.verificationId) {
+        await updateKycVerificationStatus(options.verificationId, result);
+      }
+      
       return result;
     } finally {
       setIsValidating(false);
@@ -239,6 +316,10 @@ export const useListaNominalValidation = () => {
       if (options.saveResult && options.verificationId) {
         await saveValidationResult(options.verificationId, cic, identificador, result);
       }
+      // Si tenemos ID de verificación y la validación falló pero no se pidió guardar, actualizar el estado de la verificación
+      else if (!result.success && options.verificationId && !options.saveResult) {
+        await updateKycVerificationStatus(options.verificationId, result);
+      }
       
       return result;
     } catch (error) {
@@ -252,6 +333,12 @@ export const useListaNominalValidation = () => {
       };
       
       setValidationResult(result);
+      
+      // Si tenemos ID de verificación y error en la validación, actualizar el estado de la verificación
+      if (options.verificationId) {
+        await updateKycVerificationStatus(options.verificationId, result);
+      }
+      
       return result;
     } finally {
       setIsValidating(false);
@@ -261,12 +348,14 @@ export const useListaNominalValidation = () => {
   return {
     isValidating,
     isSaving,
+    isUpdatingKycStatus,
     validationResult,
     error,
     savedVerificationId,
     validateListaNominal,
     validateListaNominalFromPersonalData,
     extractMrzLine1FromPersonalData,
-    saveValidationResult
+    saveValidationResult,
+    updateKycVerificationStatus
   };
 }; 

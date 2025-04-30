@@ -39,6 +39,11 @@ export class ExternalVerificationService {
     return await this.externalVerificationRepository.findByKycVerificationId(verificationId)
   }
 
+  // Alias para compatibilidad con el resolver de KYC
+  async getByVerificationId(kycVerificationId: KycVerificationId): Promise<ExternalVerificationEntity[]> {
+    return await this.externalVerificationRepository.findByKycVerificationId(kycVerificationId)
+  }
+
   async updateStatus(id: string, status: string): Promise<void> {
     const externalVerificationId = new ExternalVerificationId(id)
     const externalVerification = await this.externalVerificationRepository.findById(externalVerificationId)

@@ -1,0 +1,56 @@
+meta {
+  name: GetKycVerificationsWithRelations
+  type: graphql
+}
+
+// This query fetches multiple KYC verification records with all related entities
+// It demonstrates pagination and filtering by company
+query GetKycVerificationsWithRelations($companyId: ID, $limit: Int, $offset: Int) {
+  kycVerificationsWithRelations(companyId: $companyId, limit: $limit, offset: $offset) {
+    # Basic verification fields
+    id
+    externalReferenceId
+    status
+    riskLevel
+    priority
+    verificationType
+    createdAt
+    updatedAt
+    
+    # Related entities - select only what you need to avoid large payloads
+    company {
+      id
+      companyName
+    }
+    
+    assignedUser {
+      id
+      name
+    }
+    
+    kycPersons {
+      id
+      firstName
+      lastName
+      documentType
+    }
+    
+    documents {
+      id
+      documentType
+      verificationStatus
+    }
+    
+    externalVerifications {
+      id
+      provider
+      status
+    }
+  }
+}
+
+vars {
+  companyId: "3a7c2c3e-e6e0-4e8e-9f0a-e32d3f2b4e1c",
+  limit: 10,
+  offset: 0
+} 

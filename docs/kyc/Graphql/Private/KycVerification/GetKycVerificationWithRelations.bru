@@ -1,0 +1,114 @@
+meta {
+  name: GetKycVerificationWithRelations
+  type: graphql
+}
+
+// This query fetches a complete KYC verification record with all related entities
+// It demonstrates how to retrieve a comprehensive view of a verification
+// including all related data in a single query
+query GetKycVerificationWithRelations($verificationId: ID!) {
+  kycVerificationWithRelations(id: $verificationId) {
+    # Basic verification fields
+    id
+    externalReferenceId
+    companyId
+    status
+    riskLevel
+    priority
+    verificationType
+    assignedTo
+    notes
+    createdAt
+    updatedAt
+    completedAt
+    
+    # Related entities
+    company {
+      id
+      companyName
+      status
+      callbackUrl
+    }
+    
+    assignedUser {
+      id
+      name
+      email
+      role
+    }
+    
+    kycPersons {
+      id
+      firstName
+      lastName
+      dateOfBirth
+      nationality
+      documentNumber
+      documentType
+      email
+      phone
+      address
+    }
+    
+    documents {
+      id
+      documentType
+      fileName
+      fileSize
+      mimeType
+      verificationStatus
+      createdAt
+    }
+    
+    facetecResults {
+      id
+      sessionId
+      livenessStatus
+      enrollmentStatus
+      matchLevel
+      manualReviewRequired
+      createdAt
+    }
+    
+    externalVerifications {
+      id
+      provider
+      verificationType
+      status
+      createdAt
+    }
+    
+    verificationWorkflows {
+      id
+      step
+      status
+      startedAt
+      completedAt
+    }
+    
+    verificationLinks {
+      id
+      token
+      status
+      expiresAt
+      accessCount
+    }
+    
+    activityLogs {
+      id
+      actionType
+      description
+      performedBy
+      createdAt
+      
+      performer {
+        id
+        name
+      }
+    }
+  }
+}
+
+vars {
+  verificationId: "7f4c2c3e-e6e0-4e8e-9f0a-e32d3f2b4e1c"
+} 

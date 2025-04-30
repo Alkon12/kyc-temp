@@ -11,6 +11,7 @@ import { CompanyId } from '@domain/company/models/CompanyId'
 import { UserId } from '@domain/user/models/UserId'
 import { UserFactory } from '@domain/user/UserFactory'
 import { CompanyFactory } from '@domain/company/CompanyFactory'
+import { ExternalVerificationFactory } from '@domain/externalVerification/ExternalVerificationFactory'
 
 export type KycVerificationArgs = Merge<
   Omit<KycVerificationEntityProps, 'company' | 'assignedUser' | 'kycPersons' | 'facetecResults' | 'documents' | 'activityLogs' | 'externalVerifications' | 'verificationWorkflows'>,
@@ -23,7 +24,7 @@ export type KycVerificationArgs = Merge<
 
 export class KycVerificationFactory {
   static fromDTO(dto: DTO<KycVerificationEntity>): KycVerificationEntity {
-    return new KycVerificationEntity({
+    const entity = new KycVerificationEntity({
       id: new KycVerificationId(dto.id),
       externalReferenceId: dto.externalReferenceId ? new StringValue(dto.externalReferenceId) : undefined,
       companyId: new CompanyId(dto.companyId),
@@ -40,6 +41,15 @@ export class KycVerificationFactory {
       company: dto.company ? CompanyFactory.fromDTO(dto.company) : undefined,
       assignedUser: dto.assignedUser ? UserFactory.fromDTO(dto.assignedUser) : undefined,
     })
+    
+    // Add external verifications if available
+    if (dto.externalVerifications && Array.isArray(dto.externalVerifications) && dto.externalVerifications.length > 0) {
+      entity.props.externalVerifications = dto.externalVerifications.map(ev => 
+        ExternalVerificationFactory.fromDTO(ev, entity)
+      )
+    }
+    
+    return entity
   }
 
   static create(args: KycVerificationArgs): KycVerificationEntity {

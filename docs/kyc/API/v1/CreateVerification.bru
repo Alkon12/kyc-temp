@@ -12,16 +12,15 @@ post {
 
 headers {
   Content-Type: application/json
-  Authorization: Bearer {{token}}
   x-api-key: kyc_307bf21da8ba4f2a82909510fc483d55
 }
 
 body:json {
   {
-    "verificationType": "bronze",
+    "verificationType": "gold",
     "personInfo": {
-        "firstName": "Juan",
-        "lastName": "Garcia"
+        "firstName": "Test",
+        "lastName": "Test"
     },
     "externalReferenceId": "user123",  // Optional: your internal reference ID
     "priority": 4,                     // Optional: priority level (default: 0)
@@ -32,7 +31,6 @@ body:json {
 
 vars:pre-request {
   baseUrl: http://localhost:3000
-  token: YOUR_JWT_TOKEN_HERE
 }
 
 tests {

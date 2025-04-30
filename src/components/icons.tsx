@@ -10,7 +10,8 @@ import {
   X,
   PanelLeft,
   PanelRight,
-  Building2
+  Building2,
+  FileCheck
 } from "lucide-react";
 
 export const Icons = {
@@ -24,7 +25,8 @@ export const Icons = {
   close: X,
   panelLeft: PanelLeft,
   panelRight: PanelRight,
-  building: Building2
+  building: Building2,
+  fileCheck: FileCheck
 };
 
 export type Icon = keyof typeof Icons; 

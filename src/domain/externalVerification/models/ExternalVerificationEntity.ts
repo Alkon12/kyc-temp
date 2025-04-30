@@ -7,6 +7,7 @@ import { KycVerificationId } from '@domain/kycVerification/models/KycVerificatio
 import { ExternalVerificationStatus } from './ExternalVerificationStatus'
 import { ExternalVerificationType } from './ExternalVerificationType'
 import { KycVerificationEntity } from '@domain/kycVerification/models/KycVerificationEntity'
+import { DTO, serialize } from '@domain/kernel/DTO'
 
 export type ExternalVerificationEntityProps = {
   id: ExternalVerificationId
@@ -25,6 +26,18 @@ export type ExternalVerificationEntityProps = {
 export class ExternalVerificationEntity extends AggregateRoot<'ExternalVerificationEntity', ExternalVerificationEntityProps> {
   get props(): ExternalVerificationEntityProps {
     return this._props
+  }
+
+  // Sobreescribir el método toDTO para evitar la recursión circular
+  toDTO(): DTO<this> {
+    // Clonar las propiedades para no modificar el objeto original
+    const props = { ...this._props }
+    
+    // Eliminar la referencia al kycVerification para evitar recursión
+    delete props.kycVerification
+    
+    // Serializar sin la referencia circular
+    return serialize(props) as DTO<this>
   }
 
   getId() {

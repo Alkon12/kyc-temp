@@ -1,0 +1,69 @@
+meta {
+  name: GetKycVerificationsByStatus
+  type: graphql
+}
+
+// This query fetches KYC verification records filtered by status
+// It demonstrates how to get all pending verifications for a company
+query GetKycVerificationsByStatus($status: KycVerificationStatus!, $companyId: ID, $limit: Int, $offset: Int) {
+  kycVerificationsWithRelationsByStatus(status: $status, companyId: $companyId, limit: $limit, offset: $offset) {
+    # Basic verification fields
+    id
+    externalReferenceId
+    status
+    riskLevel
+    priority
+    verificationType
+    createdAt
+    updatedAt
+    
+    # Related entities
+    company {
+      id
+      companyName
+    }
+    
+    assignedUser {
+      id
+      name
+      email
+    }
+    
+    kycPersons {
+      id
+      firstName
+      lastName
+      email
+      phone
+    }
+    
+    documents {
+      id
+      documentType
+      verificationStatus
+    }
+    
+    externalVerifications {
+      id
+      provider
+      status
+    }
+    
+    activityLogs {
+      actionType
+      description
+      createdAt
+      
+      performer {
+        name
+      }
+    }
+  }
+}
+
+vars {
+  status: "PENDING",
+  companyId: "3a7c2c3e-e6e0-4e8e-9f0a-e32d3f2b4e1c",
+  limit: 20,
+  offset: 0
+} 

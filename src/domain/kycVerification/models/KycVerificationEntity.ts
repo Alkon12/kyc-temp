@@ -9,6 +9,8 @@ import { KycVerificationStatus } from './KycVerificationStatus'
 import { KycVerificationType } from './KycVerificationType'
 import { UserEntity } from '@domain/user/models/UserEntity'
 import { CompanyEntity } from '@domain/company/models/CompanyEntity'
+import { ExternalVerificationEntity } from '@domain/externalVerification/models/ExternalVerificationEntity'
+import { DTO, serialize } from '@domain/kernel/DTO'
 
 export type KycVerificationEntityProps = {
   id: KycVerificationId
@@ -26,11 +28,32 @@ export type KycVerificationEntityProps = {
   
   company?: CompanyEntity
   assignedUser?: UserEntity
+  externalVerifications?: ExternalVerificationEntity[]
 }
 
 export class KycVerificationEntity extends AggregateRoot<'KycVerificationEntity', KycVerificationEntityProps> {
   get props(): KycVerificationEntityProps {
     return this._props
+  }
+
+  toDTO(): DTO<this> {
+    const props = { ...this._props }
+    
+    const externalVerifications = props.externalVerifications
+    
+    delete props.externalVerifications
+    
+    const dto = serialize(props) as any
+    
+    if (externalVerifications && externalVerifications.length > 0) {
+      dto.externalVerifications = externalVerifications.map(ev => {
+        const evProps = { ...ev.props }
+        delete evProps.kycVerification
+        return serialize(evProps)
+      })
+    }
+    
+    return dto as DTO<this>
   }
 
   getId() {
@@ -87,6 +110,10 @@ export class KycVerificationEntity extends AggregateRoot<'KycVerificationEntity'
 
   getAssignedUser() {
     return this._props.assignedUser
+  }
+
+  getExternalVerifications() {
+    return this._props.externalVerifications
   }
 
   updateStatus(status: KycVerificationStatus): void {

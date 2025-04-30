@@ -20,6 +20,11 @@ import AbstractKycPersonService from '@domain/kycPerson/KycPersonService'
 import { KycPersonId } from '@domain/kycPerson/models/KycPersonId'
 import { DateTimeValue } from '@domain/shared/DateTime'
 import { NotFoundError } from '@domain/error'
+import AbstractDocumentService from '@domain/document/DocumentService'
+import { DocumentEntity } from '@domain/document/models/DocumentEntity'
+
+// We don't directly import entities and services that might not exist yet
+// Instead, we'll use any type and check if DI symbols exist at runtime
 
 @injectable()
 export class KycResolvers {
@@ -36,6 +41,11 @@ export class KycResolvers {
         kycVerificationsByStatus: this.getKycVerificationsByStatus,
         kycVerificationsByPriority: this.getKycVerificationsByPriority,
         kycVerificationsByDate: this.getKycVerificationsByDate,
+        kycVerificationWithRelations: this.getKycVerificationWithRelations,
+        kycVerificationsWithRelations: this.getKycVerificationsWithRelations,
+        kycVerificationsWithRelationsByStatus: this.getKycVerificationsWithRelationsByStatus,
+        kycVerificationsWithRelationsByPriority: this.getKycVerificationsWithRelationsByPriority,
+        kycVerificationsWithRelationsByAssignee: this.getKycVerificationsWithRelationsByAssignee,
       },
       Mutation: {
         createKycVerification: this.createKycVerification,
@@ -49,6 +59,17 @@ export class KycResolvers {
         company: this.getCompany,
         assignedUser: this.getAssignedUser,
         kycPerson: this.getKycPerson,
+      },
+      KycVerificationWithRelations: {
+        company: this.getCompany,
+        assignedUser: this.getAssignedUser,
+        kycPersons: this.getKycPersons,
+        facetecResults: this.getFacetecResults,
+        documents: this.getDocuments,
+        activityLogs: this.getActivityLogs,
+        externalVerifications: this.getExternalVerifications,
+        verificationWorkflows: this.getVerificationWorkflows,
+        verificationLinks: this.getVerificationLinks,
       },
     }
   }
@@ -173,7 +194,7 @@ export class KycResolvers {
   }
 
   getKycPerson = async (parent: DTO<KycVerificationEntity>): Promise<DTO<KycPersonEntity> | null> => {
-    const kycPersonService = container.get(DI.KycPersonService)
+    const kycPersonService = container.get<AbstractKycPersonService>(DI.KycPersonService)
     try {
       const people = await kycPersonService.getByVerificationId(new KycVerificationId(parent.id))
       if (people && people.length > 0) {
@@ -252,7 +273,7 @@ export class KycResolvers {
     _context: ApiContext | ApiExternalContext,
   ): Promise<DTO<KycPersonEntity>> => {
     // Get the verification link from the token
-    const verificationLinkService = container.get(DI.VerificationLinkService)
+    const verificationLinkService = container.get<any>(DI.VerificationLinkService)
     const verificationLink = await verificationLinkService.getByToken(new StringValue(token))
     
     if (!verificationLink) {
@@ -433,5 +454,228 @@ export class KycResolvers {
     })
     
     return verifications.map(v => v.toDTO())
+  }
+
+  // New comprehensive query resolvers
+  getKycVerificationWithRelations = async (
+    _parent: unknown,
+    { id }: { id: string },
+    _context: ApiContext | ApiExternalContext,
+  ): Promise<DTO<KycVerificationEntity>> => {
+    const kycVerificationService = container.get<AbstractKycVerificationService>(DI.KycVerificationService)
+    const verification = await kycVerificationService.getById(new KycVerificationId(id))
+    
+    return verification.toDTO()
+  }
+
+  getKycVerificationsWithRelations = async (
+    _parent: unknown,
+    { companyId, limit, offset }: { companyId?: string; limit?: number; offset?: number },
+    _context: ApiContext | ApiExternalContext,
+  ): Promise<DTO<KycVerificationEntity>[]> => {
+    const kycVerificationService = container.get<AbstractKycVerificationService>(DI.KycVerificationService)
+    
+    let verifications: KycVerificationEntity[]
+    
+    if (companyId) {
+      verifications = await kycVerificationService.getByCompanyId(new CompanyId(companyId))
+    } else {
+      verifications = await kycVerificationService.getAll()
+    }
+    
+    // Apply pagination if specified
+    if (limit !== undefined && offset !== undefined) {
+      verifications = verifications.slice(offset, offset + limit)
+    }
+    
+    return verifications.map(v => v.toDTO())
+  }
+
+  getKycVerificationsWithRelationsByStatus = async (
+    _parent: unknown,
+    { status, companyId, limit, offset }: { status: string; companyId?: string; limit?: number; offset?: number },
+    _context: ApiContext | ApiExternalContext,
+  ): Promise<DTO<KycVerificationEntity>[]> => {
+    const kycVerificationService = container.get<AbstractKycVerificationService>(DI.KycVerificationService)
+    
+    const statusValue = new KycVerificationStatus(status.toLowerCase().replace(/_/g, '-'))
+    let verifications = await kycVerificationService.getByStatus(statusValue)
+    
+    // Filter by company if specified
+    if (companyId) {
+      verifications = verifications.filter(v => v.getCompanyId().toDTO() === companyId)
+    }
+    
+    // Apply pagination if specified
+    if (limit !== undefined && offset !== undefined) {
+      verifications = verifications.slice(offset, offset + limit)
+    }
+    
+    return verifications.map(v => v.toDTO())
+  }
+
+  getKycVerificationsWithRelationsByPriority = async (
+    _parent: unknown,
+    { priority, companyId, limit, offset }: { priority: number; companyId?: string; limit?: number; offset?: number },
+    _context: ApiContext | ApiExternalContext,
+  ): Promise<DTO<KycVerificationEntity>[]> => {
+    const kycVerificationService = container.get<AbstractKycVerificationService>(DI.KycVerificationService)
+    
+    // Get all verifications and filter by priority
+    let verifications = await kycVerificationService.getAll()
+    verifications = verifications.filter(v => v.getPriority().toDTO() === priority)
+    
+    // Filter by company if specified
+    if (companyId) {
+      verifications = verifications.filter(v => v.getCompanyId().toDTO() === companyId)
+    }
+    
+    // Apply pagination if specified
+    if (limit !== undefined && offset !== undefined) {
+      verifications = verifications.slice(offset, offset + limit)
+    }
+    
+    return verifications.map(v => v.toDTO())
+  }
+
+  getKycVerificationsWithRelationsByAssignee = async (
+    _parent: unknown,
+    { userId, limit, offset }: { userId: string; limit?: number; offset?: number },
+    _context: ApiContext | ApiExternalContext,
+  ): Promise<DTO<KycVerificationEntity>[]> => {
+    const kycVerificationService = container.get<AbstractKycVerificationService>(DI.KycVerificationService)
+    
+    let verifications = await kycVerificationService.getByAssignedUser(new UserId(userId))
+    
+    // Apply pagination if specified
+    if (limit !== undefined && offset !== undefined) {
+      verifications = verifications.slice(offset, offset + limit)
+    }
+    
+    return verifications.map(v => v.toDTO())
+  }
+
+  // New resolvers for relationships
+  getKycPersons = async (parent: DTO<KycVerificationEntity>): Promise<DTO<KycPersonEntity>[]> => {
+    const kycPersonService = container.get<AbstractKycPersonService>(DI.KycPersonService)
+    try {
+      const people = await kycPersonService.getByVerificationId(new KycVerificationId(parent.id))
+      return people.map((p: KycPersonEntity) => p.toDTO())
+    } catch (error) {
+      console.error('Error fetching KYC Persons for verification:', error)
+      return []
+    }
+  }
+
+  getFacetecResults = async (parent: DTO<KycVerificationEntity>): Promise<any[]> => {
+    try {
+      if (!DI.FacetecResultService) {
+        console.log('FacetecResultService not available')
+        return []
+      }
+      
+      const facetecResultService = container.get<any>(DI.FacetecResultService)
+      const results = await facetecResultService.getByVerificationId(new KycVerificationId(parent.id))
+      return results.map((r: any) => r.toDTO())
+    } catch (error) {
+      console.error('Error fetching FaceTec results for verification:', error)
+      return []
+    }
+  }
+
+  getDocuments = async (parent: DTO<KycVerificationEntity>): Promise<any[]> => {
+    const documentService = container.get<AbstractDocumentService>(DI.DocumentService)
+    try {
+      const documents = await documentService.getByVerificationId(new KycVerificationId(parent.id))
+      return documents.map((d: DocumentEntity) => d.toDTO())
+    } catch (error) {
+      console.error('Error fetching documents for verification:', error)
+      return []
+    }
+  }
+
+  getActivityLogs = async (parent: DTO<KycVerificationEntity>): Promise<any[]> => {
+    try {
+      // Check if ActivityLogService is registered in DI
+      if (!Object.values(DI).includes(Symbol.for('ActivityLogService'))) {
+        console.log('ActivityLogService not yet implemented')
+        return []
+      }
+      
+      const activityLogService = container.get<any>(Symbol.for('ActivityLogService'))
+      const logs = await activityLogService.getByVerificationId(new KycVerificationId(parent.id))
+      return logs.map((l: any) => l.toDTO())
+    } catch (error) {
+      console.error('Error fetching activity logs for verification:', error)
+      return []
+    }
+  }
+
+  getExternalVerifications = async (parent: DTO<KycVerificationEntity>): Promise<any[]> => {
+    try {
+      console.log('Getting external verifications for verification ID:', parent.id);
+      
+      if (!DI.ExternalVerificationService) {
+        console.log('Error: ExternalVerificationService symbol not available in DI container');
+        return [];
+      }
+      
+      const externalVerificationService = container.get<any>(DI.ExternalVerificationService);
+      console.log('ExternalVerificationService resolved from container:', !!externalVerificationService);
+      
+      // Check for both method names since there might be inconsistency in naming
+      if (typeof externalVerificationService.findByKycVerificationId === 'function') {
+        console.log('Using findByKycVerificationId method');
+        const verifications = await externalVerificationService.findByKycVerificationId(parent.id);
+        console.log('External verifications found:', verifications?.length || 0);
+        return verifications.map((v: any) => v.toDTO());
+      } else if (typeof externalVerificationService.getByVerificationId === 'function') {
+        console.log('Using getByVerificationId method');
+        const verifications = await externalVerificationService.getByVerificationId(new KycVerificationId(parent.id));
+        console.log('External verifications found:', verifications?.length || 0);
+        return verifications.map((v: any) => v.toDTO());
+      } else {
+        console.log('Error: Neither findByKycVerificationId nor getByVerificationId method implemented in ExternalVerificationService');
+        console.log('Available methods:', Object.getOwnPropertyNames(Object.getPrototypeOf(externalVerificationService)));
+        return [];
+      }
+    } catch (error) {
+      console.error('Error fetching external verifications for verification:', error);
+      return [];
+    }
+  }
+
+  getVerificationWorkflows = async (parent: DTO<KycVerificationEntity>): Promise<any[]> => {
+    try {
+      // Check if VerificationWorkflowService is registered in DI
+      if (!Object.values(DI).includes(Symbol.for('VerificationWorkflowService'))) {
+        console.log('VerificationWorkflowService not yet implemented')
+        return []
+      }
+      
+      const verificationWorkflowService = container.get<any>(Symbol.for('VerificationWorkflowService'))
+      const workflows = await verificationWorkflowService.getByVerificationId(new KycVerificationId(parent.id))
+      return workflows.map((w: any) => w.toDTO())
+    } catch (error) {
+      console.error('Error fetching verification workflows for verification:', error)
+      return []
+    }
+  }
+
+  getVerificationLinks = async (parent: DTO<KycVerificationEntity>): Promise<any[]> => {
+    try {
+      // Check if VerificationLinkService is registered in DI
+      if (!DI.VerificationLinkService) {
+        console.log('VerificationLinkService not yet implemented')
+        return []
+      }
+      
+      const verificationLinkService = container.get<any>(DI.VerificationLinkService)
+      const links = await verificationLinkService.getByVerificationId(new KycVerificationId(parent.id))
+      return links.map((l: any) => l.toDTO())
+    } catch (error) {
+      console.error('Error fetching verification links for verification:', error)
+      return []
+    }
   }
 }

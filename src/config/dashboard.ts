@@ -5,6 +5,11 @@ export const navigationItems = [
     icon: 'dashboard',
   },
   {
+    name: 'Verificaciones',
+    href: '/verificaciones',
+    icon: 'fileCheck',
+  },
+  {
     name: 'Usuarios',
     href: '/users',
     icon: 'users',
