@@ -2,6 +2,7 @@ import '@/styles/globals.css'
 import { ReactNode } from 'react'
 import { Poppins } from 'next/font/google'
 import Providers from "./providers";
+import { Toaster } from 'sonner'
 
 const poppins = Poppins({
   subsets: ['latin'],
@@ -24,6 +25,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
     <html lang="es-MX" className={poppins.className}>
       <body>
         <Providers>{children}</Providers>
+        <Toaster position="top-right" />
       </body>
     </html>
   )

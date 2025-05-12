@@ -11,7 +11,7 @@ export default function HomePage() {
   
   // Count pending verifications
   const pendingVerifications = data?.kycVerificationsWithRelations?.filter(
-    (v: any) => v.status.toLowerCase() === 'pending'
+    (v: any) => v.status.toLowerCase() === 'requires-review'
   )?.length || 0
   
   // Total verifications

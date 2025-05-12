@@ -299,6 +299,7 @@ export type Mutation = {
   updateCompanyStatus: Company;
   updateDocumentOcrData: Document;
   updateDocumentStatus: Document;
+  updateExternalVerificationRequest: Scalars['Boolean']['output'];
   updateExternalVerificationResponse: Scalars['Boolean']['output'];
   updateExternalVerificationStatus: Scalars['Boolean']['output'];
   updateFacetecResult: FacetecResult;
@@ -413,6 +414,12 @@ export type MutationUpdateDocumentStatusArgs = {
 };
 
 
+export type MutationUpdateExternalVerificationRequestArgs = {
+  id: Scalars['ID']['input'];
+  requestData: Scalars['JSON']['input'];
+};
+
+
 export type MutationUpdateExternalVerificationResponseArgs = {
   id: Scalars['ID']['input'];
   responseData: Scalars['JSON']['input'];
@@ -488,6 +495,7 @@ export type Query = {
   kycVerificationByExternalId?: Maybe<KycVerification>;
   kycVerificationStats: KycVerificationStats;
   kycVerificationWithRelations?: Maybe<KycVerificationWithRelations>;
+  kycVerificationWithRelationsById?: Maybe<KycVerificationWithRelations>;
   kycVerifications?: Maybe<Array<KycVerification>>;
   kycVerificationsByDate?: Maybe<Array<KycVerification>>;
   kycVerificationsByPriority?: Maybe<Array<KycVerification>>;
@@ -602,6 +610,11 @@ export type QueryKycVerificationStatsArgs = {
 
 
 export type QueryKycVerificationWithRelationsArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type QueryKycVerificationWithRelationsByIdArgs = {
   id: Scalars['ID']['input'];
 };
 
@@ -1093,6 +1106,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   updateCompanyStatus?: Resolver<ResolversTypes['Company'], ParentType, ContextType, RequireFields<MutationUpdateCompanyStatusArgs, 'companyId' | 'status'>>;
   updateDocumentOcrData?: Resolver<ResolversTypes['Document'], ParentType, ContextType, RequireFields<MutationUpdateDocumentOcrDataArgs, 'documentId' | 'ocrData'>>;
   updateDocumentStatus?: Resolver<ResolversTypes['Document'], ParentType, ContextType, RequireFields<MutationUpdateDocumentStatusArgs, 'documentId' | 'status'>>;
+  updateExternalVerificationRequest?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationUpdateExternalVerificationRequestArgs, 'id' | 'requestData'>>;
   updateExternalVerificationResponse?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationUpdateExternalVerificationResponseArgs, 'id' | 'responseData'>>;
   updateExternalVerificationStatus?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationUpdateExternalVerificationStatusArgs, 'id' | 'status'>>;
   updateFacetecResult?: Resolver<ResolversTypes['FacetecResult'], ParentType, ContextType, RequireFields<MutationUpdateFacetecResultArgs, 'input'>>;
@@ -1126,6 +1140,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   kycVerificationByExternalId?: Resolver<Maybe<ResolversTypes['KycVerification']>, ParentType, ContextType, RequireFields<QueryKycVerificationByExternalIdArgs, 'companyId' | 'externalReferenceId'>>;
   kycVerificationStats?: Resolver<ResolversTypes['KycVerificationStats'], ParentType, ContextType, Partial<QueryKycVerificationStatsArgs>>;
   kycVerificationWithRelations?: Resolver<Maybe<ResolversTypes['KycVerificationWithRelations']>, ParentType, ContextType, RequireFields<QueryKycVerificationWithRelationsArgs, 'id'>>;
+  kycVerificationWithRelationsById?: Resolver<Maybe<ResolversTypes['KycVerificationWithRelations']>, ParentType, ContextType, RequireFields<QueryKycVerificationWithRelationsByIdArgs, 'id'>>;
   kycVerifications?: Resolver<Maybe<Array<ResolversTypes['KycVerification']>>, ParentType, ContextType, Partial<QueryKycVerificationsArgs>>;
   kycVerificationsByDate?: Resolver<Maybe<Array<ResolversTypes['KycVerification']>>, ParentType, ContextType, RequireFields<QueryKycVerificationsByDateArgs, 'endDate' | 'startDate'>>;
   kycVerificationsByPriority?: Resolver<Maybe<Array<ResolversTypes['KycVerification']>>, ParentType, ContextType, RequireFields<QueryKycVerificationsByPriorityArgs, 'priority'>>;

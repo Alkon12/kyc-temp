@@ -20,6 +20,7 @@ extend type Query {
   kycVerificationsWithRelationsByStatus(status: KycVerificationStatus!, companyId: ID, limit: Int, offset: Int): [KycVerificationWithRelations!]
   kycVerificationsWithRelationsByPriority(priority: Int!, companyId: ID, limit: Int, offset: Int): [KycVerificationWithRelations!]
   kycVerificationsWithRelationsByAssignee(userId: ID!, limit: Int, offset: Int): [KycVerificationWithRelations!]
+  kycVerificationWithRelationsById(id: ID!): KycVerificationWithRelations
 }
 
 extend type Mutation {

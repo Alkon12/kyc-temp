@@ -10,7 +10,7 @@ import { DI } from '@infrastructure/inversify.symbols';
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { cic, identificador, token } = body;
+    const { cic, identificador } = body;
     
     // Validar parámetros requeridos
     if (!cic || !identificador) {
@@ -23,10 +23,6 @@ export async function POST(request: Request) {
       );
     }
     
-    // Validar token (opcional, depende de los requisitos)
-    if (!token) {
-      console.warn('Token no proporcionado para validación de Lista Nominal');
-    }
     
     // Obtener el servicio de validación del contenedor de DI
     const validationService = container.get<ValidationService>(DI.ValidationService);

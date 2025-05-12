@@ -2,6 +2,8 @@ import { inject, injectable } from 'inversify'
 import { DI } from '@infrastructure'
 import { ExternalVerificationService } from '@domain/externalVerification/ExternalVerificationService'
 import { GraphQLScalarType, Kind } from 'graphql'
+import { JsonValue } from '@domain/shared/JsonValue'
+import { ExternalVerificationFactory } from '@domain/externalVerification/ExternalVerificationFactory'
 
 export const JSONScalar = new GraphQLScalarType({
   name: 'JSON',
@@ -115,6 +117,25 @@ export class ExternalVerificationResolvers {
         return true
       } catch (error) {
         console.error('Error updating external verification response data:', error)
+        return false
+      }
+    },
+    updateExternalVerificationRequest: async (_: any, { id, requestData }: { id: string; requestData: any }) => {
+      try {
+        const externalVerification = await this.externalVerificationService.findById(id)
+        externalVerification.updateRequestData(new JsonValue(requestData))
+        await this.externalVerificationService.create({
+          id: externalVerification.getId().toDTO(),
+          verificationId: externalVerification.getVerificationId().toDTO(),
+          provider: externalVerification.getProvider().toDTO(),
+          verificationType: externalVerification.getVerificationType().toDTO(),
+          status: externalVerification.getStatus().toDTO(),
+          requestData: requestData,
+          responseData: externalVerification.getResponseData()?.getJson()
+        })
+        return true
+      } catch (error) {
+        console.error('Error updating external verification request data:', error)
         return false
       }
     },

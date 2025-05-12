@@ -5,13 +5,10 @@ import container from '@infrastructure/inversify.config';
 import { DI } from '@infrastructure';
 import ValidationService from '@domain/integration/ValidationService';
 import { CurpValidationResult } from '@domain/integration/ValidationTypes';
-import { VerificationLinkService } from '@service/VerificationLinkService';
-import { StringValue } from '@domain/shared/StringValue';
 
 // Esquema de validación para la solicitud
 const curpValidationRequestSchema = z.object({
   curp: z.string().length(18),
-  token: z.string().min(1)
 });
 
 /**
@@ -35,52 +32,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const { curp, token } = validationResult.data;
-
-    // Verificar que el token sea válido
-    const verificationLinkService = container.get<VerificationLinkService>(DI.VerificationLinkService);
-    try {
-      // Convertir el token string a StringValue para usar con el servicio
-      const tokenValue = new StringValue(token);
-      
-      // Obtener el enlace de verificación usando el token
-      const verificationLink = await verificationLinkService.getByToken(tokenValue);
-      
-      // Verificar si el enlace es válido
-      if (!verificationLink || !verificationLink.isValid()) {
-        return NextResponse.json(
-          {
-            success: false,
-            message: 'Token de verificación inválido o expirado'
-          },
-          { status: 400 }
-        );
-      }
-
-      // Verificar el tipo de verificación
-      // Acceder a los props directamente ya que no hay un método getter explícito
-      const kycVerification = verificationLink.props.kycVerification;
-      if (!kycVerification || !kycVerification.verificationType) {
-        return NextResponse.json(
-          {
-            success: false,
-            message: 'No se pudo determinar el tipo de verificación'
-          },
-          { status: 400 }
-        );
-      }
-      
-      console.log(`Verificando CURP para tipo de verificación: ${kycVerification.verificationType.toLowerCase()}`);
-    } catch (error) {
-      console.error(`Error al validar el token [${token}]:`, error);
-      return NextResponse.json(
-        {
-          success: false,
-          message: 'Error al validar el token de verificación'
-        },
-        { status: 400 }
-      );
-    }
+    const { curp } = validationResult.data;
 
     // Obtener el servicio de validación
     const validationService = container.get<ValidationService>(DI.ValidationService);

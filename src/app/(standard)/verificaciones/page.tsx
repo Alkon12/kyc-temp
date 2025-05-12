@@ -18,12 +18,14 @@ import {
   TableRow
 } from '@/types/components/ui/table'
 import { Badge } from '@/types/components/ui/badge'
-import { UserIcon, FileTextIcon, BuildingIcon, ClockIcon, AlertTriangleIcon, ChevronDownIcon, ChevronUpIcon, Loader2Icon, FilterIcon } from 'lucide-react'
+import { UserIcon, FileTextIcon, BuildingIcon, ClockIcon, AlertTriangleIcon, ChevronDownIcon, ChevronUpIcon, Loader2Icon, FilterIcon, EyeIcon, AlertCircleIcon } from 'lucide-react'
 import { 
   GET_KYC_VERIFICATIONS, 
   KycVerification, 
   Document as KycDocument
 } from '@/app/lib/graphql/kyc-queries'
+import Link from 'next/link'
+import { Button } from '@/types/components/ui/button'
 
 // Cantidad de elementos a mostrar por página
 const PAGE_SIZE = 5
@@ -227,7 +229,7 @@ export default function VerificationsPage() {
             <div className="flex items-center">
               <ClockIcon className="mr-2 h-4 w-4 text-yellow-500" />
               <p className="text-2xl font-bold">
-                {allVerifications.filter(v => v.status.toLowerCase() === 'pending').length}
+                {allVerifications.filter(v => v.status.toLowerCase() === 'requires-review').length}
               </p>
             </div>
           </CardContent>
@@ -430,11 +432,37 @@ export default function VerificationsPage() {
                             </div>
                           </TableCell>
                           <TableCell>
-                            {verification.updatedAt ? (
+                            <div className="flex items-center justify-between">
                               <span className="text-sm">{formatDate(verification.updatedAt)}</span>
-                            ) : (
-                              <span className="text-sm text-muted-foreground">No actividad</span>
-                            )}
+                              <div className="flex items-center gap-2">
+                                {verification.status.toLowerCase() === 'requires-review' && (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="h-8 px-2 gap-1.5 text-amber-600 border-amber-200 hover:bg-amber-50 hover:text-amber-700"
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      window.location.href = `/verificaciones/${verification.id}`
+                                    }}
+                                  >
+                                    <AlertCircleIcon className="h-4 w-4" />
+                                    <span>Revisar</span>
+                                  </Button>
+                                )}
+                                {/* <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-8 px-2 gap-1.5"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    window.location.href = `/verificaciones/${verification.id}`
+                                  }}
+                                >
+                                  <EyeIcon className="h-4 w-4" />
+                                  <span>Ver detalles</span>
+                                </Button> */}
+                              </div>
+                            </div>
                           </TableCell>
                         </TableRow>
                         

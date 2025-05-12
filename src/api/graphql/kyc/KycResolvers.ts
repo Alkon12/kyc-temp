@@ -46,6 +46,7 @@ export class KycResolvers {
         kycVerificationsWithRelationsByStatus: this.getKycVerificationsWithRelationsByStatus,
         kycVerificationsWithRelationsByPriority: this.getKycVerificationsWithRelationsByPriority,
         kycVerificationsWithRelationsByAssignee: this.getKycVerificationsWithRelationsByAssignee,
+        kycVerificationWithRelationsById: this.getKycVerificationWithRelationsById,
       },
       Mutation: {
         createKycVerification: this.createKycVerification,
@@ -676,6 +677,26 @@ export class KycResolvers {
     } catch (error) {
       console.error('Error fetching verification links for verification:', error)
       return []
+    }
+  }
+
+  getKycVerificationWithRelationsById = async (
+    _parent: unknown,
+    { id }: { id: string },
+    _context: ApiContext | ApiExternalContext,
+  ): Promise<DTO<KycVerificationEntity>> => {
+    const kycVerificationService = container.get<AbstractKycVerificationService>(DI.KycVerificationService)
+    
+    try {
+      const verification = await kycVerificationService.getById(new KycVerificationId(id))
+      if (!verification) {
+        throw new NotFoundError(`KYC verification with ID ${id} not found`)
+      }
+      
+      return verification.toDTO()
+    } catch (error) {
+      console.error('Error fetching KYC verification with relations by ID:', error)
+      throw error
     }
   }
 }
