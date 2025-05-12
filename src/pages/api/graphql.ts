@@ -15,20 +15,33 @@ const apolloServer = container.get(ApolloServer).getServer();
 const handler = startServerAndCreateNextHandler<NextRequest>(apolloServer, {
   context: async (request: NextRequest): Promise<ApiContext> => {
     const logger = container.get<LoggingService>(DI.LoggingService)
-
     const headers = request.headers as unknown as Dict<string> // TODO be careful some props are not retrieved but displayed in console log
     const authService = container.get<AuthService>(DI.AuthService)
-    const token = await authService.getToken(request)
-    const userId = await authService.getUserId(request)
-
-    logger.log(LoggingModule.AUTH, 'GraphQL API Context token', token)
-    logger.log(LoggingModule.AUTH, 'GraphQL API Context userId', userId)
-
-    return {
-      headers,
-      token,
-      userId,
-      user: token.user,
+    
+    try {
+      // Intentar obtener el token y el userId
+      const token = await authService.getToken(request)
+      const userId = await authService.getUserId(request)
+      
+      logger.log(LoggingModule.AUTH, 'GraphQL API Context token', token)
+      logger.log(LoggingModule.AUTH, 'GraphQL API Context userId', userId)
+      
+      return {
+        headers,
+        token,
+        userId,
+        user: token.user,
+      }
+    } catch (error) {
+      // Si no hay token o hay un error de autenticación, proporcionar un contexto "anónimo"
+      logger.log(LoggingModule.AUTH, 'GraphQL API no token, providing anonymous context')
+      
+      return {
+        headers,
+        token: { sub: 'anonymous' } as any,
+        userId: { value: 'anonymous' } as any,
+        user: undefined,
+      }
     }
   },
 })

@@ -13,7 +13,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/types/components/ui/
 import { Badge } from '@/types/components/ui/badge'
 import { Input } from '@/types/components/ui/input'
 import { Button } from '@/types/components/ui/button'
-import { Loader2Icon, AlertTriangleIcon, ArrowLeftIcon, UserIcon, BuildingIcon, FileTextIcon, ShieldIcon, LinkIcon, ClockIcon, SaveIcon, CheckCircle2Icon, XCircleIcon, AlertCircleIcon } from 'lucide-react'
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/types/components/ui/accordion'
+import { Loader2Icon, AlertTriangleIcon, ArrowLeftIcon, UserIcon, BuildingIcon, FileTextIcon, ShieldIcon, LinkIcon, ClockIcon, SaveIcon, CheckCircle2Icon, XCircleIcon, AlertCircleIcon, ChevronRightIcon } from 'lucide-react'
 import Link from 'next/link'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
@@ -938,46 +939,77 @@ export default function VerificationDetailPage() {
                               </div>
                             )}
 
-                            <div className="grid gap-4">
+                            <Accordion type="multiple" className="w-full">
                               {Object.entries(responseData).map(([key, value]) => {
                                 if (key === 'success' || key === 'message') return null
                                 if (value === null || value === undefined) return null
 
+                                // Render nested object in accordion
+                                const renderNestedAccordion = (obj: any, level = 0, path = '') => {
+                                  return Object.entries(obj).map(([nestedKey, nestedValue]) => {
+                                    if (nestedValue === null || nestedValue === undefined) return null;
+                                    
+                                    // Create a unique path for this item by joining the current path with the key
+                                    const currentPath = path ? `${path}-${nestedKey}` : nestedKey;
+                                    const accordionId = `level-${level}-${currentPath}`;
+                                    
+                                    if (typeof nestedValue === 'object' && nestedValue !== null) {
+                                      return (
+                                        <AccordionItem key={accordionId} value={accordionId}>
+                                          <AccordionTrigger className="text-sm font-medium capitalize hover:no-underline">
+                                            {nestedKey}
+                                          </AccordionTrigger>
+                                          <AccordionContent>
+                                            <div className="pl-2 space-y-2">
+                                              {renderNestedAccordion(nestedValue, level + 1, currentPath)}
+                                            </div>
+                                          </AccordionContent>
+                                        </AccordionItem>
+                                      );
+                                    }
+                                    
+                                    return (
+                                      <div key={accordionId} className="flex items-start gap-3 py-1.5 border-t border-muted/40 first:border-0">
+                                        <div className="w-1/3 shrink-0">
+                                          <p className="text-xs text-muted-foreground capitalize">{nestedKey}</p>
+                                        </div>
+                                        <div className="flex-1">
+                                          <p className="text-sm font-medium">{String(nestedValue)}</p>
+                                        </div>
+                                      </div>
+                                    );
+                                  });
+                                };
+
                                 if (typeof value === 'object' && value !== null) {
+                                  const rootAccordionId = `root-${key}`;
                                   return (
-                                    <div key={key} className="space-y-3">
-                                      <div className="flex items-center gap-2">
-                                        <AlertCircleIcon className="h-4 w-4 text-primary" />
-                                        <p className="text-sm font-medium capitalize">{key}</p>
-                                      </div>
-                                      <div className="pl-6 space-y-3">
-                                        {Object.entries(value as Record<string, any>).map(([subKey, subValue]) => (
-                                          <div key={subKey} className="flex items-start gap-3">
-                                            <div className="w-24 shrink-0">
-                                              <p className="text-xs text-muted-foreground capitalize">{subKey}</p>
-                                            </div>
-                                            <div className="flex-1">
-                                              <p className="text-sm">{String(subValue)}</p>
-                                            </div>
-                                          </div>
-                                        ))}
-                                      </div>
-                                    </div>
-                                  )
+                                    <AccordionItem key={rootAccordionId} value={rootAccordionId}>
+                                      <AccordionTrigger className="text-sm font-medium">
+                                        <div className="flex items-center gap-2">
+                                          <AlertCircleIcon className="h-4 w-4 text-primary" />
+                                          <span className="capitalize">{key}</span>
+                                        </div>
+                                      </AccordionTrigger>
+                                      <AccordionContent>
+                                        {renderNestedAccordion(value, 0, key)}
+                                      </AccordionContent>
+                                    </AccordionItem>
+                                  );
                                 }
 
                                 return (
-                                  <div key={key} className="flex items-start gap-3">
-                                    <div className="w-24 shrink-0">
+                                  <div key={key} className="flex items-start gap-3 py-2 border-b last:border-0">
+                                    <div className="w-1/3 shrink-0">
                                       <p className="text-xs text-muted-foreground capitalize">{key}</p>
                                     </div>
                                     <div className="flex-1">
-                                      <p className="text-sm">{String(value)}</p>
+                                      <p className="text-sm font-medium">{String(value)}</p>
                                     </div>
                                   </div>
-                                )
+                                );
                               })}
-                            </div>
+                            </Accordion>
 
                             {responseData.savedAt && (
                               <div className="pt-4 mt-4 border-t">
