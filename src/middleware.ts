@@ -36,11 +36,19 @@ export default withAuth(
         }
         
         // Rutas públicas - siempre permitir acceso
-        if (req.nextUrl.pathname.startsWith('/api/graphql/public') || 
+        if (req.nextUrl.pathname.startsWith('/api/graphql/public') ||
+            req.nextUrl.pathname.startsWith('/api/graphql') || 
             req.nextUrl.pathname.startsWith('/api/external/graphql') ||
             req.nextUrl.pathname.startsWith("/api/auth") ||
             req.nextUrl.pathname.startsWith("/api/v1/kyc") ||
-            req.nextUrl.pathname.startsWith("/api/v1/documents")) {
+            req.nextUrl.pathname.startsWith("/api/v1/documents") ||
+            req.nextUrl.pathname.startsWith("/api/v1/fuzzy") ||
+            req.nextUrl.pathname.startsWith("/api/v1/curp") ||
+            req.nextUrl.pathname.startsWith("/api/v1/lista-nominal") ||
+            req.nextUrl.pathname.startsWith("/api/v1/timestamp") ||
+            req.nextUrl.pathname.startsWith("/api/public/graphql") ||
+            req.nextUrl.pathname.startsWith("/api/facetec") ||
+            req.nextUrl.pathname.startsWith("/facetec")) {
           return true
         }
         
