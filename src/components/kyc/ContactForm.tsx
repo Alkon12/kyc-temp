@@ -155,10 +155,10 @@ const ContactForm: React.FC<ContactFormProps> = ({ token, onSubmit }) => {
     <Card className="border-none shadow-lg">
       <CardHeader className="text-center">
         <CardTitle className="text-2xl font-bold text-gray-900">
-          Verificación completa
+          Información de contacto
         </CardTitle>
         <CardDescription className="text-gray-600">
-          Por favor, proporciona tu información de contacto para completar el proceso.
+          Por favor, proporciona tu información de contacto para continuar con la verificación.
         </CardDescription>
       </CardHeader>
       <CardContent>

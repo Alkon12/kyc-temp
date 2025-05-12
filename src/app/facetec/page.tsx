@@ -120,6 +120,7 @@ const FaceTecContent: React.FC = () => {
   const [accessRecorded, setAccessRecorded] = useState(false);
   // Estado para almacenar los datos personales extraídos
   const [extractedPersonalData, setExtractedPersonalData] = useState<PersonalData | null>(null);
+  const [contactInfoSubmitted, setContactInfoSubmitted] = useState(false);
   
   // Usar el nuevo hook de verificación de estados
   const { 
@@ -459,12 +460,28 @@ const FaceTecContent: React.FC = () => {
       } else {
         // Establecer el paso según el estado del enlace
         if (linkStatus === 'accepted') {
-          setStep('verificacion');
+          // Si el enlace está aceptado, verificar si se requiere formulario de contacto
+          if (flowServiceInitialized && flowSettings?.isContactFormRequired) {
+            // Si se requiere formulario de contacto y el estado ya está en contact_submitted, mostrar FaceTec
+            if (linkStatus === 'contact_submitted') {
+              setContactInfoSubmitted(true);
+              setStep('verificacion');
+            } else {
+              // Si no, mostrar el formulario de contacto
+              setStep('contacto');
+            }
+          } else {
+            // Si no se requiere formulario, ir directamente a FaceTec
+            setStep('verificacion');
+          }
         } else if (linkStatus === 'rejected') {
           setStep('rechazo');
         } else if (linkStatus === 'facetec_completed') {
-          setStep('contacto');
-        } else if (linkStatus === 'contact_submitted' || linkStatus === 'verification_completed') {
+          setStep('completado');
+        } else if (linkStatus === 'contact_submitted') {
+          setContactInfoSubmitted(true);
+          setStep('verificacion');
+        } else if (linkStatus === 'verification_completed') {
           setStep('completado');
         }
       }
@@ -475,7 +492,7 @@ const FaceTecContent: React.FC = () => {
         return;
       }
     }
-  }, [token, loading, data]);
+  }, [token, loading, data, flowServiceInitialized, flowSettings]);
 
   const handleAceptarTerminos = () => {
     if (token && data?.getVerificationLinkByToken?.verificationId) {
@@ -486,8 +503,16 @@ const FaceTecContent: React.FC = () => {
         .then(response => {
           if (response.verificationLinkSuccess) {
             console.log('Estado del enlace actualizado a accepted');
-            // Continuar con el proceso de verificación
-            setStep('verificacion');
+            
+            // Verificar si se requiere formulario de contacto según el nivel
+            if (flowServiceInitialized && flowSettings?.isContactFormRequired) {
+              console.log('Se requiere formulario de contacto antes de FaceTec, mostrando formulario...');
+              setStep('contacto');
+            } else {
+              // Si no se requiere formulario, ir directamente a FaceTec
+              console.log('No se requiere formulario de contacto, continuando con FaceTec...');
+              setStep('verificacion');
+            }
           } else {
             setError('Error al actualizar el estado del enlace');
           }
@@ -612,7 +637,7 @@ const FaceTecContent: React.FC = () => {
     }
     
     // Para Silver y Gold, continuar con el flujo normal
-    // Primero actualiza el estado a facetec_completed
+    // Actualiza el estado a facetec_completed y luego a verification_completed
     if (token) {
       completeFaceTec(token, verificationId)
         .then(response => {
@@ -635,55 +660,31 @@ const FaceTecContent: React.FC = () => {
                 },
                 onCompleted: (result) => {
                   console.log('Procesamiento FaceTec completado:', result);
-                  continueToNextStep();
+                  handleVerificationCompleted();
                 },
                 onError: (error) => {
                   console.error('Error en procesamiento FaceTec (continuando):', error);
                   // A pesar del error, continuamos con el flujo
-                  continueToNextStep();
+                  handleVerificationCompleted();
                 }
               });
             } else {
-              console.log('No requiere procesamiento adicional, continuando...');
-              continueToNextStep();
+              console.log('No requiere procesamiento adicional, completando verificación...');
+              handleVerificationCompleted();
             }
           } else {
             console.error('Error al actualizar estado:', response.verificationLinkError);
             setError('Error al actualizar el estado: ' + response.verificationLinkError);
             // A pesar del error, intentamos continuar
-            continueToNextStep();
+            handleVerificationCompleted();
           }
         })
         .catch(error => {
           console.error('Error al actualizar estado a facetec_completed:', error);
           setError('Error al actualizar el estado: ' + (error instanceof Error ? error.message : 'Error desconocido'));
           // A pesar del error, intentamos continuar
-          continueToNextStep();
+          handleVerificationCompleted();
         });
-    }
-    
-    // Función para continuar al siguiente paso según tipo de verificación
-    function continueToNextStep() {
-      console.log('Determinando el siguiente paso basado en el servicio de verificación');
-      
-      // Obtener el siguiente paso del servicio centralizado
-      const nextStep = ClientVerificationFlowService.getNextStepAfterFaceTec();
-      const isBronze = ClientVerificationFlowService.isBronzeVerification();
-      
-      console.log('Información de flujo (desde servicio):', {
-        nextStep,
-        isBronze,
-        requiresContactForm: ClientVerificationFlowService.isContactFormRequired()
-      });
-      
-      // Para bronze o cuando el siguiente paso es 'complete', saltar directamente a completado
-      if (isBronze || nextStep === 'complete') {
-        console.log('Verificación Bronze o flujo completo, finalizando verificación');
-        handleVerificationCompleted();
-      } else {
-        console.log('Siguiente paso: formulario de contacto');
-        setStep('contacto');
-      }
     }
   };
   
@@ -718,28 +719,19 @@ const FaceTecContent: React.FC = () => {
   const handleContactSubmit = (email: string, phone: string) => {
     console.log('Contact info submitted:', email, phone);
     
-    // Actualizar el estado a verification_completed
     if (token && data?.getVerificationLinkByToken?.verificationId) {
       const verificationId = data.getVerificationLinkByToken.verificationId;
       
-      completeVerification(token, verificationId)
-        .then(response => {
-          if (response.verificationLinkSuccess) {
-            console.log('Estado actualizado a verification_completed correctamente');
-            setStep('completado');
-          } else {
-            console.error('Error al actualizar estado:', response.verificationLinkError);
-            // A pesar del error, mostramos la pantalla de completado
-            setStep('completado');
-          }
-        })
-        .catch(error => {
-          console.error('Error al actualizar estado a verification_completed:', error);
-          // A pesar del error, mostramos la pantalla de completado
-          setStep('completado');
-        });
+      // Marcar que el formulario de contacto se ha enviado
+      setContactInfoSubmitted(true);
+      
+      // Actualizar el estado a contact_submitted y continuar con FaceTec
+      // Aquí deberías crear/usar una mutación para actualizar el estado a contact_submitted
+      // Por ahora pasamos directamente a la verificación
+      setStep('verificacion');
     } else {
-      setStep('completado');
+      // En caso de error, intentamos continuar con la verificación
+      setStep('verificacion');
     }
   };
 
@@ -817,13 +809,15 @@ const FaceTecContent: React.FC = () => {
         />
       )}
 
-      {/* Contact form - only shown for silver and gold tiers */}
+      {/* Contact form - shown BEFORE FaceTec for silver and gold tiers */}
       {step === 'contacto' && token && (
         <div className="max-w-md mx-auto">
-          <ContactForm 
-            token={token} 
-            onSubmit={handleContactSubmit} 
-          />
+ 
+            <ContactForm 
+              token={token} 
+              onSubmit={handleContactSubmit} 
+            />
+
         </div>
       )}
 
