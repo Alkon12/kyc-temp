@@ -257,6 +257,10 @@ const FaceTecContent: React.FC = () => {
             
             // Guardar los datos extraídos en el estado
             if (personalData) {
+              // Crear nombre completo desde los datos personales extraídos
+              const personalDataFullName = `${personalData.firstName || ''} ${personalData.lastName || ''}`.trim();
+              console.log('👤 Nombre completo desde personalData:', personalDataFullName);
+              
               setExtractedPersonalData(personalData);
               
               // Obtener el ID de verificación para ambas validaciones
@@ -290,6 +294,47 @@ const FaceTecContent: React.FC = () => {
                     verificationId,
                     saveResult: shouldSave
                   });
+                  
+                  // Extraer nombre completo de la respuesta de validación CURP con manejo robusto
+                  if (result.success && result.data) {
+                    try {
+                      // La respuesta CURP puede venir como string JSON dentro de data.data o en otros formatos
+                      let curpData: any = result.data;
+                      
+                      // Si es string, intentar parsear
+                      if (typeof curpData === 'string') {
+                        try {
+                          curpData = JSON.parse(curpData);
+                        } catch (e) {
+                          console.error('[FUZZY] Error al parsear string de CURP data:', e);
+                        }
+                      }
+                      
+                      console.log('[FUZZY] Intentando extraer datos de nombre de CURP:');
+                      console.log('CURP data después de parsing:', curpData);
+                      
+                      // Navegar la estructura de datos para encontrar los campos de nombre
+                      // Puede ser curpData.data o curpData.data.data dependiendo de la estructura
+                      const dataObject = curpData.data || curpData;
+                      
+                      if (dataObject) {
+                        // Extraer campos de nombre de la respuesta CURP
+                        const curpFirstName = dataObject.nombre || '';
+                        const curpLastName1 = dataObject.apellidoPaterno || '';
+                        const curpLastName2 = dataObject.apellidoMaterno || '';
+                        
+                        // Construir nombre completo de CURP
+                        if (curpFirstName || curpLastName1 || curpLastName2) {
+                          const curpFullName = `${curpFirstName} ${curpLastName1} ${curpLastName2}`.trim();
+                          console.log('👤 Nombre completo extraído de CURP:', curpFullName);
+                        } else {
+                          console.warn('[FUZZY] No se pudieron extraer campos de nombre de CURP');
+                        }
+                      }
+                    } catch (parseError) {
+                      console.error('[FUZZY] Error al extraer datos de nombre de respuesta CURP:', parseError);
+                    }
+                  }
                   
                   if (shouldSave) {
                     console.log('Validación de CURP completada', 
@@ -768,7 +813,12 @@ const FaceTecContent: React.FC = () => {
   const { kycVerification } = data.getVerificationLinkByToken;
   const companyName = kycVerification.company?.companyName || '';
   const firstName = kycVerification.kycPerson?.firstName || '';
+  const lastName = kycVerification.kycPerson?.lastName || '';
+  const fullName = `${firstName} ${lastName}`.trim();
   const verificationType = kycVerification.verificationType || 'bronze';
+  
+  // Imprimir el nombre completo desde la query
+  console.log('👤 Nombre completo desde query:', fullName);
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 relative">
