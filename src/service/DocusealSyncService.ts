@@ -7,6 +7,7 @@ import AbstractDocusealTemplateService from '@domain/docuseal/DocusealTemplateSe
 import { StringValue } from '@domain/shared/StringValue'
 import { BooleanValue } from '@domain/shared/BooleanValue'
 import { DocusealTemplateId } from '@domain/docuseal/models/DocusealTemplateId'
+import { JsonValue } from '@domain/shared/JsonValue'
 
 @injectable()
 export class DocusealSyncService implements AbstractDocusealSyncService {
@@ -83,14 +84,20 @@ export class DocusealSyncService implements AbstractDocusealSyncService {
           results.push(existingTemplate)
         }
       } else {
-        // Create new template
+        // Create new template with all available data
         const newTemplate = await this._docusealTemplateService.create({
           companyId,
           name: new StringValue(apiTemplate.name),
           description: new StringValue(`Template imported from Docuseal. Fields: ${apiTemplate.fields.map(f => f.name).join(', ')}`),
           docusealTemplateId: new StringValue(docusealTemplateId),
           documentType: new StringValue(documentType),
-          isActive: new BooleanValue(true)
+          isActive: new BooleanValue(true),
+          documents: new JsonValue(apiTemplate.documents),
+          externalId: apiTemplate.external_id ? new StringValue(apiTemplate.external_id) : undefined,
+          fields: new JsonValue(apiTemplate.fields),
+          folderName: apiTemplate.folder_name ? new StringValue(apiTemplate.folder_name) : undefined,
+          schema: new JsonValue(apiTemplate.schema),
+          submitters: new JsonValue(apiTemplate.submitters)
         })
         
         results.push(newTemplate)

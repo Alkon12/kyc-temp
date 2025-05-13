@@ -1,26 +1,42 @@
 import { ValidationError } from '@domain/error/ValidationError'
 import { ValueObject } from '@domain/kernel/ValueObject'
 
-export class JsonValue extends ValueObject<'JsonValue', string> {
-  constructor(value: string | object) {
+export class JsonValue extends ValueObject<'JsonValue', Record<string, any>> {
+  constructor(value: Record<string, any> | string) {
     if (!JsonValue.isValid(value)) {
       throw new ValidationError(`Invalid Json value [${value}], its not object or string`)
     }
 
-    const valueAsString = JsonValue.parseToString(value)
-
-    super(valueAsString)
+    // Convert string to object if needed
+    const parsedValue = typeof value === 'string' ? JSON.parse(value) : value
+    super(parsedValue)
   }
 
   static isValid(value: string | object): boolean {
-    return typeof value === 'object' || typeof value === 'string'
+    if (typeof value === 'string') {
+      try {
+        JSON.parse(value)
+        return true
+      } catch {
+        return false
+      }
+    }
+    return typeof value === 'object'
   }
 
-  static parseToString(value: string | object): string {
-    return typeof value === 'object' ? JSON.stringify(value) : value
+  getJson(): Record<string, any> {
+    return this._value
   }
 
-  getJson() {
-    return JSON.parse(this._value)
+  static fromString(jsonString: string): JsonValue {
+    try {
+      return new JsonValue(jsonString)
+    } catch (error) {
+      throw new Error(`Invalid JSON string: ${error}`)
+    }
+  }
+
+  toString(): string {
+    return JSON.stringify(this._value)
   }
 }

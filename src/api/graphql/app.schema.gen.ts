@@ -145,12 +145,58 @@ export type DocusealTemplate = {
   createdAt: Scalars['String']['output'];
   description?: Maybe<Scalars['String']['output']>;
   documentType: Scalars['String']['output'];
+  documents?: Maybe<Array<DocusealTemplateDocument>>;
   docusealTemplateId: Scalars['String']['output'];
+  externalId?: Maybe<Scalars['String']['output']>;
+  fields?: Maybe<Array<DocusealTemplateField>>;
+  folderName?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
   isActive: Scalars['Boolean']['output'];
   name: Scalars['String']['output'];
+  schema?: Maybe<Array<DocusealTemplateSchema>>;
   signedDocuments?: Maybe<Array<SignedDocument>>;
+  submitters?: Maybe<Array<DocusealTemplateSubmitter>>;
   updatedAt: Scalars['String']['output'];
+};
+
+export type DocusealTemplateDocument = {
+  __typename?: 'DocusealTemplateDocument';
+  filename: Scalars['String']['output'];
+  id: Scalars['Int']['output'];
+  url?: Maybe<Scalars['String']['output']>;
+  uuid?: Maybe<Scalars['String']['output']>;
+};
+
+export type DocusealTemplateField = {
+  __typename?: 'DocusealTemplateField';
+  areas?: Maybe<Array<DocusealTemplateFieldArea>>;
+  name: Scalars['String']['output'];
+  required: Scalars['Boolean']['output'];
+  submitter_uuid?: Maybe<Scalars['String']['output']>;
+  type: Scalars['String']['output'];
+  uuid?: Maybe<Scalars['String']['output']>;
+};
+
+export type DocusealTemplateFieldArea = {
+  __typename?: 'DocusealTemplateFieldArea';
+  attachment_uuid?: Maybe<Scalars['String']['output']>;
+  h: Scalars['Float']['output'];
+  page: Scalars['Int']['output'];
+  w: Scalars['Float']['output'];
+  x: Scalars['Float']['output'];
+  y: Scalars['Float']['output'];
+};
+
+export type DocusealTemplateSchema = {
+  __typename?: 'DocusealTemplateSchema';
+  attachment_uuid?: Maybe<Scalars['String']['output']>;
+  name: Scalars['String']['output'];
+};
+
+export type DocusealTemplateSubmitter = {
+  __typename?: 'DocusealTemplateSubmitter';
+  name: Scalars['String']['output'];
+  uuid: Scalars['String']['output'];
 };
 
 export type ExternalVerification = {
@@ -978,6 +1024,11 @@ export type ResolversTypes = {
   DateTime: ResolverTypeWrapper<Scalars['DateTime']['output']>;
   Document: ResolverTypeWrapper<Document>;
   DocusealTemplate: ResolverTypeWrapper<DocusealTemplate>;
+  DocusealTemplateDocument: ResolverTypeWrapper<DocusealTemplateDocument>;
+  DocusealTemplateField: ResolverTypeWrapper<DocusealTemplateField>;
+  DocusealTemplateFieldArea: ResolverTypeWrapper<DocusealTemplateFieldArea>;
+  DocusealTemplateSchema: ResolverTypeWrapper<DocusealTemplateSchema>;
+  DocusealTemplateSubmitter: ResolverTypeWrapper<DocusealTemplateSubmitter>;
   ExternalVerification: ResolverTypeWrapper<ExternalVerification>;
   ExternalVerificationType: ExternalVerificationType;
   FacetecResult: ResolverTypeWrapper<FacetecResult>;
@@ -1025,6 +1076,11 @@ export type ResolversParentTypes = {
   DateTime: Scalars['DateTime']['output'];
   Document: Document;
   DocusealTemplate: DocusealTemplate;
+  DocusealTemplateDocument: DocusealTemplateDocument;
+  DocusealTemplateField: DocusealTemplateField;
+  DocusealTemplateFieldArea: DocusealTemplateFieldArea;
+  DocusealTemplateSchema: DocusealTemplateSchema;
+  DocusealTemplateSubmitter: DocusealTemplateSubmitter;
   ExternalVerification: ExternalVerification;
   FacetecResult: FacetecResult;
   Float: Scalars['Float']['output'];
@@ -1120,12 +1176,58 @@ export type DocusealTemplateResolvers<ContextType = any, ParentType extends Reso
   createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   documentType?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  documents?: Resolver<Maybe<Array<ResolversTypes['DocusealTemplateDocument']>>, ParentType, ContextType>;
   docusealTemplateId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  externalId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  fields?: Resolver<Maybe<Array<ResolversTypes['DocusealTemplateField']>>, ParentType, ContextType>;
+  folderName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   isActive?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  schema?: Resolver<Maybe<Array<ResolversTypes['DocusealTemplateSchema']>>, ParentType, ContextType>;
   signedDocuments?: Resolver<Maybe<Array<ResolversTypes['SignedDocument']>>, ParentType, ContextType>;
+  submitters?: Resolver<Maybe<Array<ResolversTypes['DocusealTemplateSubmitter']>>, ParentType, ContextType>;
   updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type DocusealTemplateDocumentResolvers<ContextType = any, ParentType extends ResolversParentTypes['DocusealTemplateDocument'] = ResolversParentTypes['DocusealTemplateDocument']> = {
+  filename?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  url?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  uuid?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type DocusealTemplateFieldResolvers<ContextType = any, ParentType extends ResolversParentTypes['DocusealTemplateField'] = ResolversParentTypes['DocusealTemplateField']> = {
+  areas?: Resolver<Maybe<Array<ResolversTypes['DocusealTemplateFieldArea']>>, ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  required?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  submitter_uuid?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  type?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  uuid?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type DocusealTemplateFieldAreaResolvers<ContextType = any, ParentType extends ResolversParentTypes['DocusealTemplateFieldArea'] = ResolversParentTypes['DocusealTemplateFieldArea']> = {
+  attachment_uuid?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  h?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
+  page?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  w?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
+  x?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
+  y?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type DocusealTemplateSchemaResolvers<ContextType = any, ParentType extends ResolversParentTypes['DocusealTemplateSchema'] = ResolversParentTypes['DocusealTemplateSchema']> = {
+  attachment_uuid?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type DocusealTemplateSubmitterResolvers<ContextType = any, ParentType extends ResolversParentTypes['DocusealTemplateSubmitter'] = ResolversParentTypes['DocusealTemplateSubmitter']> = {
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  uuid?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -1394,6 +1496,11 @@ export type Resolvers<ContextType = any> = {
   DateTime?: GraphQLScalarType;
   Document?: DocumentResolvers<ContextType>;
   DocusealTemplate?: DocusealTemplateResolvers<ContextType>;
+  DocusealTemplateDocument?: DocusealTemplateDocumentResolvers<ContextType>;
+  DocusealTemplateField?: DocusealTemplateFieldResolvers<ContextType>;
+  DocusealTemplateFieldArea?: DocusealTemplateFieldAreaResolvers<ContextType>;
+  DocusealTemplateSchema?: DocusealTemplateSchemaResolvers<ContextType>;
+  DocusealTemplateSubmitter?: DocusealTemplateSubmitterResolvers<ContextType>;
   ExternalVerification?: ExternalVerificationResolvers<ContextType>;
   FacetecResult?: FacetecResultResolvers<ContextType>;
   Group?: GroupResolvers<ContextType>;

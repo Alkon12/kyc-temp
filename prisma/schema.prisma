@@ -292,6 +292,12 @@ model DocusealTemplate {
   isActive           Boolean  @default(true)
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
+  documents          Json?    // Store document information from Docuseal
+  externalId         String?  // Additional external identifier
+  fields             Json?    // Store fields configuration from Docuseal
+  folderName         String?  // Folder name in Docuseal
+  schema             Json?    // Schema information from Docuseal
+  submitters         Json?    // Submitters information from Docuseal
 
   company            Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
   signedDocuments    SignedDocument[]

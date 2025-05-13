@@ -26,6 +26,41 @@ extend type Mutation {
   ): [DocusealTemplate!]!
 }
 
+type DocusealTemplateDocument {
+  id: Int!
+  filename: String!
+  url: String
+  uuid: String
+}
+
+type DocusealTemplateField {
+  name: String!
+  type: String!
+  required: Boolean!
+  uuid: String
+  submitter_uuid: String
+  areas: [DocusealTemplateFieldArea!]
+}
+
+type DocusealTemplateFieldArea {
+  x: Float!
+  y: Float!
+  w: Float!
+  h: Float!
+  page: Int!
+  attachment_uuid: String
+}
+
+type DocusealTemplateSubmitter {
+  name: String!
+  uuid: String!
+}
+
+type DocusealTemplateSchema {
+  name: String!
+  attachment_uuid: String
+}
+
 type DocusealTemplate {
   id: ID!
   companyId: String!
@@ -36,6 +71,12 @@ type DocusealTemplate {
   isActive: Boolean!
   createdAt: String!
   updatedAt: String!
+  documents: [DocusealTemplateDocument!]
+  externalId: String
+  fields: [DocusealTemplateField!]
+  folderName: String
+  schema: [DocusealTemplateSchema!]
+  submitters: [DocusealTemplateSubmitter!]
   
   company: Company
   signedDocuments: [SignedDocument!]

@@ -6,6 +6,7 @@ import { DocusealTemplateId } from './DocusealTemplateId'
 import { CompanyEntity } from '@domain/company/models/CompanyEntity'
 import { CompanyId } from '@domain/company/models/CompanyId'
 import { SignedDocumentEntity } from '@domain/signedDocument/models/SignedDocumentEntity'
+import { JsonValue } from '@domain/shared/JsonValue'
 
 export type DocusealTemplateEntityProps = {
   id: DocusealTemplateId
@@ -17,6 +18,12 @@ export type DocusealTemplateEntityProps = {
   isActive: BooleanValue
   createdAt: DateTimeValue
   updatedAt: DateTimeValue
+  documents?: JsonValue
+  externalId?: StringValue
+  fields?: JsonValue
+  folderName?: StringValue
+  schema?: JsonValue
+  submitters?: JsonValue
 
   company?: CompanyEntity
   signedDocuments?: SignedDocumentEntity[]
@@ -63,6 +70,30 @@ export class DocusealTemplateEntity extends AggregateRoot<'DocusealTemplateEntit
     return this._props.updatedAt
   }
 
+  getDocuments() {
+    return this._props.documents
+  }
+
+  getExternalId() {
+    return this._props.externalId
+  }
+
+  getFields() {
+    return this._props.fields
+  }
+
+  getFolderName() {
+    return this._props.folderName
+  }
+
+  getSchema() {
+    return this._props.schema
+  }
+
+  getSubmitters() {
+    return this._props.submitters
+  }
+
   getCompany() {
     return this._props.company
   }
@@ -85,6 +116,42 @@ export class DocusealTemplateEntity extends AggregateRoot<'DocusealTemplateEntit
 
   setIsActive(isActive: BooleanValue) {
     this._props.isActive = isActive
+    this._props.updatedAt = new DateTimeValue(new Date())
+    return this
+  }
+
+  setDocuments(documents: JsonValue) {
+    this._props.documents = documents
+    this._props.updatedAt = new DateTimeValue(new Date())
+    return this
+  }
+
+  setExternalId(externalId: StringValue) {
+    this._props.externalId = externalId
+    this._props.updatedAt = new DateTimeValue(new Date())
+    return this
+  }
+
+  setFields(fields: JsonValue) {
+    this._props.fields = fields
+    this._props.updatedAt = new DateTimeValue(new Date())
+    return this
+  }
+
+  setFolderName(folderName: StringValue) {
+    this._props.folderName = folderName
+    this._props.updatedAt = new DateTimeValue(new Date())
+    return this
+  }
+
+  setSchema(schema: JsonValue) {
+    this._props.schema = schema
+    this._props.updatedAt = new DateTimeValue(new Date())
+    return this
+  }
+
+  setSubmitters(submitters: JsonValue) {
+    this._props.submitters = submitters
     this._props.updatedAt = new DateTimeValue(new Date())
     return this
   }
