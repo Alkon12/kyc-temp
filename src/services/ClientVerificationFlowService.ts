@@ -259,6 +259,22 @@ export class ClientVerificationFlowService {
   }
 
   /**
+   * Verificar si se requiere validación Fuzzy de nombres para el flujo actual
+   * Esta es la función centralizada que determina si se debe validar mediante fuzzy matching
+   * @returns true si la validación fuzzy es requerida, false de lo contrario
+   */
+  public isFuzzyValidationRequired(): boolean {
+    // 1. Verificar si tenemos configuración explícita en flowSettings
+    if (this.flowSettings && this.flowSettings.isFuzzyValidationRequired !== undefined) {
+      return this.flowSettings.isFuzzyValidationRequired;
+    }
+    
+    // 2. Por defecto, siempre recomendamos usar validación fuzzy para todos los tipos de verificación
+    // ya que es una validación interna y no tiene costo adicional
+    return true;
+  }
+
+  /**
    * Verificar si se requiere validación de CURP para el flujo actual
    * Esta es la función centralizada que determina si se debe validar la CURP
    * @returns true si la validación de CURP es requerida, false de lo contrario

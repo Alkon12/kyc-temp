@@ -12,6 +12,7 @@ import FacetecDataExtractor, { PersonalData } from '@/lib/FaceTec/adapters/Facet
 import ClientVerificationFlowService from '@/services/ClientVerificationFlowService';
 import { useVerificationFlow } from '@/hooks/useVerificationFlow';
 import { useCurpValidation } from '@/hooks/useCurpValidation';
+import { useFuzzyValidation } from '@/hooks/useFuzzyValidation';
 import { useListaNominalValidation } from '@/hooks/useListaNominalValidation';
 import { useVerificationStatus } from '@/hooks/useVerificationStatus';
 import { Icons } from "@/components/icons";
@@ -143,6 +144,18 @@ const FaceTecContent: React.FC = () => {
     validateCurpFromPersonalData 
   } = useCurpValidation();
   
+  // Incorporar el hook de validación Fuzzy
+  const {
+    isValidating: isFuzzyValidating,
+    isSaving: isFuzzySaving,
+    isUpdatingKycStatus: isFuzzyUpdatingKycStatus,
+    validationResult: fuzzyValidationResult,
+    savedVerificationId: fuzzySavedVerificationId,
+    error: fuzzyValidationError,
+    validateFuzzyMatchFromPersonalData,
+    validateFuzzyMatch
+  } = useFuzzyValidation();
+  
   // Incorporar el hook de validación de Lista Nominal
   const {
     isValidating: isListaNominalValidating,
@@ -202,6 +215,13 @@ const FaceTecContent: React.FC = () => {
     }
   }, [listaNominalValidationError]);
 
+  // Añadir este useEffect al grupo existente
+  useEffect(() => {
+    if (fuzzyValidationError) {
+      setError(fuzzyValidationError);
+    }
+  }, [fuzzyValidationError]);
+
   // Actualizar el estado de procesamiento cuando cualquier validación comienza
   useEffect(() => {
     const isAnyProcessing = isStatusUpdating || 
@@ -210,7 +230,10 @@ const FaceTecContent: React.FC = () => {
                            isCurpSaving || 
                            isListaNominalSaving || 
                            isCurpUpdatingKycStatus || 
-                           isListaNominalUpdatingKycStatus;
+                           isListaNominalUpdatingKycStatus ||
+                           isFuzzyValidating ||
+                           isFuzzySaving ||
+                           isFuzzyUpdatingKycStatus;
     
     setIsProcessing(isAnyProcessing);
   }, [
@@ -220,7 +243,10 @@ const FaceTecContent: React.FC = () => {
     isCurpSaving,
     isListaNominalSaving,
     isCurpUpdatingKycStatus,
-    isListaNominalUpdatingKycStatus
+    isListaNominalUpdatingKycStatus,
+    isFuzzyValidating,
+    isFuzzySaving,
+    isFuzzyUpdatingKycStatus
   ]);
 
   // Agregar query para FaceTecResults (no se ejecuta automáticamente)
@@ -283,6 +309,65 @@ const FaceTecContent: React.FC = () => {
               }
               
               const shouldSave = Boolean(verificationId);
+              
+              // Verificar si la validación fuzzy de nombres es requerida
+              // Usar el servicio centralizado para determinar si se debe ejecutar
+              if (ClientVerificationFlowService.isFuzzyValidationRequired()) {
+                console.log('Validación fuzzy de nombres requerida por el flujo de verificación');
+                
+                // IMPORTANTE: Obtener el nombre directamente desde la información del componente principal
+                // que ya está disponible y validado en la variable `firstName` y `lastName`
+                const baseName = `${firstName} ${lastName}`.trim();
+                
+                console.log('Nombre base para validación fuzzy (directamente de kycVerification):', baseName);
+                
+                if (baseName) {
+                  try {
+                    // Definir los candidatos a comparar (solo el nombre del documento)
+                    const candidatos = [];
+                    
+                    // Añadir el nombre del documento como candidato
+                    if (personalDataFullName) {
+                      candidatos.push(personalDataFullName);
+                    }
+                    
+                    console.log('Candidatos para validación fuzzy:', candidatos);
+                    
+                    // Llamar al servicio de validación fuzzy
+                    const fuzzyResult = await validateFuzzyMatch(
+                      baseName,   // La BASE es el nombre del kycVerification
+                      candidatos, // Los CANDIDATOS son los nombres extraídos
+                      {
+                        verificationId,
+                        saveResult: shouldSave,
+                        threshold: 0.7 // Umbral configurable
+                      }
+                    );
+                    
+                    console.log('Resultado de validación fuzzy:', fuzzyResult);
+                    
+                    // Mostrar resultado de la mejor coincidencia
+                    if (fuzzyResult.bestMatch) {
+                      console.log('👤 Mejor coincidencia fuzzy:', 
+                        fuzzyResult.bestMatch.text, 
+                        `(score: ${fuzzyResult.bestMatch.score.toFixed(2)})`
+                      );
+                    }
+                    
+                    if (shouldSave) {
+                      console.log('Validación fuzzy completada', 
+                        fuzzySavedVerificationId ? `y guardada con ID: ${fuzzySavedVerificationId}` : 'pero no se guardó el resultado'
+                      );
+                    } else {
+                      console.log('Validación fuzzy completada pero no se guardó por falta de ID de verificación');
+                    }
+                  } catch (validationError) {
+                    console.error('Error durante la validación o guardado fuzzy:', validationError);
+                  }
+                } else {
+                  console.warn('No se pudo obtener el nombre base para validación fuzzy');
+                }
+              }
                             
               // Verificar si la validación CURP es requerida usando el servicio centralizado
               if (ClientVerificationFlowService.isCURPValidationRequired()) {
@@ -296,6 +381,7 @@ const FaceTecContent: React.FC = () => {
                   });
                   
                   // Extraer nombre completo de la respuesta de validación CURP con manejo robusto
+                  let curpFullName = null;
                   if (result.success && result.data) {
                     try {
                       // La respuesta CURP puede venir como string JSON dentro de data.data o en otros formatos
@@ -325,8 +411,59 @@ const FaceTecContent: React.FC = () => {
                         
                         // Construir nombre completo de CURP
                         if (curpFirstName || curpLastName1 || curpLastName2) {
-                          const curpFullName = `${curpFirstName} ${curpLastName1} ${curpLastName2}`.trim();
+                          curpFullName = `${curpFirstName} ${curpLastName1} ${curpLastName2}`.trim();
                           console.log('👤 Nombre completo extraído de CURP:', curpFullName);
+                          
+                          // Si tenemos el nombre completo de CURP, realizar una validación fuzzy adicional
+                          // con AMBOS candidatos: personalData y curpData
+                          try {
+                            console.log('Realizando validación fuzzy con AMBOS candidatos (documento y CURP)');
+                            
+                            // IMPORTANTE: Usar el mismo nombre base que antes
+                            const baseName = `${firstName} ${lastName}`.trim();
+                            
+                            if (baseName) {
+                              // Crear lista de candidatos incluyendo AMBOS nombres
+                              const candidatosCombinados = [];
+                              
+                              // Añadir el nombre del documento si existe
+                              if (personalDataFullName) {
+                                candidatosCombinados.push(personalDataFullName);
+                              }
+                              
+                              // Añadir el nombre de CURP si existe
+                              if (curpFullName) {
+                                candidatosCombinados.push(curpFullName);
+                              }
+                              
+                              console.log('Candidatos combinados para validación fuzzy:', candidatosCombinados);
+                              
+                              // Llamar al servicio de validación fuzzy con todos los candidatos
+                              const fuzzyWithAllCandidates = await validateFuzzyMatch(
+                                baseName,             // La BASE es el nombre de kycVerification
+                                candidatosCombinados, // TODOS los candidatos disponibles
+                                {
+                                  verificationId,
+                                  saveResult: shouldSave,
+                                  threshold: 0.7 // Umbral configurable
+                                }
+                              );
+                              
+                              console.log('Resultado de validación fuzzy con todos los candidatos:', fuzzyWithAllCandidates);
+                              
+                              // Mostrar resultado de la mejor coincidencia
+                              if (fuzzyWithAllCandidates.bestMatch) {
+                                console.log('👤 Mejor coincidencia fuzzy (de todos los candidatos):', 
+                                  fuzzyWithAllCandidates.bestMatch.text, 
+                                  `(score: ${fuzzyWithAllCandidates.bestMatch.score.toFixed(2)})`
+                                );
+                              }
+                            } else {
+                              console.warn('No se pudo determinar un nombre base para la validación fuzzy combinada');
+                            }
+                          } catch (validationError) {
+                            console.error('Error durante la validación fuzzy combinada:', validationError);
+                          }
                         } else {
                           console.warn('[FUZZY] No se pudieron extraer campos de nombre de CURP');
                         }
