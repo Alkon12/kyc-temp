@@ -11,6 +11,7 @@ import { UserEntity } from '@domain/user/models/UserEntity'
 import { CompanyEntity } from '@domain/company/models/CompanyEntity'
 import { ExternalVerificationEntity } from '@domain/externalVerification/models/ExternalVerificationEntity'
 import { DTO, serialize } from '@domain/kernel/DTO'
+import { BooleanValue } from '@domain/shared/BooleanValue'
 
 export type KycVerificationEntityProps = {
   id: KycVerificationId
@@ -22,6 +23,7 @@ export type KycVerificationEntityProps = {
   verificationType: KycVerificationType
   assignedTo?: UserId
   notes?: StringValue
+  requiresDocumentSigning?: BooleanValue
   createdAt?: DateTimeValue
   updatedAt?: DateTimeValue
   completedAt?: DateTimeValue
@@ -92,6 +94,10 @@ export class KycVerificationEntity extends AggregateRoot<'KycVerificationEntity'
     return this._props.notes
   }
 
+  getRequiresDocumentSigning() {
+    return this._props.requiresDocumentSigning
+  }
+
   getCreatedAt() {
     return this._props.createdAt
   }
@@ -137,6 +143,11 @@ export class KycVerificationEntity extends AggregateRoot<'KycVerificationEntity'
 
   updateNotes(notes: StringValue): void {
     this._props.notes = notes
+    this._props.updatedAt = new DateTimeValue(new Date())
+  }
+
+  setRequiresDocumentSigning(requiresDocumentSigning: BooleanValue): void {
+    this._props.requiresDocumentSigning = requiresDocumentSigning
     this._props.updatedAt = new DateTimeValue(new Date())
   }
 }

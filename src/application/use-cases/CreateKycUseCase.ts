@@ -11,6 +11,9 @@ import { KycPersonFactory } from '@domain/kycPerson/KycPersonFactory'
 import type KycPersonRepository from '@domain/kycPerson/KycPersonRepository'
 import { UserId } from '@domain/user/models/UserId'
 import { DateTimeValue } from '@domain/shared/DateTime'
+import AbstractSignedDocumentService from '@domain/signedDocument/SignedDocumentService'
+import { DocusealTemplateId } from '@domain/docuseal/models/DocusealTemplateId'
+import { BooleanValue } from '@domain/shared/BooleanValue'
 
 export interface CreateKycVerificationDto {
   companyId?: string
@@ -31,13 +34,20 @@ export interface CreateKycVerificationDto {
     address?: string
   }
   assignToUserId?: string
+  requiresDocumentSigning?: boolean
+  documentSigningInfo?: {
+    templateId: string
+    signerEmail?: string
+    signerPhone?: string
+  }
 }
 
 @injectable()
 export class CreateKycUseCase {
   constructor(
     @inject(DI.KycVerificationRepository) private kycVerificationRepository: KycVerificationRepository,
-    @inject(DI.KycPersonRepository) private kycPersonRepository: KycPersonRepository
+    @inject(DI.KycPersonRepository) private kycPersonRepository: KycPersonRepository,
+    @inject(DI.SignedDocumentService) private signedDocumentService: AbstractSignedDocumentService
   ) {}
 
   async execute(dto: CreateKycVerificationDto) {
@@ -46,7 +56,7 @@ export class CreateKycUseCase {
       throw new Error('Company ID is required')
     }
     
-    // Crear la verificación KYC
+    // Crear la verificación KYC con la opción de requerir firma de documentos
     const kycVerification = KycVerificationFactory.create({
       companyId: new CompanyId(dto.companyId),
       verificationType: new KycVerificationType(dto.verificationType),
@@ -56,6 +66,7 @@ export class CreateKycUseCase {
       notes: dto.notes ? new StringValue(dto.notes) : undefined,
       externalReferenceId: dto.externalReferenceId ? new StringValue(dto.externalReferenceId) : undefined,
       assignedTo: dto.assignToUserId ? new UserId(dto.assignToUserId) : undefined,
+      requiresDocumentSigning: dto.requiresDocumentSigning ? new BooleanValue(dto.requiresDocumentSigning) : new BooleanValue(false),
     })
 
     // Guardar la verificación KYC primero
@@ -77,6 +88,44 @@ export class CreateKycUseCase {
       })
 
       await this.kycPersonRepository.create(kycPerson)
+    }
+
+    // Si requiere firma de documentos y se proporciona información del template
+    if (dto.requiresDocumentSigning && dto.documentSigningInfo?.templateId) {
+      console.log('[DEBUG] Intentando crear SignedDocument con los siguientes datos:', {
+        requiresDocumentSigning: dto.requiresDocumentSigning,
+        templateId: dto.documentSigningInfo.templateId,
+        verificationId: createdVerification.getId().toDTO()
+      });
+      
+      try {
+        // Preparar los datos para la creación del documento firmado
+        const signerEmail = dto.documentSigningInfo.signerEmail 
+          ? new StringValue(dto.documentSigningInfo.signerEmail) 
+          : (dto.personInfo?.email ? new StringValue(dto.personInfo.email) : undefined);
+          
+        const signerPhone = dto.documentSigningInfo.signerPhone 
+          ? new StringValue(dto.documentSigningInfo.signerPhone) 
+          : (dto.personInfo?.phone ? new StringValue(dto.personInfo.phone) : undefined);
+        
+        // Crear el documento para firma
+        const signedDocument = await this.signedDocumentService.create({
+          verificationId: createdVerification.getId(),
+          templateId: new DocusealTemplateId(dto.documentSigningInfo.templateId),
+          status: new StringValue('pending'),
+          signerEmail: signerEmail,
+          signerPhone: signerPhone
+        });
+        
+        console.log('[DEBUG] SignedDocument creado exitosamente:', signedDocument.toDTO());
+      } catch (error) {
+        console.error('[ERROR] Error al crear SignedDocument:', error);
+      }
+    } else {
+      console.log('[DEBUG] No se creará SignedDocument:', {
+        requiresDocumentSigning: dto.requiresDocumentSigning,
+        hasTemplateId: !!dto.documentSigningInfo?.templateId
+      });
     }
 
     return createdVerification

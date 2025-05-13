@@ -28,7 +28,9 @@ export class KycController {
         riskLevel, 
         notes, 
         personInfo,
-        assignToUserId
+        assignToUserId,
+        requiresDocumentSigning,
+        documentSigningInfo
       } = req.body as CreateKycVerificationDto
 
       // Extraer el companyId del header en lugar del body
@@ -51,7 +53,9 @@ export class KycController {
         riskLevel,
         notes,
         personInfo,
-        assignToUserId
+        assignToUserId,
+        requiresDocumentSigning,
+        documentSigningInfo
       })
 
       const resultDTO = result.toDTO()
