@@ -17,12 +17,6 @@ interface FuzzyResponse extends FuzzyCandidate {
 }
 
 export async function POST(req: Request) {
-  // Validar API Key primero
-  const authResponse = await apiKeyAuth(req as NextRequest)
-  if (authResponse instanceof NextResponse && authResponse.status !== 200) {
-    return authResponse
-  }
-
   try {
     const body = await req.json() as FuzzyRequest
     
