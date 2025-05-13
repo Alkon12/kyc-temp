@@ -8,6 +8,7 @@ import { CompanyId } from '@domain/company/models/CompanyId'
 import { StringValue } from '@domain/shared/StringValue'
 import { BooleanValue } from '@domain/shared/BooleanValue'
 import AbstractDocusealTemplateService from '@domain/docuseal/DocusealTemplateService'
+import AbstractDocusealSyncService from '@domain/docuseal/DocusealSyncService'
 import { CreateDocusealTemplateArgs } from '@domain/docuseal/interfaces/CreateDocusealTemplateArgs'
 import {
   QueryGetDocusealTemplateByIdArgs,
@@ -15,7 +16,8 @@ import {
   QueryGetActiveDocusealTemplatesByCompanyIdArgs,
   QueryGetDocusealTemplatesByDocumentTypeArgs,
   MutationCreateDocusealTemplateArgs,
-  MutationUpdateDocusealTemplateStatusArgs
+  MutationUpdateDocusealTemplateStatusArgs,
+  MutationSyncDocusealTemplatesArgs
 } from '../app.schema.gen'
 
 @injectable()
@@ -32,6 +34,7 @@ export class DocusealTemplateResolvers {
       Mutation: {
         createDocusealTemplate: this.createDocusealTemplate,
         updateDocusealTemplateStatus: this.updateDocusealTemplateStatus,
+        syncDocusealTemplates: this.syncDocusealTemplates,
       },
     }
   }
@@ -99,5 +102,13 @@ export class DocusealTemplateResolvers {
     const template = await docusealTemplateService.update(new DocusealTemplateId(templateId), isActive)
     
     return template.toDTO()
+  }
+  
+  syncDocusealTemplates = async (_parent: unknown, { companyId }: MutationSyncDocusealTemplatesArgs): Promise<DTO<DocusealTemplateEntity>[]> => {
+    const docusealSyncService = container.get<AbstractDocusealSyncService>(DI.DocusealSyncService)
+    
+    const templates = await docusealSyncService.syncTemplates(new CompanyId(companyId))
+    
+    return templates.map(template => template.toDTO())
   }
 } 

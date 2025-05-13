@@ -34,6 +34,7 @@ export const DI = {
   // Docuseal
   DocusealTemplateRepository: Symbol.for('DocusealTemplateRepository'),
   DocusealTemplateService: Symbol.for('DocusealTemplateService'),
+  DocusealSyncService: Symbol.for('DocusealSyncService'),
   SignedDocumentRepository: Symbol.for('SignedDocumentRepository'),
   SignedDocumentService: Symbol.for('SignedDocumentService'),
   

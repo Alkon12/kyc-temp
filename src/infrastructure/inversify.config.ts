@@ -76,6 +76,8 @@ import { SignedDocumentService } from '@service/SignedDocumentService'
 // Importar resolvers para Docuseal
 import { DocusealTemplateResolvers } from '@api/graphql/docuseal-template/DocusealTemplateResolvers'
 import { SignedDocumentResolvers } from '@api/graphql/signed-document/SignedDocumentResolvers'
+import { DocusealSyncService } from '@service/DocusealSyncService'
+import AbstractDocusealSyncService from '@domain/docuseal/DocusealSyncService'
 
 const container = new Container()
 
@@ -125,7 +127,7 @@ container.bind<VerificationLinkRepository>(DI.VerificationLinkRepository).to(Pri
 container.bind<DocumentRepository>(DI.DocumentRepository).to(PrismaDocumentRepository)
 container.bind<FacetecResultRepository>(DI.FacetecResultRepository).to(PrismaFacetecResultRepository)
 container.bind<ExternalVerificationRepository>(DI.ExternalVerificationRepository).to(PrismaExternalVerificationRepository)
-container.bind<DocusealTemplateRepository>(DI.DocusealTemplateRepository).to(PrismaDocusealTemplateRepository)
+container.bind<DocusealTemplateRepository>(DI.DocusealTemplateRepository).to(PrismaDocusealTemplateRepository).inSingletonScope()
 container.bind<SignedDocumentRepository>(DI.SignedDocumentRepository).to(PrismaSignedDocumentRepository)
 
 // FaceTec Service (usar MockFaceTecService para desarrollo y pruebas)
@@ -142,6 +144,9 @@ container.bind<KycController>(DI.KycController).to(KycController)
 
 // Auth Services binding
 container.bind<ApiKeyAuthService>(DI.ApiKeyAuthService).to(ApiKeyAuthService).inSingletonScope()
+
+// Docuseal
+container.bind<AbstractDocusealSyncService>(DI.DocusealSyncService).to(DocusealSyncService).inSingletonScope()
 
 export default container
 export { container }

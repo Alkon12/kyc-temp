@@ -312,6 +312,7 @@ export type Mutation = {
   generateCompanyApiKey: Company;
   invalidateVerificationLink: Scalars['Boolean']['output'];
   recordVerificationLinkAccess: VerificationLink;
+  syncDocusealTemplates: Array<DocusealTemplate>;
   updateCompany: Company;
   updateCompanyStatus: Company;
   updateDocumentOcrData: Document;
@@ -430,6 +431,11 @@ export type MutationInvalidateVerificationLinkArgs = {
 
 export type MutationRecordVerificationLinkAccessArgs = {
   token: Scalars['String']['input'];
+};
+
+
+export type MutationSyncDocusealTemplatesArgs = {
+  companyId: Scalars['String']['input'];
 };
 
 
@@ -1251,6 +1257,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   generateCompanyApiKey?: Resolver<ResolversTypes['Company'], ParentType, ContextType, RequireFields<MutationGenerateCompanyApiKeyArgs, 'companyId'>>;
   invalidateVerificationLink?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationInvalidateVerificationLinkArgs, 'token'>>;
   recordVerificationLinkAccess?: Resolver<ResolversTypes['VerificationLink'], ParentType, ContextType, RequireFields<MutationRecordVerificationLinkAccessArgs, 'token'>>;
+  syncDocusealTemplates?: Resolver<Array<ResolversTypes['DocusealTemplate']>, ParentType, ContextType, RequireFields<MutationSyncDocusealTemplatesArgs, 'companyId'>>;
   updateCompany?: Resolver<ResolversTypes['Company'], ParentType, ContextType, RequireFields<MutationUpdateCompanyArgs, 'companyId' | 'input'>>;
   updateCompanyStatus?: Resolver<ResolversTypes['Company'], ParentType, ContextType, RequireFields<MutationUpdateCompanyStatusArgs, 'companyId' | 'status'>>;
   updateDocumentOcrData?: Resolver<ResolversTypes['Document'], ParentType, ContextType, RequireFields<MutationUpdateDocumentOcrDataArgs, 'documentId' | 'ocrData'>>;

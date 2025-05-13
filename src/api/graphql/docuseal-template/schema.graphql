@@ -20,6 +20,10 @@ extend type Mutation {
     templateId: String!
     isActive: Boolean!
   ): DocusealTemplate!
+  
+  syncDocusealTemplates(
+    companyId: String!
+  ): [DocusealTemplate!]!
 }
 
 type DocusealTemplate {
