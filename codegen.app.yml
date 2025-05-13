@@ -9,6 +9,8 @@ schema:
   - './src/api/graphql/company/schema.graphql'
   - './src/api/graphql/facetec-result/schema.graphql'
   - './src/api/graphql/external-verification/schema.graphql'
+  - './src/api/graphql/docuseal-template/schema.graphql'
+  - './src/api/graphql/signed-document/schema.graphql'
  
   
 documents: null

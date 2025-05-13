@@ -1,0 +1,51 @@
+extend type Query {
+  getSignedDocumentById(signedDocumentId: String!): SignedDocument!
+  getSignedDocumentsByVerificationId(verificationId: String!): [SignedDocument!]!
+  getSignedDocumentsByStatus(status: String!): [SignedDocument!]!
+}
+
+extend type Mutation {
+  createSignedDocument(
+    verificationId: String!
+    templateId: String!
+    docusealSubmissionId: String
+    status: String
+    signerEmail: String
+    signerPhone: String
+    documentUrl: String
+    additionalData: JSON
+  ): SignedDocument!
+  
+  updateSignedDocumentStatus(
+    signedDocumentId: String!
+    status: String!
+  ): SignedDocument!
+  
+  updateSignedDocumentSubmissionId(
+    signedDocumentId: String!
+    submissionId: String!
+  ): SignedDocument!
+  
+  updateSignedDocumentUrl(
+    signedDocumentId: String!
+    url: String!
+  ): SignedDocument!
+}
+
+type SignedDocument {
+  id: ID!
+  verificationId: String!
+  templateId: String!
+  docusealSubmissionId: String
+  status: String!
+  signerEmail: String
+  signerPhone: String
+  documentUrl: String
+  additionalData: JSON
+  createdAt: String!
+  updatedAt: String!
+  completedAt: String
+  
+  kycVerification: KycVerification
+  template: DocusealTemplate
+} 

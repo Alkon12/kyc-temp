@@ -1,0 +1,28 @@
+meta {
+  name: Create SignedDocument
+  type: graphql
+  seq: 1
+}
+
+mutation CreateSignedDocument {
+  createSignedDocument(
+    verificationId: "verification-id"
+    templateId: "template-id"
+    signerEmail: "usuario@ejemplo.com"
+    signerPhone: "+123456789"
+    additionalData: {
+      clientNumber: "12345",
+      amount: 10000,
+      currency: "USD"
+    }
+  ) {
+    id
+    verificationId
+    templateId
+    status
+    signerEmail
+    signerPhone
+    createdAt
+    updatedAt
+  }
+} 

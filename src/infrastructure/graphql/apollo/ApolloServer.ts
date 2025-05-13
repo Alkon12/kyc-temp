@@ -11,6 +11,8 @@ import { DocumentSchema } from '@api/graphql/document'
 import { CompanySchema } from '@api/graphql/company'
 import { FacetecResultSchema } from '@api/graphql/facetec-result'
 import { ExternalVerificationSchema } from '@api/graphql/external-verification'
+import { DocusealTemplateSchema } from '@api/graphql/docuseal-template'
+import { SignedDocumentSchema } from '@api/graphql/signed-document'
 import { ApolloLoggingPlugin } from './ApolloLoggingPlugin'
 import { UserResolvers } from '@api/graphql/user/UserResolvers'
 import { TestResolvers } from '@api/graphql/test/TestResolvers'
@@ -20,6 +22,8 @@ import { DocumentResolvers } from '@api/graphql/document/DocumentResolvers'
 import { CompanyResolvers } from '@api/graphql/company/CompanyResolvers'
 import { FacetecResultResolvers } from '@api/graphql/facetec-result/FacetecResultResolvers'
 import { ExternalVerificationResolvers } from '@api/graphql/external-verification/ExternalVerificationResolvers'
+import { DocusealTemplateResolvers } from '@api/graphql/docuseal-template/DocusealTemplateResolvers'
+import { SignedDocumentResolvers } from '@api/graphql/signed-document/SignedDocumentResolvers'
 
 // Variable global para almacenar la instancia del servidor
 // Debe estar fuera de la clase para evitar problemas de tipo
@@ -65,6 +69,8 @@ export class ApolloServer {
       CompanySchema,
       FacetecResultSchema,
       ExternalVerificationSchema,
+      DocusealTemplateSchema,
+      SignedDocumentSchema,
     ])
     const mergedResolvers = merge(
       [],
@@ -77,6 +83,8 @@ export class ApolloServer {
         container.get(CompanyResolvers).build(),
         container.get(FacetecResultResolvers).build(),
         container.get(ExternalVerificationResolvers).build(),
+        container.get(DocusealTemplateResolvers).build(),
+        container.get(SignedDocumentResolvers).build(),
       ],
     )
 

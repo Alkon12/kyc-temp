@@ -12,6 +12,7 @@ import { UserId } from '@domain/user/models/UserId'
 import { UserFactory } from '@domain/user/UserFactory'
 import { CompanyFactory } from '@domain/company/CompanyFactory'
 import { ExternalVerificationFactory } from '@domain/externalVerification/ExternalVerificationFactory'
+import { BooleanValue } from '@domain/shared/BooleanValue'
 
 export type KycVerificationArgs = Merge<
   Omit<KycVerificationEntityProps, 'company' | 'assignedUser' | 'kycPersons' | 'facetecResults' | 'documents' | 'activityLogs' | 'externalVerifications' | 'verificationWorkflows'>,
@@ -34,6 +35,7 @@ export class KycVerificationFactory {
       verificationType: new KycVerificationType(dto.verificationType),
       assignedTo: dto.assignedTo ? new UserId(dto.assignedTo) : undefined,
       notes: dto.notes ? new StringValue(dto.notes) : undefined,
+      requiresDocumentSigning: new BooleanValue(dto.requiresDocumentSigning || false),
       createdAt: dto.createdAt ? new DateTimeValue(dto.createdAt) : undefined,
       updatedAt: dto.updatedAt ? new DateTimeValue(dto.updatedAt) : undefined,
       completedAt: dto.completedAt ? new DateTimeValue(dto.completedAt) : undefined,

@@ -1,0 +1,1 @@
+export { default as DocusealTemplateSchema } from './schema.graphql' 

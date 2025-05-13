@@ -1,0 +1,38 @@
+extend type Query {
+  getDocusealTemplateById(templateId: String!): DocusealTemplate!
+  getAllDocusealTemplates: [DocusealTemplate!]!
+  getDocusealTemplatesByCompanyId(companyId: String!): [DocusealTemplate!]!
+  getActiveDocusealTemplatesByCompanyId(companyId: String!): [DocusealTemplate!]!
+  getDocusealTemplatesByDocumentType(documentType: String!): [DocusealTemplate!]!
+}
+
+extend type Mutation {
+  createDocusealTemplate(
+    companyId: String!
+    name: String!
+    description: String
+    docusealTemplateId: String!
+    documentType: String!
+    isActive: Boolean
+  ): DocusealTemplate!
+  
+  updateDocusealTemplateStatus(
+    templateId: String!
+    isActive: Boolean!
+  ): DocusealTemplate!
+}
+
+type DocusealTemplate {
+  id: ID!
+  companyId: String!
+  name: String!
+  description: String
+  docusealTemplateId: String!
+  documentType: String!
+  isActive: Boolean!
+  createdAt: String!
+  updatedAt: String!
+  
+  company: Company
+  signedDocuments: [SignedDocument!]
+} 

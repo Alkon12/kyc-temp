@@ -1,0 +1,24 @@
+meta {
+  name: Get DocusealTemplate By ID
+  type: graphql
+  seq: 1
+}
+
+query GetDocusealTemplateById {
+  getDocusealTemplateById(templateId: "template-id") {
+    id
+    companyId
+    name
+    description
+    docusealTemplateId
+    documentType
+    isActive
+    createdAt
+    updatedAt
+    
+    company {
+      id
+      companyName
+    }
+  }
+} 

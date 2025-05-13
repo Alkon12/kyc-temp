@@ -80,6 +80,7 @@ model Company {
   userRoles            UserRole[]
   kycVerifications     KycVerification[]
   verificationSettings VerificationSetting[]
+  docusealTemplates    DocusealTemplate[]
 }
 
 model Role {
@@ -154,6 +155,7 @@ model KycVerification {
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
   completedAt         DateTime?
+  requiresDocumentSigning Boolean @default(false)  // Flag to indicate if signing is required
 
   company       Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
   assignedUser  User?       @relation("AssignedUser", fields: [assignedTo], references: [id])
@@ -164,6 +166,7 @@ model KycVerification {
   externalVerifications ExternalVerification[]
   verificationWorkflows VerificationWorkflow[]
   verificationLinks    VerificationLink[]
+  signedDocuments     SignedDocument[]
 
   @@index([companyId], name: "idx_kyc_verifications_company")
   @@index([status], name: "idx_kyc_verifications_status")
@@ -277,4 +280,43 @@ model VerificationWorkflow {
   updatedAt        DateTime @updatedAt
 
   kycVerification  KycVerification @relation(fields: [verificationId], references: [id], onDelete: Cascade)
+}
+
+model DocusealTemplate {
+  id                 String   @id @default(uuid())
+  companyId          String
+  name               String
+  description        String?
+  docusealTemplateId String   @unique  // External ID from Docuseal
+  documentType       String   // Type of document this template is for
+  isActive           Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  company            Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  signedDocuments    SignedDocument[]
+
+  @@index([companyId], name: "idx_docuseal_templates_company")
+  @@index([documentType], name: "idx_docuseal_templates_type")
+}
+
+model SignedDocument {
+  id                 String   @id @default(uuid())
+  verificationId     String
+  templateId         String
+  docusealSubmissionId String? @unique  // ID received from Docuseal when a signing process is created
+  status             String   @default("pending")  // pending, in_progress, completed, cancelled
+  signerEmail        String?
+  signerPhone        String?
+  documentUrl        String?  // URL to the signed document once completed
+  additionalData     Json?    // Any additional data needed for the document
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  completedAt        DateTime?
+
+  kycVerification    KycVerification  @relation(fields: [verificationId], references: [id], onDelete: Cascade)
+  template           DocusealTemplate @relation(fields: [templateId], references: [id])
+
+  @@index([verificationId], name: "idx_signed_documents_verification")
+  @@index([status], name: "idx_signed_documents_status")
 }

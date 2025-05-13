@@ -1,0 +1,1 @@
+export { default as SignedDocumentSchema } from './schema.graphql' 

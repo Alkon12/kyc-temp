@@ -64,6 +64,18 @@ import { ExternalVerificationRepository } from '@domain/externalVerification/Ext
 import { PrismaExternalVerificationRepository } from './repositories/prisma/PrismaExternalVerificationRepository'
 import { ExternalVerificationService } from '@domain/externalVerification/ExternalVerificationService'
 import { ExternalVerificationResolvers } from '@api/graphql/external-verification/ExternalVerificationResolvers'
+// Importaciones para Docuseal
+import type DocusealTemplateRepository from '@domain/docuseal/DocusealTemplateRepository'
+import { PrismaDocusealTemplateRepository } from './repositories/prisma/PrismaDocusealTemplateRepository'
+import AbstractDocusealTemplateService from '@domain/docuseal/DocusealTemplateService'
+import { DocusealTemplateService } from '@service/DocusealTemplateService'
+import type SignedDocumentRepository from '@domain/signedDocument/SignedDocumentRepository'
+import { PrismaSignedDocumentRepository } from './repositories/prisma/PrismaSignedDocumentRepository'
+import AbstractSignedDocumentService from '@domain/signedDocument/SignedDocumentService'
+import { SignedDocumentService } from '@service/SignedDocumentService'
+// Importar resolvers para Docuseal
+import { DocusealTemplateResolvers } from '@api/graphql/docuseal-template/DocusealTemplateResolvers'
+import { SignedDocumentResolvers } from '@api/graphql/signed-document/SignedDocumentResolvers'
 
 const container = new Container()
 
@@ -79,6 +91,8 @@ container.bind(CompanyResolvers).toSelf()
 container.bind(FacetecResultResolvers).toSelf()
 container.bind(VerificationFlowResolvers).toSelf()
 container.bind(ExternalVerificationResolvers).toSelf()
+container.bind(DocusealTemplateResolvers).toSelf()
+container.bind(SignedDocumentResolvers).toSelf()
 
 // Services
 container.bind<LoggingService>(DI.LoggingService).to(ConsoleLogger).inSingletonScope()
@@ -99,6 +113,8 @@ container.bind<AbstractFacetecResultService>(DI.FacetecResultService).to(Facetec
 container.bind<KycValidationService>(DI.KycValidationService).to(KycValidationService).inSingletonScope()
 container.bind<VerificationFlowService>(DI.VerificationFlowService).to(VerificationFlowService).inSingletonScope()
 container.bind<ExternalVerificationService>(DI.ExternalVerificationService).to(ExternalVerificationService).inSingletonScope()
+container.bind<AbstractDocusealTemplateService>(DI.DocusealTemplateService).to(DocusealTemplateService).inSingletonScope()
+container.bind<AbstractSignedDocumentService>(DI.SignedDocumentService).to(SignedDocumentService).inSingletonScope()
 
 // Repositories
 container.bind<UserRepository>(DI.UserRepository).to(PrismaUserRepository)
@@ -109,6 +125,8 @@ container.bind<VerificationLinkRepository>(DI.VerificationLinkRepository).to(Pri
 container.bind<DocumentRepository>(DI.DocumentRepository).to(PrismaDocumentRepository)
 container.bind<FacetecResultRepository>(DI.FacetecResultRepository).to(PrismaFacetecResultRepository)
 container.bind<ExternalVerificationRepository>(DI.ExternalVerificationRepository).to(PrismaExternalVerificationRepository)
+container.bind<DocusealTemplateRepository>(DI.DocusealTemplateRepository).to(PrismaDocusealTemplateRepository)
+container.bind<SignedDocumentRepository>(DI.SignedDocumentRepository).to(PrismaSignedDocumentRepository)
 
 // FaceTec Service (usar MockFaceTecService para desarrollo y pruebas)
 container.bind<FaceTecService>(DI.FaceTecService).to(MockFaceTecService).inSingletonScope()

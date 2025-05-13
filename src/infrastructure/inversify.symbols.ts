@@ -31,6 +31,12 @@ export const DI = {
   FacetecResultRepository: Symbol.for('FacetecResultRepository'),
   FacetecResultService: Symbol.for('FacetecResultService'),
   
+  // Docuseal
+  DocusealTemplateRepository: Symbol.for('DocusealTemplateRepository'),
+  DocusealTemplateService: Symbol.for('DocusealTemplateService'),
+  SignedDocumentRepository: Symbol.for('SignedDocumentRepository'),
+  SignedDocumentService: Symbol.for('SignedDocumentService'),
+  
   // Casos de uso
   CreateKycUseCase: Symbol.for('CreateKycUseCase'),
   CreateFaceTecSessionUseCase: Symbol.for('CreateFaceTecSessionUseCase'),

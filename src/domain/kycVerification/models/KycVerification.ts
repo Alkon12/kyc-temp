@@ -18,6 +18,7 @@ export type KycVerificationProps = {
   verificationType: StringValue
   assignedTo?: UserId
   notes?: StringValue
+  requiresDocumentSigning: BooleanValue
   createdAt?: DateTimeValue
   updatedAt?: DateTimeValue
   completedAt?: DateTimeValue
@@ -63,6 +64,10 @@ export class KycVerification extends AggregateRoot<'KycVerification', KycVerific
   getNotes() {
     return this._props.notes
   }
+  
+  getRequiresDocumentSigning() {
+    return this._props.requiresDocumentSigning
+  }
 
   setStatus(status: StringValue) {
     this._props.status = status
@@ -95,6 +100,12 @@ export class KycVerification extends AggregateRoot<'KycVerification', KycVerific
 
   setRiskLevel(riskLevel: StringValue) {
     this._props.riskLevel = riskLevel
+    this._props.updatedAt = new DateTimeValue(new Date())
+    return this
+  }
+  
+  setRequiresDocumentSigning(requiresSigning: BooleanValue) {
+    this._props.requiresDocumentSigning = requiresSigning
     this._props.updatedAt = new DateTimeValue(new Date())
     return this
   }

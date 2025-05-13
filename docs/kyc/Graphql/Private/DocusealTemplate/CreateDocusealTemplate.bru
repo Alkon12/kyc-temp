@@ -1,0 +1,26 @@
+meta {
+  name: Create DocusealTemplate
+  type: graphql
+  seq: 2
+}
+
+mutation CreateDocusealTemplate {
+  createDocusealTemplate(
+    companyId: "company-id"
+    name: "Contrato de Servicio"
+    description: "Contrato estándar de servicio"
+    docusealTemplateId: "docuseal-template-id-from-docuseal"
+    documentType: "CONTRACT"
+    isActive: true
+  ) {
+    id
+    companyId
+    name
+    description
+    docusealTemplateId
+    documentType
+    isActive
+    createdAt
+    updatedAt
+  }
+} 

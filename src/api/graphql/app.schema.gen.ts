@@ -138,6 +138,21 @@ export type Document = {
   verificationStatus: Scalars['String']['output'];
 };
 
+export type DocusealTemplate = {
+  __typename?: 'DocusealTemplate';
+  company?: Maybe<Company>;
+  companyId: Scalars['String']['output'];
+  createdAt: Scalars['String']['output'];
+  description?: Maybe<Scalars['String']['output']>;
+  documentType: Scalars['String']['output'];
+  docusealTemplateId: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  isActive: Scalars['Boolean']['output'];
+  name: Scalars['String']['output'];
+  signedDocuments?: Maybe<Array<SignedDocument>>;
+  updatedAt: Scalars['String']['output'];
+};
+
 export type ExternalVerification = {
   __typename?: 'ExternalVerification';
   createdAt: Scalars['String']['output'];
@@ -283,10 +298,12 @@ export type Mutation = {
   assignDocumentReviewer: Document;
   assignKycVerification: Scalars['Boolean']['output'];
   createCompany: Company;
+  createDocusealTemplate: DocusealTemplate;
   createExternalVerification: ExternalVerification;
   createFacetecResult: FacetecResult;
   createKycPerson: KycPerson;
   createKycVerification: KycVerification;
+  createSignedDocument: SignedDocument;
   createUser?: Maybe<User>;
   createVerificationLink: VerificationLink;
   deleteCompany: Scalars['Boolean']['output'];
@@ -299,6 +316,7 @@ export type Mutation = {
   updateCompanyStatus: Company;
   updateDocumentOcrData: Document;
   updateDocumentStatus: Document;
+  updateDocusealTemplateStatus: DocusealTemplate;
   updateExternalVerificationRequest: Scalars['Boolean']['output'];
   updateExternalVerificationResponse: Scalars['Boolean']['output'];
   updateExternalVerificationStatus: Scalars['Boolean']['output'];
@@ -306,6 +324,9 @@ export type Mutation = {
   updateKycPerson: KycPerson;
   updateKycPersonContactByToken: KycPerson;
   updateKycVerificationStatus: Scalars['Boolean']['output'];
+  updateSignedDocumentStatus: SignedDocument;
+  updateSignedDocumentSubmissionId: SignedDocument;
+  updateSignedDocumentUrl: SignedDocument;
   updateUserPersonalInfo?: Maybe<Scalars['Boolean']['output']>;
   updateVerificationLinkStatus: VerificationLink;
   validateVerificationLink: Scalars['Boolean']['output'];
@@ -330,6 +351,16 @@ export type MutationCreateCompanyArgs = {
 };
 
 
+export type MutationCreateDocusealTemplateArgs = {
+  companyId: Scalars['String']['input'];
+  description?: InputMaybe<Scalars['String']['input']>;
+  documentType: Scalars['String']['input'];
+  docusealTemplateId: Scalars['String']['input'];
+  isActive?: InputMaybe<Scalars['Boolean']['input']>;
+  name: Scalars['String']['input'];
+};
+
+
 export type MutationCreateExternalVerificationArgs = {
   input: CreateExternalVerificationInput;
 };
@@ -347,6 +378,18 @@ export type MutationCreateKycPersonArgs = {
 
 export type MutationCreateKycVerificationArgs = {
   input: CreateKycVerificationInput;
+};
+
+
+export type MutationCreateSignedDocumentArgs = {
+  additionalData?: InputMaybe<Scalars['JSON']['input']>;
+  documentUrl?: InputMaybe<Scalars['String']['input']>;
+  docusealSubmissionId?: InputMaybe<Scalars['String']['input']>;
+  signerEmail?: InputMaybe<Scalars['String']['input']>;
+  signerPhone?: InputMaybe<Scalars['String']['input']>;
+  status?: InputMaybe<Scalars['String']['input']>;
+  templateId: Scalars['String']['input'];
+  verificationId: Scalars['String']['input'];
 };
 
 
@@ -414,6 +457,12 @@ export type MutationUpdateDocumentStatusArgs = {
 };
 
 
+export type MutationUpdateDocusealTemplateStatusArgs = {
+  isActive: Scalars['Boolean']['input'];
+  templateId: Scalars['String']['input'];
+};
+
+
 export type MutationUpdateExternalVerificationRequestArgs = {
   id: Scalars['ID']['input'];
   requestData: Scalars['JSON']['input'];
@@ -457,6 +506,24 @@ export type MutationUpdateKycVerificationStatusArgs = {
 };
 
 
+export type MutationUpdateSignedDocumentStatusArgs = {
+  signedDocumentId: Scalars['String']['input'];
+  status: Scalars['String']['input'];
+};
+
+
+export type MutationUpdateSignedDocumentSubmissionIdArgs = {
+  signedDocumentId: Scalars['String']['input'];
+  submissionId: Scalars['String']['input'];
+};
+
+
+export type MutationUpdateSignedDocumentUrlArgs = {
+  signedDocumentId: Scalars['String']['input'];
+  url: Scalars['String']['input'];
+};
+
+
 export type MutationUpdateUserPersonalInfoArgs = {
   input: UpdateUserPersonalInfoInput;
 };
@@ -478,16 +545,24 @@ export type Query = {
   authWithCredentials: ClientApiAuthResponse;
   externalVerification?: Maybe<ExternalVerification>;
   externalVerificationsByKycId?: Maybe<Array<ExternalVerification>>;
+  getActiveDocusealTemplatesByCompanyId: Array<DocusealTemplate>;
   getAllCompanies: Array<Company>;
+  getAllDocusealTemplates: Array<DocusealTemplate>;
   getCompanyById: Company;
   getDocumentById: Document;
   getDocumentsByReviewer: Array<Document>;
   getDocumentsByStatus: Array<Document>;
   getDocumentsByType: Array<Document>;
   getDocumentsByVerificationId: Array<Document>;
+  getDocusealTemplateById: DocusealTemplate;
+  getDocusealTemplatesByCompanyId: Array<DocusealTemplate>;
+  getDocusealTemplatesByDocumentType: Array<DocusealTemplate>;
   getFacetecResultById: FacetecResult;
   getFacetecResultsByVerificationId: Array<FacetecResult>;
   getKycPersonById?: Maybe<KycPerson>;
+  getSignedDocumentById: SignedDocument;
+  getSignedDocumentsByStatus: Array<SignedDocument>;
+  getSignedDocumentsByVerificationId: Array<SignedDocument>;
   getVerificationLinkById: VerificationLink;
   getVerificationLinkByToken: VerificationLink;
   getVerificationLinksByVerificationId: Array<VerificationLink>;
@@ -533,6 +608,11 @@ export type QueryExternalVerificationsByKycIdArgs = {
 };
 
 
+export type QueryGetActiveDocusealTemplatesByCompanyIdArgs = {
+  companyId: Scalars['String']['input'];
+};
+
+
 export type QueryGetCompanyByIdArgs = {
   companyId: Scalars['ID']['input'];
 };
@@ -563,6 +643,21 @@ export type QueryGetDocumentsByVerificationIdArgs = {
 };
 
 
+export type QueryGetDocusealTemplateByIdArgs = {
+  templateId: Scalars['String']['input'];
+};
+
+
+export type QueryGetDocusealTemplatesByCompanyIdArgs = {
+  companyId: Scalars['String']['input'];
+};
+
+
+export type QueryGetDocusealTemplatesByDocumentTypeArgs = {
+  documentType: Scalars['String']['input'];
+};
+
+
 export type QueryGetFacetecResultByIdArgs = {
   facetecResultId: Scalars['String']['input'];
 };
@@ -575,6 +670,21 @@ export type QueryGetFacetecResultsByVerificationIdArgs = {
 
 export type QueryGetKycPersonByIdArgs = {
   id: Scalars['ID']['input'];
+};
+
+
+export type QueryGetSignedDocumentByIdArgs = {
+  signedDocumentId: Scalars['String']['input'];
+};
+
+
+export type QueryGetSignedDocumentsByStatusArgs = {
+  status: Scalars['String']['input'];
+};
+
+
+export type QueryGetSignedDocumentsByVerificationIdArgs = {
+  verificationId: Scalars['String']['input'];
 };
 
 
@@ -675,6 +785,24 @@ export type QueryKycVerificationsWithRelationsByStatusArgs = {
 
 export type QueryUsersByGroupArgs = {
   groupId: Scalars['String']['input'];
+};
+
+export type SignedDocument = {
+  __typename?: 'SignedDocument';
+  additionalData?: Maybe<Scalars['JSON']['output']>;
+  completedAt?: Maybe<Scalars['String']['output']>;
+  createdAt: Scalars['String']['output'];
+  documentUrl?: Maybe<Scalars['String']['output']>;
+  docusealSubmissionId?: Maybe<Scalars['String']['output']>;
+  id: Scalars['ID']['output'];
+  kycVerification?: Maybe<KycVerification>;
+  signerEmail?: Maybe<Scalars['String']['output']>;
+  signerPhone?: Maybe<Scalars['String']['output']>;
+  status: Scalars['String']['output'];
+  template?: Maybe<DocusealTemplate>;
+  templateId: Scalars['String']['output'];
+  updatedAt: Scalars['String']['output'];
+  verificationId: Scalars['String']['output'];
 };
 
 export type TypeStats = {
@@ -843,6 +971,7 @@ export type ResolversTypes = {
   Date: ResolverTypeWrapper<Scalars['Date']['output']>;
   DateTime: ResolverTypeWrapper<Scalars['DateTime']['output']>;
   Document: ResolverTypeWrapper<Document>;
+  DocusealTemplate: ResolverTypeWrapper<DocusealTemplate>;
   ExternalVerification: ResolverTypeWrapper<ExternalVerification>;
   ExternalVerificationType: ExternalVerificationType;
   FacetecResult: ResolverTypeWrapper<FacetecResult>;
@@ -860,6 +989,7 @@ export type ResolversTypes = {
   KycVerificationWithRelations: ResolverTypeWrapper<KycVerificationWithRelations>;
   Mutation: ResolverTypeWrapper<{}>;
   Query: ResolverTypeWrapper<{}>;
+  SignedDocument: ResolverTypeWrapper<SignedDocument>;
   String: ResolverTypeWrapper<Scalars['String']['output']>;
   TypeStats: ResolverTypeWrapper<TypeStats>;
   UpdateCompanyInput: UpdateCompanyInput;
@@ -888,6 +1018,7 @@ export type ResolversParentTypes = {
   Date: Scalars['Date']['output'];
   DateTime: Scalars['DateTime']['output'];
   Document: Document;
+  DocusealTemplate: DocusealTemplate;
   ExternalVerification: ExternalVerification;
   FacetecResult: FacetecResult;
   Float: Scalars['Float']['output'];
@@ -902,6 +1033,7 @@ export type ResolversParentTypes = {
   KycVerificationWithRelations: KycVerificationWithRelations;
   Mutation: {};
   Query: {};
+  SignedDocument: SignedDocument;
   String: Scalars['String']['output'];
   TypeStats: TypeStats;
   UpdateCompanyInput: UpdateCompanyInput;
@@ -973,6 +1105,21 @@ export type DocumentResolvers<ContextType = any, ParentType extends ResolversPar
   updatedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   verificationId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   verificationStatus?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type DocusealTemplateResolvers<ContextType = any, ParentType extends ResolversParentTypes['DocusealTemplate'] = ResolversParentTypes['DocusealTemplate']> = {
+  company?: Resolver<Maybe<ResolversTypes['Company']>, ParentType, ContextType>;
+  companyId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  documentType?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  docusealTemplateId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  isActive?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  signedDocuments?: Resolver<Maybe<Array<ResolversTypes['SignedDocument']>>, ParentType, ContextType>;
+  updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -1090,10 +1237,12 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   assignDocumentReviewer?: Resolver<ResolversTypes['Document'], ParentType, ContextType, RequireFields<MutationAssignDocumentReviewerArgs, 'documentId' | 'reviewerId'>>;
   assignKycVerification?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAssignKycVerificationArgs, 'id' | 'userId'>>;
   createCompany?: Resolver<ResolversTypes['Company'], ParentType, ContextType, RequireFields<MutationCreateCompanyArgs, 'input'>>;
+  createDocusealTemplate?: Resolver<ResolversTypes['DocusealTemplate'], ParentType, ContextType, RequireFields<MutationCreateDocusealTemplateArgs, 'companyId' | 'documentType' | 'docusealTemplateId' | 'name'>>;
   createExternalVerification?: Resolver<ResolversTypes['ExternalVerification'], ParentType, ContextType, RequireFields<MutationCreateExternalVerificationArgs, 'input'>>;
   createFacetecResult?: Resolver<ResolversTypes['FacetecResult'], ParentType, ContextType, RequireFields<MutationCreateFacetecResultArgs, 'input'>>;
   createKycPerson?: Resolver<ResolversTypes['KycPerson'], ParentType, ContextType, RequireFields<MutationCreateKycPersonArgs, 'input'>>;
   createKycVerification?: Resolver<ResolversTypes['KycVerification'], ParentType, ContextType, RequireFields<MutationCreateKycVerificationArgs, 'input'>>;
+  createSignedDocument?: Resolver<ResolversTypes['SignedDocument'], ParentType, ContextType, RequireFields<MutationCreateSignedDocumentArgs, 'templateId' | 'verificationId'>>;
   createUser?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationCreateUserArgs, 'input'>>;
   createVerificationLink?: Resolver<ResolversTypes['VerificationLink'], ParentType, ContextType, RequireFields<MutationCreateVerificationLinkArgs, 'input'>>;
   deleteCompany?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeleteCompanyArgs, 'companyId'>>;
@@ -1106,6 +1255,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   updateCompanyStatus?: Resolver<ResolversTypes['Company'], ParentType, ContextType, RequireFields<MutationUpdateCompanyStatusArgs, 'companyId' | 'status'>>;
   updateDocumentOcrData?: Resolver<ResolversTypes['Document'], ParentType, ContextType, RequireFields<MutationUpdateDocumentOcrDataArgs, 'documentId' | 'ocrData'>>;
   updateDocumentStatus?: Resolver<ResolversTypes['Document'], ParentType, ContextType, RequireFields<MutationUpdateDocumentStatusArgs, 'documentId' | 'status'>>;
+  updateDocusealTemplateStatus?: Resolver<ResolversTypes['DocusealTemplate'], ParentType, ContextType, RequireFields<MutationUpdateDocusealTemplateStatusArgs, 'isActive' | 'templateId'>>;
   updateExternalVerificationRequest?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationUpdateExternalVerificationRequestArgs, 'id' | 'requestData'>>;
   updateExternalVerificationResponse?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationUpdateExternalVerificationResponseArgs, 'id' | 'responseData'>>;
   updateExternalVerificationStatus?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationUpdateExternalVerificationStatusArgs, 'id' | 'status'>>;
@@ -1113,6 +1263,9 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   updateKycPerson?: Resolver<ResolversTypes['KycPerson'], ParentType, ContextType, RequireFields<MutationUpdateKycPersonArgs, 'id' | 'input'>>;
   updateKycPersonContactByToken?: Resolver<ResolversTypes['KycPerson'], ParentType, ContextType, RequireFields<MutationUpdateKycPersonContactByTokenArgs, 'email' | 'phone' | 'token'>>;
   updateKycVerificationStatus?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationUpdateKycVerificationStatusArgs, 'id' | 'status'>>;
+  updateSignedDocumentStatus?: Resolver<ResolversTypes['SignedDocument'], ParentType, ContextType, RequireFields<MutationUpdateSignedDocumentStatusArgs, 'signedDocumentId' | 'status'>>;
+  updateSignedDocumentSubmissionId?: Resolver<ResolversTypes['SignedDocument'], ParentType, ContextType, RequireFields<MutationUpdateSignedDocumentSubmissionIdArgs, 'signedDocumentId' | 'submissionId'>>;
+  updateSignedDocumentUrl?: Resolver<ResolversTypes['SignedDocument'], ParentType, ContextType, RequireFields<MutationUpdateSignedDocumentUrlArgs, 'signedDocumentId' | 'url'>>;
   updateUserPersonalInfo?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationUpdateUserPersonalInfoArgs, 'input'>>;
   updateVerificationLinkStatus?: Resolver<ResolversTypes['VerificationLink'], ParentType, ContextType, RequireFields<MutationUpdateVerificationLinkStatusArgs, 'status' | 'token'>>;
   validateVerificationLink?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationValidateVerificationLinkArgs, 'token'>>;
@@ -1123,16 +1276,24 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   authWithCredentials?: Resolver<ResolversTypes['ClientApiAuthResponse'], ParentType, ContextType, RequireFields<QueryAuthWithCredentialsArgs, 'email'>>;
   externalVerification?: Resolver<Maybe<ResolversTypes['ExternalVerification']>, ParentType, ContextType, RequireFields<QueryExternalVerificationArgs, 'id'>>;
   externalVerificationsByKycId?: Resolver<Maybe<Array<ResolversTypes['ExternalVerification']>>, ParentType, ContextType, RequireFields<QueryExternalVerificationsByKycIdArgs, 'kycVerificationId'>>;
+  getActiveDocusealTemplatesByCompanyId?: Resolver<Array<ResolversTypes['DocusealTemplate']>, ParentType, ContextType, RequireFields<QueryGetActiveDocusealTemplatesByCompanyIdArgs, 'companyId'>>;
   getAllCompanies?: Resolver<Array<ResolversTypes['Company']>, ParentType, ContextType>;
+  getAllDocusealTemplates?: Resolver<Array<ResolversTypes['DocusealTemplate']>, ParentType, ContextType>;
   getCompanyById?: Resolver<ResolversTypes['Company'], ParentType, ContextType, RequireFields<QueryGetCompanyByIdArgs, 'companyId'>>;
   getDocumentById?: Resolver<ResolversTypes['Document'], ParentType, ContextType, RequireFields<QueryGetDocumentByIdArgs, 'documentId'>>;
   getDocumentsByReviewer?: Resolver<Array<ResolversTypes['Document']>, ParentType, ContextType, RequireFields<QueryGetDocumentsByReviewerArgs, 'reviewerId'>>;
   getDocumentsByStatus?: Resolver<Array<ResolversTypes['Document']>, ParentType, ContextType, RequireFields<QueryGetDocumentsByStatusArgs, 'status'>>;
   getDocumentsByType?: Resolver<Array<ResolversTypes['Document']>, ParentType, ContextType, RequireFields<QueryGetDocumentsByTypeArgs, 'documentType'>>;
   getDocumentsByVerificationId?: Resolver<Array<ResolversTypes['Document']>, ParentType, ContextType, RequireFields<QueryGetDocumentsByVerificationIdArgs, 'verificationId'>>;
+  getDocusealTemplateById?: Resolver<ResolversTypes['DocusealTemplate'], ParentType, ContextType, RequireFields<QueryGetDocusealTemplateByIdArgs, 'templateId'>>;
+  getDocusealTemplatesByCompanyId?: Resolver<Array<ResolversTypes['DocusealTemplate']>, ParentType, ContextType, RequireFields<QueryGetDocusealTemplatesByCompanyIdArgs, 'companyId'>>;
+  getDocusealTemplatesByDocumentType?: Resolver<Array<ResolversTypes['DocusealTemplate']>, ParentType, ContextType, RequireFields<QueryGetDocusealTemplatesByDocumentTypeArgs, 'documentType'>>;
   getFacetecResultById?: Resolver<ResolversTypes['FacetecResult'], ParentType, ContextType, RequireFields<QueryGetFacetecResultByIdArgs, 'facetecResultId'>>;
   getFacetecResultsByVerificationId?: Resolver<Array<ResolversTypes['FacetecResult']>, ParentType, ContextType, RequireFields<QueryGetFacetecResultsByVerificationIdArgs, 'verificationId'>>;
   getKycPersonById?: Resolver<Maybe<ResolversTypes['KycPerson']>, ParentType, ContextType, RequireFields<QueryGetKycPersonByIdArgs, 'id'>>;
+  getSignedDocumentById?: Resolver<ResolversTypes['SignedDocument'], ParentType, ContextType, RequireFields<QueryGetSignedDocumentByIdArgs, 'signedDocumentId'>>;
+  getSignedDocumentsByStatus?: Resolver<Array<ResolversTypes['SignedDocument']>, ParentType, ContextType, RequireFields<QueryGetSignedDocumentsByStatusArgs, 'status'>>;
+  getSignedDocumentsByVerificationId?: Resolver<Array<ResolversTypes['SignedDocument']>, ParentType, ContextType, RequireFields<QueryGetSignedDocumentsByVerificationIdArgs, 'verificationId'>>;
   getVerificationLinkById?: Resolver<ResolversTypes['VerificationLink'], ParentType, ContextType, RequireFields<QueryGetVerificationLinkByIdArgs, 'verificationLinkId'>>;
   getVerificationLinkByToken?: Resolver<ResolversTypes['VerificationLink'], ParentType, ContextType, RequireFields<QueryGetVerificationLinkByTokenArgs, 'token'>>;
   getVerificationLinksByVerificationId?: Resolver<Array<ResolversTypes['VerificationLink']>, ParentType, ContextType, RequireFields<QueryGetVerificationLinksByVerificationIdArgs, 'verificationId'>>;
@@ -1153,6 +1314,24 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   test?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   user?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
   usersByGroup?: Resolver<Maybe<Array<ResolversTypes['User']>>, ParentType, ContextType, RequireFields<QueryUsersByGroupArgs, 'groupId'>>;
+};
+
+export type SignedDocumentResolvers<ContextType = any, ParentType extends ResolversParentTypes['SignedDocument'] = ResolversParentTypes['SignedDocument']> = {
+  additionalData?: Resolver<Maybe<ResolversTypes['JSON']>, ParentType, ContextType>;
+  completedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  documentUrl?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  docusealSubmissionId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  kycVerification?: Resolver<Maybe<ResolversTypes['KycVerification']>, ParentType, ContextType>;
+  signerEmail?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  signerPhone?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  status?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  template?: Resolver<Maybe<ResolversTypes['DocusealTemplate']>, ParentType, ContextType>;
+  templateId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  verificationId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export type TypeStatsResolvers<ContextType = any, ParentType extends ResolversParentTypes['TypeStats'] = ResolversParentTypes['TypeStats']> = {
@@ -1207,6 +1386,7 @@ export type Resolvers<ContextType = any> = {
   Date?: GraphQLScalarType;
   DateTime?: GraphQLScalarType;
   Document?: DocumentResolvers<ContextType>;
+  DocusealTemplate?: DocusealTemplateResolvers<ContextType>;
   ExternalVerification?: ExternalVerificationResolvers<ContextType>;
   FacetecResult?: FacetecResultResolvers<ContextType>;
   Group?: GroupResolvers<ContextType>;
@@ -1217,6 +1397,7 @@ export type Resolvers<ContextType = any> = {
   KycVerificationWithRelations?: KycVerificationWithRelationsResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
+  SignedDocument?: SignedDocumentResolvers<ContextType>;
   TypeStats?: TypeStatsResolvers<ContextType>;
   User?: UserResolvers<ContextType>;
   VerificationLink?: VerificationLinkResolvers<ContextType>;

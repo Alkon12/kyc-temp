@@ -1,0 +1,26 @@
+meta {
+  name: Get SignedDocuments By VerificationId
+  type: graphql
+  seq: 2
+}
+
+query GetSignedDocumentsByVerificationId {
+  getSignedDocumentsByVerificationId(verificationId: "verification-id") {
+    id
+    verificationId
+    templateId
+    status
+    signerEmail
+    signerPhone
+    documentUrl
+    createdAt
+    updatedAt
+    completedAt
+    
+    template {
+      id
+      name
+      documentType
+    }
+  }
+} 
