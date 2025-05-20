@@ -138,6 +138,23 @@ export type Document = {
   verificationStatus: Scalars['String']['output'];
 };
 
+export type DocumentSigningResponse = {
+  __typename?: 'DocumentSigningResponse';
+  documentId: Scalars['String']['output'];
+  message?: Maybe<Scalars['String']['output']>;
+  submissionId?: Maybe<Scalars['String']['output']>;
+  success: Scalars['Boolean']['output'];
+};
+
+export type DocumentToSign = {
+  __typename?: 'DocumentToSign';
+  documentId: Scalars['String']['output'];
+  signerEmail?: Maybe<Scalars['String']['output']>;
+  signerPhone?: Maybe<Scalars['String']['output']>;
+  status: Scalars['String']['output'];
+  templateId: Scalars['String']['output'];
+};
+
 export type DocusealTemplate = {
   __typename?: 'DocusealTemplate';
   company?: Maybe<Company>;
@@ -358,6 +375,7 @@ export type Mutation = {
   generateCompanyApiKey: Company;
   invalidateVerificationLink: Scalars['Boolean']['output'];
   recordVerificationLinkAccess: VerificationLink;
+  sendDocumentForSigning: DocumentSigningResponse;
   syncDocusealTemplates: Array<DocusealTemplate>;
   updateCompany: Company;
   updateCompanyStatus: Company;
@@ -477,6 +495,12 @@ export type MutationInvalidateVerificationLinkArgs = {
 
 export type MutationRecordVerificationLinkAccessArgs = {
   token: Scalars['String']['input'];
+};
+
+
+export type MutationSendDocumentForSigningArgs = {
+  data?: InputMaybe<Scalars['JSON']['input']>;
+  documentId: Scalars['String']['input'];
 };
 
 
@@ -606,7 +630,9 @@ export type Query = {
   getDocumentsByStatus: Array<Document>;
   getDocumentsByType: Array<Document>;
   getDocumentsByVerificationId: Array<Document>;
+  getDocumentsToSignByVerificationId: Array<DocumentToSign>;
   getDocusealTemplateById: DocusealTemplate;
+  getDocusealTemplateId?: Maybe<Scalars['String']['output']>;
   getDocusealTemplatesByCompanyId: Array<DocusealTemplate>;
   getDocusealTemplatesByDocumentType: Array<DocusealTemplate>;
   getFacetecResultById: FacetecResult;
@@ -695,8 +721,18 @@ export type QueryGetDocumentsByVerificationIdArgs = {
 };
 
 
+export type QueryGetDocumentsToSignByVerificationIdArgs = {
+  verificationId: Scalars['String']['input'];
+};
+
+
 export type QueryGetDocusealTemplateByIdArgs = {
   templateId: Scalars['String']['input'];
+};
+
+
+export type QueryGetDocusealTemplateIdArgs = {
+  signedDocumentId: Scalars['String']['input'];
 };
 
 
@@ -1023,6 +1059,8 @@ export type ResolversTypes = {
   Date: ResolverTypeWrapper<Scalars['Date']['output']>;
   DateTime: ResolverTypeWrapper<Scalars['DateTime']['output']>;
   Document: ResolverTypeWrapper<Document>;
+  DocumentSigningResponse: ResolverTypeWrapper<DocumentSigningResponse>;
+  DocumentToSign: ResolverTypeWrapper<DocumentToSign>;
   DocusealTemplate: ResolverTypeWrapper<DocusealTemplate>;
   DocusealTemplateDocument: ResolverTypeWrapper<DocusealTemplateDocument>;
   DocusealTemplateField: ResolverTypeWrapper<DocusealTemplateField>;
@@ -1075,6 +1113,8 @@ export type ResolversParentTypes = {
   Date: Scalars['Date']['output'];
   DateTime: Scalars['DateTime']['output'];
   Document: Document;
+  DocumentSigningResponse: DocumentSigningResponse;
+  DocumentToSign: DocumentToSign;
   DocusealTemplate: DocusealTemplate;
   DocusealTemplateDocument: DocusealTemplateDocument;
   DocusealTemplateField: DocusealTemplateField;
@@ -1167,6 +1207,23 @@ export type DocumentResolvers<ContextType = any, ParentType extends ResolversPar
   updatedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   verificationId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   verificationStatus?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type DocumentSigningResponseResolvers<ContextType = any, ParentType extends ResolversParentTypes['DocumentSigningResponse'] = ResolversParentTypes['DocumentSigningResponse']> = {
+  documentId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  message?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  submissionId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  success?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type DocumentToSignResolvers<ContextType = any, ParentType extends ResolversParentTypes['DocumentToSign'] = ResolversParentTypes['DocumentToSign']> = {
+  documentId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  signerEmail?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  signerPhone?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  status?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  templateId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -1359,6 +1416,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   generateCompanyApiKey?: Resolver<ResolversTypes['Company'], ParentType, ContextType, RequireFields<MutationGenerateCompanyApiKeyArgs, 'companyId'>>;
   invalidateVerificationLink?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationInvalidateVerificationLinkArgs, 'token'>>;
   recordVerificationLinkAccess?: Resolver<ResolversTypes['VerificationLink'], ParentType, ContextType, RequireFields<MutationRecordVerificationLinkAccessArgs, 'token'>>;
+  sendDocumentForSigning?: Resolver<ResolversTypes['DocumentSigningResponse'], ParentType, ContextType, RequireFields<MutationSendDocumentForSigningArgs, 'documentId'>>;
   syncDocusealTemplates?: Resolver<Array<ResolversTypes['DocusealTemplate']>, ParentType, ContextType, RequireFields<MutationSyncDocusealTemplatesArgs, 'companyId'>>;
   updateCompany?: Resolver<ResolversTypes['Company'], ParentType, ContextType, RequireFields<MutationUpdateCompanyArgs, 'companyId' | 'input'>>;
   updateCompanyStatus?: Resolver<ResolversTypes['Company'], ParentType, ContextType, RequireFields<MutationUpdateCompanyStatusArgs, 'companyId' | 'status'>>;
@@ -1394,7 +1452,9 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   getDocumentsByStatus?: Resolver<Array<ResolversTypes['Document']>, ParentType, ContextType, RequireFields<QueryGetDocumentsByStatusArgs, 'status'>>;
   getDocumentsByType?: Resolver<Array<ResolversTypes['Document']>, ParentType, ContextType, RequireFields<QueryGetDocumentsByTypeArgs, 'documentType'>>;
   getDocumentsByVerificationId?: Resolver<Array<ResolversTypes['Document']>, ParentType, ContextType, RequireFields<QueryGetDocumentsByVerificationIdArgs, 'verificationId'>>;
+  getDocumentsToSignByVerificationId?: Resolver<Array<ResolversTypes['DocumentToSign']>, ParentType, ContextType, RequireFields<QueryGetDocumentsToSignByVerificationIdArgs, 'verificationId'>>;
   getDocusealTemplateById?: Resolver<ResolversTypes['DocusealTemplate'], ParentType, ContextType, RequireFields<QueryGetDocusealTemplateByIdArgs, 'templateId'>>;
+  getDocusealTemplateId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType, RequireFields<QueryGetDocusealTemplateIdArgs, 'signedDocumentId'>>;
   getDocusealTemplatesByCompanyId?: Resolver<Array<ResolversTypes['DocusealTemplate']>, ParentType, ContextType, RequireFields<QueryGetDocusealTemplatesByCompanyIdArgs, 'companyId'>>;
   getDocusealTemplatesByDocumentType?: Resolver<Array<ResolversTypes['DocusealTemplate']>, ParentType, ContextType, RequireFields<QueryGetDocusealTemplatesByDocumentTypeArgs, 'documentType'>>;
   getFacetecResultById?: Resolver<ResolversTypes['FacetecResult'], ParentType, ContextType, RequireFields<QueryGetFacetecResultByIdArgs, 'facetecResultId'>>;
@@ -1495,6 +1555,8 @@ export type Resolvers<ContextType = any> = {
   Date?: GraphQLScalarType;
   DateTime?: GraphQLScalarType;
   Document?: DocumentResolvers<ContextType>;
+  DocumentSigningResponse?: DocumentSigningResponseResolvers<ContextType>;
+  DocumentToSign?: DocumentToSignResolvers<ContextType>;
   DocusealTemplate?: DocusealTemplateResolvers<ContextType>;
   DocusealTemplateDocument?: DocusealTemplateDocumentResolvers<ContextType>;
   DocusealTemplateField?: DocusealTemplateFieldResolvers<ContextType>;

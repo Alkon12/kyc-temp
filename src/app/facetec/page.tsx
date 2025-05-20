@@ -15,6 +15,7 @@ import { useCurpValidation } from '@/hooks/useCurpValidation';
 import { useFuzzyValidation } from '@/hooks/useFuzzyValidation';
 import { useListaNominalValidation } from '@/hooks/useListaNominalValidation';
 import { useVerificationStatus } from '@/hooks/useVerificationStatus';
+import { useDocumentSigning } from '@/hooks';
 import { Icons } from "@/components/icons";
 
 // Consulta para obtener verificación usando token en lugar del ID
@@ -169,6 +170,14 @@ const FaceTecContent: React.FC = () => {
 
   const [isProcessing, setIsProcessing] = useState(false);
 
+  // Agregar el hook de documento para firma
+  const {
+    isLoading: isDocumentLoading,
+    error: documentError,
+    getDocumentsToSign,
+    sendDocumentForSigning
+  } = useDocumentSigning();
+
   // Configurar el servicio de flujo de verificación con el cliente Apollo
   useEffect(() => {
     ClientVerificationFlowService.setApolloClient(publicClient);
@@ -233,7 +242,8 @@ const FaceTecContent: React.FC = () => {
                            isListaNominalUpdatingKycStatus ||
                            isFuzzyValidating ||
                            isFuzzySaving ||
-                           isFuzzyUpdatingKycStatus;
+                           isFuzzyUpdatingKycStatus ||
+                           isDocumentLoading;
     
     setIsProcessing(isAnyProcessing);
   }, [
@@ -246,7 +256,8 @@ const FaceTecContent: React.FC = () => {
     isListaNominalUpdatingKycStatus,
     isFuzzyValidating,
     isFuzzySaving,
-    isFuzzyUpdatingKycStatus
+    isFuzzyUpdatingKycStatus,
+    isDocumentLoading
   ]);
 
   // Agregar query para FaceTecResults (no se ejecuta automáticamente)
@@ -876,22 +887,85 @@ const FaceTecContent: React.FC = () => {
     setStep('contacto');
   };
   
-  const handleVerificationCompleted = () => {
+  const handleVerificationCompleted = async () => {
     // Actualizar el estado del enlace a "verification_completed"
     if (token && data?.getVerificationLinkByToken?.verificationId) {
       const verificationId = data.getVerificationLinkByToken.verificationId;
       
-      completeVerification(token, verificationId)
-        .then(response => {
-          if (response.verificationLinkSuccess) {
-            console.log('Estado actualizado a verification_completed correctamente');
-          } else {
-            console.error('Error al actualizar estado:', response.verificationLinkError);
+      try {
+        const completionResponse = await completeVerification(token, verificationId);
+        if (completionResponse.verificationLinkSuccess) {
+          console.log('Estado actualizado a verification_completed correctamente');
+          
+          // Verificar si hay documentos para firmar
+          try {
+            console.log('Verificando documentos pendientes para firma...');
+            const documents = await getDocumentsToSign(verificationId);
+            
+            if (documents && documents.length > 0) {
+              console.log('Se encontraron documentos pendientes para firma:', documents);
+              
+              // Recopilar datos para enviar con el documento
+              const signingData: any = {};
+              
+              // Añadir nombre completo si está disponible
+              if (fullName) {
+                signingData.nombre = fullName;
+                console.log('Preparando documento con nombre completo:', fullName);
+              }
+              
+              // Añadir CURP si está disponible en los datos extraídos
+              if (extractedPersonalData?.documentNumber && 
+                  ClientVerificationFlowService.isCURPValidationRequired()) {
+                // Si el documentNumber es CURP (18 caracteres alfanuméricos)
+                const documentNumber = extractedPersonalData.documentNumber;
+                if (/^[A-Z0-9]{18}$/.test(documentNumber)) {
+                  signingData.curp = documentNumber;
+                  console.log('Añadiendo CURP al documento:', documentNumber);
+                }
+              }
+              
+              // Enviar cada documento con los datos
+              for (const doc of documents) {
+                try {
+                  console.log(`Enviando documento ${doc.documentId} para firma con plantilla ${doc.templateId}...`);
+                  
+                  // Verificar que la propiedad templateId existe y no está vacía
+                  if (!doc.templateId) {
+                    console.error(`El documento ${doc.documentId} no tiene un ID de plantilla válido`);
+                    continue;
+                  }
+                  
+                  // Asegurar que tenemos un email para enviar el documento
+                  if (!doc.signerEmail && !signingData.email) {
+                    console.warn(`El documento ${doc.documentId} no tiene un email para enviar. Usando el email de contacto si está disponible.`);
+                    
+                    // Si el documento no tiene email, intentar usar el email del contactInfo
+                    if (extractedPersonalData?.email) {
+                      signingData.email = extractedPersonalData.email;
+                    }
+                  }
+                  
+                  const result = await sendDocumentForSigning(doc.documentId, signingData);
+                  console.log(`Documento ${doc.documentId} enviado correctamente:`, result);
+                } catch (docError) {
+                  console.error(`Error al enviar documento ${doc.documentId}:`, docError);
+                  // Continuar con el siguiente documento
+                }
+              }
+            } else {
+              console.log('No se encontraron documentos pendientes para firma');
+            }
+          } catch (documentsError) {
+            console.error('Error al verificar documentos para firma:', documentsError);
+            // Continuar con el proceso a pesar del error
           }
-        })
-        .catch(error => {
-          console.error('Error al completar verificación:', error);
-        });
+        } else {
+          console.error('Error al actualizar estado:', completionResponse.verificationLinkError);
+        }
+      } catch (error) {
+        console.error('Error al completar verificación:', error);
+      }
     }
     
     // Mostrar pantalla de verificación completada

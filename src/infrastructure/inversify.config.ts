@@ -78,6 +78,8 @@ import { DocusealTemplateResolvers } from '@api/graphql/docuseal-template/Docuse
 import { SignedDocumentResolvers } from '@api/graphql/signed-document/SignedDocumentResolvers'
 import { DocusealSyncService } from '@service/DocusealSyncService'
 import AbstractDocusealSyncService from '@domain/docuseal/DocusealSyncService'
+import { DocumentSigningService } from '@service/DocumentSigningService'
+import { DocusealApiService } from '@service/DocusealApiService'
 
 const container = new Container()
 
@@ -117,6 +119,9 @@ container.bind<VerificationFlowService>(DI.VerificationFlowService).to(Verificat
 container.bind<ExternalVerificationService>(DI.ExternalVerificationService).to(ExternalVerificationService).inSingletonScope()
 container.bind<AbstractDocusealTemplateService>(DI.DocusealTemplateService).to(DocusealTemplateService).inSingletonScope()
 container.bind<AbstractSignedDocumentService>(DI.SignedDocumentService).to(SignedDocumentService).inSingletonScope()
+container.bind<DocumentSigningService>(DI.DocumentSigningService).to(DocumentSigningService).inSingletonScope()
+container.bind<AbstractDocusealSyncService>(DI.DocusealSyncService).to(DocusealSyncService).inSingletonScope()
+container.bind<DocusealApiService>(DI.DocusealApiService).to(DocusealApiService).inSingletonScope()
 
 // Repositories
 container.bind<UserRepository>(DI.UserRepository).to(PrismaUserRepository)
@@ -144,9 +149,6 @@ container.bind<KycController>(DI.KycController).to(KycController)
 
 // Auth Services binding
 container.bind<ApiKeyAuthService>(DI.ApiKeyAuthService).to(ApiKeyAuthService).inSingletonScope()
-
-// Docuseal
-container.bind<AbstractDocusealSyncService>(DI.DocusealSyncService).to(DocusealSyncService).inSingletonScope()
 
 export default container
 export { container }

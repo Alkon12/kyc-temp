@@ -2,6 +2,8 @@ extend type Query {
   getSignedDocumentById(signedDocumentId: String!): SignedDocument!
   getSignedDocumentsByVerificationId(verificationId: String!): [SignedDocument!]!
   getSignedDocumentsByStatus(status: String!): [SignedDocument!]!
+  getDocusealTemplateId(signedDocumentId: String!): String
+  getDocumentsToSignByVerificationId(verificationId: String!): [DocumentToSign!]!
 }
 
 extend type Mutation {
@@ -30,6 +32,26 @@ extend type Mutation {
     signedDocumentId: String!
     url: String!
   ): SignedDocument!
+  
+  sendDocumentForSigning(
+    documentId: String!
+    data: JSON
+  ): DocumentSigningResponse!
+}
+
+type DocumentToSign {
+  documentId: String!
+  templateId: String!
+  status: String!
+  signerEmail: String
+  signerPhone: String
+}
+
+type DocumentSigningResponse {
+  success: Boolean!
+  message: String
+  documentId: String!
+  submissionId: String
 }
 
 type SignedDocument {

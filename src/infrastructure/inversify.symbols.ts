@@ -35,8 +35,10 @@ export const DI = {
   DocusealTemplateRepository: Symbol.for('DocusealTemplateRepository'),
   DocusealTemplateService: Symbol.for('DocusealTemplateService'),
   DocusealSyncService: Symbol.for('DocusealSyncService'),
+  DocusealApiService: Symbol.for('DocusealApiService'),
   SignedDocumentRepository: Symbol.for('SignedDocumentRepository'),
   SignedDocumentService: Symbol.for('SignedDocumentService'),
+  DocumentSigningService: Symbol.for('DocumentSigningService'),
   
   // Casos de uso
   CreateKycUseCase: Symbol.for('CreateKycUseCase'),

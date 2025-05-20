@@ -10,6 +10,7 @@ import { StringValue } from '@domain/shared/StringValue'
 import { JsonValue } from '@domain/shared/JsonValue'
 import AbstractSignedDocumentService from '@domain/signedDocument/SignedDocumentService'
 import { CreateSignedDocumentArgs } from '@domain/signedDocument/interfaces/CreateSignedDocumentArgs'
+import { DocumentSigningService } from '@service/DocumentSigningService'
 import {
   QueryGetSignedDocumentByIdArgs,
   QueryGetSignedDocumentsByVerificationIdArgs,
@@ -20,6 +21,20 @@ import {
   MutationUpdateSignedDocumentUrlArgs
 } from '../app.schema.gen'
 
+// Define tipos adicionales que no están en app.schema.gen
+interface QueryGetDocusealTemplateIdArgs {
+  signedDocumentId: string;
+}
+
+interface QueryGetDocumentsToSignByVerificationIdArgs {
+  verificationId: string;
+}
+
+interface MutationSendDocumentForSigningArgs {
+  documentId: string;
+  data?: Record<string, any>;
+}
+
 @injectable()
 export class SignedDocumentResolvers {
   build() {
@@ -28,12 +43,15 @@ export class SignedDocumentResolvers {
         getSignedDocumentById: this.getSignedDocumentById,
         getSignedDocumentsByVerificationId: this.getSignedDocumentsByVerificationId,
         getSignedDocumentsByStatus: this.getSignedDocumentsByStatus,
+        getDocusealTemplateId: this.getDocusealTemplateId,
+        getDocumentsToSignByVerificationId: this.getDocumentsToSignByVerificationId,
       },
       Mutation: {
         createSignedDocument: this.createSignedDocument,
         updateSignedDocumentStatus: this.updateSignedDocumentStatus,
         updateSignedDocumentSubmissionId: this.updateSignedDocumentSubmissionId,
         updateSignedDocumentUrl: this.updateSignedDocumentUrl,
+        sendDocumentForSigning: this.sendDocumentForSigning,
       },
     }
   }
@@ -103,5 +121,55 @@ export class SignedDocumentResolvers {
     const signedDocument = await signedDocumentService.updateDocumentUrl(new SignedDocumentId(signedDocumentId), url)
     
     return signedDocument.toDTO()
+  }
+
+  getDocusealTemplateId = async (_parent: unknown, { signedDocumentId }: QueryGetDocusealTemplateIdArgs): Promise<string | null> => {
+    try {
+      const documentSigningService = container.get<DocumentSigningService>(DI.DocumentSigningService);
+      
+      const templateId = await documentSigningService.getDocusealTemplateId(signedDocumentId);
+      
+      return templateId?.toDTO() || null;
+    } catch (error) {
+      console.error('Error getting docuseal template ID:', error);
+      return null;
+    }
+  }
+  
+  getDocumentsToSignByVerificationId = async (_parent: unknown, { verificationId }: QueryGetDocumentsToSignByVerificationIdArgs): Promise<any[]> => {
+    try {
+      const documentSigningService = container.get<DocumentSigningService>(DI.DocumentSigningService);
+      
+      const documents = await documentSigningService.getDocumentsToSign(verificationId);
+      
+      return documents;
+    } catch (error) {
+      console.error('Error getting documents to sign:', error);
+      return [];
+    }
+  }
+  
+  sendDocumentForSigning = async (_parent: unknown, { documentId, data }: MutationSendDocumentForSigningArgs): Promise<any> => {
+    try {
+      const documentSigningService = container.get<DocumentSigningService>(DI.DocumentSigningService);
+      
+      const result = await documentSigningService.sendDocumentForSigning(documentId, data);
+      
+      return {
+        success: true,
+        message: "Documento enviado correctamente",
+        documentId: documentId,
+        submissionId: result?.id || null
+      };
+    } catch (error) {
+      console.error('Error sending document for signing:', error);
+      
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : "Error desconocido al enviar documento",
+        documentId: documentId,
+        submissionId: null
+      };
+    }
   }
 } 
