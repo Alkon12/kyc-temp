@@ -321,6 +321,74 @@ const FaceTecContent: React.FC = () => {
               
               const shouldSave = Boolean(verificationId);
               
+              // Verificar si la validación CURP es requerida usando el servicio centralizado
+              let curpFullName = null;
+              if (ClientVerificationFlowService.isCURPValidationRequired()) {
+                console.log('Validación CURP requerida por el flujo de verificación');
+                
+                // Validar CURP utilizando el hook y guardar el resultado
+                try {
+                  const result = await validateCurpFromPersonalData(personalData, token || null, {
+                    verificationId,
+                    saveResult: shouldSave
+                  });
+                  
+                  // Extraer nombre completo de la respuesta de validación CURP con manejo robusto
+                  if (result.success && result.data) {
+                    try {
+                      // La respuesta CURP puede venir como string JSON dentro de data.data o en otros formatos
+                      let curpData: any = result.data;
+                      
+                      // Si es string, intentar parsear
+                      if (typeof curpData === 'string') {
+                        try {
+                          curpData = JSON.parse(curpData);
+                        } catch (e) {
+                          console.error('[FUZZY] Error al parsear string de CURP data:', e);
+                        }
+                      }
+                      
+                      console.log('[FUZZY] Intentando extraer datos de nombre de CURP:');
+                      console.log('CURP data después de parsing:', curpData);
+                      
+                      // Navegar la estructura de datos para encontrar los campos de nombre
+                      // Puede ser curpData.data o curpData.data.data dependiendo de la estructura
+                      const dataObject = curpData.data || curpData;
+                      
+                      if (dataObject) {
+                        // Extraer campos de nombre de la respuesta CURP
+                        const curpFirstName = dataObject.nombre || '';
+                        const curpLastName1 = dataObject.apellidoPaterno || '';
+                        const curpLastName2 = dataObject.apellidoMaterno || '';
+                        
+                        // Construir nombre completo de CURP
+                        if (curpFirstName || curpLastName1 || curpLastName2) {
+                          curpFullName = `${curpFirstName} ${curpLastName1} ${curpLastName2}`.trim();
+                          console.log('👤 Nombre completo extraído de CURP:', curpFullName);
+                        }
+                      }
+                    } catch (parseError) {
+                      console.error('[FUZZY] Error al extraer datos de nombre de respuesta CURP:', parseError);
+                    }
+                  }
+                  
+                  if (shouldSave) {
+                    console.log('Validación de CURP completada', 
+                      curpSavedVerificationId ? `y guardada con ID: ${curpSavedVerificationId}` : 'pero no se guardó el resultado'
+                    );
+                  } else {
+                    console.log('Validación de CURP completada pero no se guardó por falta de ID de verificación');
+                  }
+                  
+                  // Imprimir el resultado de la validación para referencia
+                  console.log('Resultado de validación CURP:', result.success ? 'Exitoso' : 'Fallido');
+                } catch (validationError) {
+                  console.error('Error durante la validación o guardado de CURP:', validationError);
+                }
+              } else {
+                console.log('Validación de CURP no requerida para este flujo');
+              }
+
               // Verificar si la validación fuzzy de nombres es requerida
               // Usar el servicio centralizado para determinar si se debe ejecutar
               if (ClientVerificationFlowService.isFuzzyValidationRequired()) {
@@ -334,20 +402,25 @@ const FaceTecContent: React.FC = () => {
                 
                 if (baseName) {
                   try {
-                    // Definir los candidatos a comparar (solo el nombre del documento)
+                    // Crear lista de candidatos incluyendo todos los nombres disponibles
                     const candidatos = [];
                     
-                    // Añadir el nombre del documento como candidato
+                    // Añadir el nombre del documento si existe
                     if (personalDataFullName) {
                       candidatos.push(personalDataFullName);
                     }
                     
+                    // Añadir el nombre de CURP si está disponible
+                    if (curpFullName) {
+                      candidatos.push(curpFullName);
+                    }
+                    
                     console.log('Candidatos para validación fuzzy:', candidatos);
                     
-                    // Llamar al servicio de validación fuzzy
+                    // Llamar al servicio de validación fuzzy una sola vez con todos los candidatos
                     const fuzzyResult = await validateFuzzyMatch(
                       baseName,   // La BASE es el nombre del kycVerification
-                      candidatos, // Los CANDIDATOS son los nombres extraídos
+                      candidatos, // Todos los candidatos disponibles
                       {
                         verificationId,
                         saveResult: shouldSave,
@@ -380,142 +453,6 @@ const FaceTecContent: React.FC = () => {
                 }
               }
                             
-              // Verificar si la validación CURP es requerida usando el servicio centralizado
-              if (ClientVerificationFlowService.isCURPValidationRequired()) {
-                console.log('Validación CURP requerida por el flujo de verificación');
-                
-                // Validar CURP utilizando el hook y guardar el resultado
-                try {
-                  const result = await validateCurpFromPersonalData(personalData, token || null, {
-                    verificationId,
-                    saveResult: shouldSave
-                  });
-                  
-                  // Extraer nombre completo de la respuesta de validación CURP con manejo robusto
-                  let curpFullName = null;
-                  if (result.success && result.data) {
-                    try {
-                      // La respuesta CURP puede venir como string JSON dentro de data.data o en otros formatos
-                      let curpData: any = result.data;
-                      
-                      // Si es string, intentar parsear
-                      if (typeof curpData === 'string') {
-                        try {
-                          curpData = JSON.parse(curpData);
-                        } catch (e) {
-                          console.error('[FUZZY] Error al parsear string de CURP data:', e);
-                        }
-                      }
-                      
-                      console.log('[FUZZY] Intentando extraer datos de nombre de CURP:');
-                      console.log('CURP data después de parsing:', curpData);
-                      
-                      // Navegar la estructura de datos para encontrar los campos de nombre
-                      // Puede ser curpData.data o curpData.data.data dependiendo de la estructura
-                      const dataObject = curpData.data || curpData;
-                      
-                      if (dataObject) {
-                        // Extraer campos de nombre de la respuesta CURP
-                        const curpFirstName = dataObject.nombre || '';
-                        const curpLastName1 = dataObject.apellidoPaterno || '';
-                        const curpLastName2 = dataObject.apellidoMaterno || '';
-                        
-                        // Construir nombre completo de CURP
-                        if (curpFirstName || curpLastName1 || curpLastName2) {
-                          curpFullName = `${curpFirstName} ${curpLastName1} ${curpLastName2}`.trim();
-                          console.log('👤 Nombre completo extraído de CURP:', curpFullName);
-                          
-                          // Si tenemos el nombre completo de CURP, realizar una validación fuzzy adicional
-                          // con AMBOS candidatos: personalData y curpData
-                          try {
-                            console.log('Realizando validación fuzzy con AMBOS candidatos (documento y CURP)');
-                            
-                            // IMPORTANTE: Usar el mismo nombre base que antes
-                            const baseName = `${firstName} ${lastName}`.trim();
-                            
-                            if (baseName) {
-                              // Crear lista de candidatos incluyendo AMBOS nombres
-                              const candidatosCombinados = [];
-                              
-                              // Añadir el nombre del documento si existe
-                              if (personalDataFullName) {
-                                candidatosCombinados.push(personalDataFullName);
-                              }
-                              
-                              // Añadir el nombre de CURP si existe
-                              if (curpFullName) {
-                                candidatosCombinados.push(curpFullName);
-                              }
-                              
-                              console.log('Candidatos combinados para validación fuzzy:', candidatosCombinados);
-                              
-                              // Llamar al servicio de validación fuzzy con todos los candidatos
-                              const fuzzyWithAllCandidates = await validateFuzzyMatch(
-                                baseName,             // La BASE es el nombre de kycVerification
-                                candidatosCombinados, // TODOS los candidatos disponibles
-                                {
-                                  verificationId,
-                                  saveResult: shouldSave,
-                                  threshold: 0.7 // Umbral configurable
-                                }
-                              );
-                              
-                              console.log('Resultado de validación fuzzy con todos los candidatos:', fuzzyWithAllCandidates);
-                              
-                              // Mostrar resultado de la mejor coincidencia
-                              if (fuzzyWithAllCandidates.bestMatch) {
-                                console.log('👤 Mejor coincidencia fuzzy (de todos los candidatos):', 
-                                  fuzzyWithAllCandidates.bestMatch.text, 
-                                  `(score: ${fuzzyWithAllCandidates.bestMatch.score.toFixed(2)})`
-                                );
-                              }
-                            } else {
-                              console.warn('No se pudo determinar un nombre base para la validación fuzzy combinada');
-                            }
-                          } catch (validationError) {
-                            console.error('Error durante la validación fuzzy combinada:', validationError);
-                          }
-                        } else {
-                          console.warn('[FUZZY] No se pudieron extraer campos de nombre de CURP');
-                        }
-                      }
-                    } catch (parseError) {
-                      console.error('[FUZZY] Error al extraer datos de nombre de respuesta CURP:', parseError);
-                    }
-                  }
-                  
-                  if (shouldSave) {
-                    console.log('Validación de CURP completada', 
-                      curpSavedVerificationId ? `y guardada con ID: ${curpSavedVerificationId}` : 'pero no se guardó el resultado'
-                    );
-                  } else {
-                    console.log('Validación de CURP completada pero no se guardó por falta de ID de verificación');
-                  }
-                  
-                  // Imprimir el resultado de la validación para referencia
-                  console.log('Resultado de validación CURP:', result.success ? 'Exitoso' : 'Fallido');
-                } catch (validationError) {
-                  console.error('Error durante la validación o guardado de CURP:', validationError);
-                  
-                  // Intentar validar sin guardar como fallback
-                  if (shouldSave) {
-                    console.log('Intentando validar CURP sin guardar como fallback...');
-                    try {
-                      const resultWithoutSaving = await validateCurpFromPersonalData(personalData, token || null, {
-                        saveResult: false
-                      });
-                      console.log('Validación de CURP sin guardado completada:', 
-                        resultWithoutSaving.success ? 'Exitoso' : 'Fallido'
-                      );
-                    } catch (fallbackError) {
-                      console.error('Error incluso en validación de fallback:', fallbackError);
-                    }
-                  }
-                }
-              } else {
-                console.log('Validación de CURP no requerida para este flujo');
-              }
-              
               // Verificar si la validación de Lista Nominal es requerida
               // Solo para Gold o cuando INEValidationRequired es true
               if (ClientVerificationFlowService.isINEValidationRequired()) {
