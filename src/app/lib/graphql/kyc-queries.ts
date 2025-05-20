@@ -87,6 +87,11 @@ export const UPDATE_EXTERNAL_VERIFICATION_STATUS = gql`
   updateExternalVerificationStatus(id: $updateExternalVerificationStatusId, status: $status)
   }
 `
+export const UPDATE_KYC_VERIFICATION_STATUS = gql`
+  mutation UpdateKycVerificationStatus($updateKycVerificationStatusId: ID!, $status: KycVerificationStatus!, $notes: String) {
+    updateKycVerificationStatus(id: $updateKycVerificationStatusId, status: $status, notes: $notes)
+  }
+`
 
 // Types for the GraphQL response
 export interface KycPerson {

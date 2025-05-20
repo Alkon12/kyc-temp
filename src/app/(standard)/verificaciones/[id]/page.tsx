@@ -7,12 +7,15 @@ import {
   GET_KYC_VERIFICATION_BY_ID, 
   UPDATE_EXTERNAL_VERIFICATION_REQUEST, 
   UPDATE_EXTERNAL_VERIFICATION_RESPONSE,
-  UPDATE_EXTERNAL_VERIFICATION_STATUS
+  UPDATE_EXTERNAL_VERIFICATION_STATUS,
+  UPDATE_KYC_VERIFICATION_STATUS
 } from '@/app/lib/graphql/kyc-queries'
 import { Card, CardContent, CardHeader, CardTitle } from '@/types/components/ui/card'
 import { Badge } from '@/types/components/ui/badge'
 import { Input } from '@/types/components/ui/input'
 import { Button } from '@/types/components/ui/button'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/types/components/ui/dialog'
+import { Textarea } from '@/types/components/ui/textarea'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/types/components/ui/accordion'
 import { Loader2Icon, AlertTriangleIcon, ArrowLeftIcon, UserIcon, BuildingIcon, FileTextIcon, ShieldIcon, LinkIcon, ClockIcon, SaveIcon, CheckCircle2Icon, XCircleIcon, AlertCircleIcon, ChevronRightIcon } from 'lucide-react'
 import Link from 'next/link'
@@ -166,6 +169,9 @@ export default function VerificationDetailPage() {
   const [editedData, setEditedData] = useState<Record<string, string>>({})
   const [currentEditingVerification, setCurrentEditingVerification] = useState<string | null>(null)
   const [revalidating, setRevalidating] = useState(false)
+  const [showNoteDialog, setShowNoteDialog] = useState(false)
+  const [note, setNote] = useState('')
+  const [pendingAction, setPendingAction] = useState<'approve' | 'reject' | null>(null)
   const params = useParams<{ id: string }>()
   const verificationId = params?.id
 
@@ -223,6 +229,23 @@ export default function VerificationDetailPage() {
       }
     ]
   });
+
+  // Add the new mutation
+  const [updateKycVerificationStatus] = useMutation(UPDATE_KYC_VERIFICATION_STATUS, {
+    onCompleted: () => {
+      toast.success(pendingAction === 'approve' ? "Verificación aprobada" : "Verificación rechazada")
+      setShowNoteDialog(false)
+      setNote('')
+      setPendingAction(null)
+      refetch()
+    },
+    onError: (error) => {
+      toast.error(`Error al actualizar el estado: ${error.message}`)
+      setShowNoteDialog(false)
+      setNote('')
+      setPendingAction(null)
+    }
+  })
 
   // Function to handle revalidation with the updated data
   const handleRevalidate = async (verification: any, newData: Record<string, string>) => {
@@ -522,6 +545,26 @@ export default function VerificationDetailPage() {
     }
   };
 
+  const handleStatusUpdate = (action: 'approve' | 'reject') => {
+    setPendingAction(action)
+    setShowNoteDialog(true)
+  }
+
+  const handleSubmitNote = () => {
+    if (!note.trim()) {
+      toast.error("Por favor, ingresa una nota")
+      return
+    }
+
+    updateKycVerificationStatus({
+      variables: {
+        updateKycVerificationStatusId: verificationId,
+        status: pendingAction === 'approve' ? 'APPROVED' : 'REJECTED',
+        notes: note.trim()
+      }
+    })
+  }
+
   if (!verificationId) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -648,8 +691,68 @@ export default function VerificationDetailPage() {
         <div className="flex items-center gap-4">
           {getVerificationTypeBadge(verification.verificationType)}
           {getStatusBadge(verification.status)}
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="bg-green-500/10 text-green-500 border-green-500/20 hover:bg-green-500/20 hover:text-green-600"
+              onClick={() => handleStatusUpdate('approve')}
+            >
+              <CheckCircle2Icon className="h-4 w-4 mr-2" />
+              Aprobar
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="bg-red-500/10 text-red-500 border-red-500/20 hover:bg-red-500/20 hover:text-red-600"
+              onClick={() => handleStatusUpdate('reject')}
+            >
+              <XCircleIcon className="h-4 w-4 mr-2" />
+              Rechazar
+            </Button>
+          </div>
         </div>
       </div>
+
+      {/* Add the Dialog component */}
+      <Dialog open={showNoteDialog} onOpenChange={setShowNoteDialog}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>
+              {pendingAction === 'approve' ? 'Aprobar Verificación' : 'Rechazar Verificación'}
+            </DialogTitle>
+            <DialogDescription>
+              Por favor, proporciona una nota explicando por qué {pendingAction === 'approve' ? 'aprobas' : 'rechazas'} esta verificación.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <Textarea
+              placeholder="Escribe tu nota aquí..."
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              className="min-h-[100px]"
+            />
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowNoteDialog(false)
+                setNote('')
+                setPendingAction(null)
+              }}
+            >
+              Cancelar
+            </Button>
+            <Button
+              variant={pendingAction === 'approve' ? 'default' : 'destructive'}
+              onClick={handleSubmitNote}
+            >
+              {pendingAction === 'approve' ? 'Aprobar' : 'Rechazar'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {/* Información Personal */}
