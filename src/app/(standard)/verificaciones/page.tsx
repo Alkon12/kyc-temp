@@ -435,7 +435,7 @@ export default function VerificationsPage() {
                             <div className="flex items-center justify-between">
                               <span className="text-sm">{formatDate(verification.updatedAt)}</span>
                               <div className="flex items-center gap-2">
-                                {verification.status.toLowerCase() === 'requires-review' && (
+                                {verification.status.toLowerCase() === 'requires-review' ? (
                                   <Button
                                     variant="outline"
                                     size="sm"
@@ -448,19 +448,20 @@ export default function VerificationsPage() {
                                     <AlertCircleIcon className="h-4 w-4" />
                                     <span>Revisar</span>
                                   </Button>
+                                ) : (
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-8 w-8 p-0 hover:bg-muted"
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      window.location.href = `/verificaciones/${verification.id}`
+                                    }}
+                                  >
+                                    <EyeIcon className="h-4 w-4" />
+                                    <span className="sr-only">Ver detalles</span>
+                                  </Button>
                                 )}
-                                {/* <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-8 px-2 gap-1.5"
-                                  onClick={(e) => {
-                                    e.stopPropagation()
-                                    window.location.href = `/verificaciones/${verification.id}`
-                                  }}
-                                >
-                                  <EyeIcon className="h-4 w-4" />
-                                  <span>Ver detalles</span>
-                                </Button> */}
                               </div>
                             </div>
                           </TableCell>
