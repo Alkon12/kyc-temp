@@ -32,6 +32,7 @@ const GET_VERIFICATION_BY_TOKEN = gql`
         verificationType
         company {
           companyName
+          redirectUrl
         }
         kycPerson {
           firstName
@@ -200,7 +201,8 @@ const FaceTecContent: React.FC = () => {
       console.log('🔍 Información de verificación disponible:', {
         verificationIdFromLink: data.getVerificationLinkByToken.verificationId,
         verificationLinkId: data.getVerificationLinkByToken.id,
-        kycVerificationId: data.getVerificationLinkByToken.kycVerification?.id
+        kycVerificationId: data.getVerificationLinkByToken.kycVerification?.id,
+        redirectUrl: data.getVerificationLinkByToken.kycVerification?.company?.redirectUrl
       });
     }
   }, [data]);
@@ -907,6 +909,17 @@ const FaceTecContent: React.FC = () => {
       }
     }
     
+    // Verificar si existe redirectUrl de la compañía para redirección automática
+    const redirectUrl = data?.getVerificationLinkByToken?.kycVerification?.company?.redirectUrl;
+    
+    if (redirectUrl) {
+      console.log('redirectUrl encontrado, redirigiendo a:', redirectUrl);
+      // Dar tiempo para que se complete el procesamiento y luego redireccionar
+      setTimeout(() => {
+        window.location.href = redirectUrl;
+      }, 2000); // Esperar 2 segundos para mostrar la confirmación antes de redireccionar
+    }
+    
     // Mostrar pantalla de verificación completada
     setStep('completado');
   };
@@ -966,6 +979,7 @@ const FaceTecContent: React.FC = () => {
   const lastName = kycVerification.kycPerson?.lastName || '';
   const fullName = `${firstName} ${lastName}`.trim();
   const verificationType = kycVerification.verificationType || 'bronze';
+  const redirectUrl = kycVerification.company?.redirectUrl;
   
   // Imprimir el nombre completo desde la query
   console.log('👤 Nombre completo desde query:', fullName);
@@ -1006,6 +1020,7 @@ const FaceTecContent: React.FC = () => {
           onRechazar={handleRechazarTerminos}
           companyName={companyName}
           firstName={firstName}
+          redirectUrl={redirectUrl}
         />
       )}
 
@@ -1032,9 +1047,20 @@ const FaceTecContent: React.FC = () => {
             <p className="text-gray-600 mb-4">
               Tu proceso de verificación ha sido completado exitosamente.
             </p>
-            <p className="text-gray-500 text-sm">
+            <p className="text-gray-500 text-sm mb-4">
               Nivel de verificación: <span className="font-semibold">{verificationType.toUpperCase()}</span>
             </p>
+            {redirectUrl && (
+              <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <div className="flex items-center justify-center mb-2">
+                  <Icons.spinner className="h-4 w-4 text-blue-500 animate-spin mr-2" />
+                  <span className="text-blue-700 font-medium">Redirigiendo automáticamente...</span>
+                </div>
+                <p className="text-blue-600 text-sm">
+                  Te redirigiremos automáticamente en unos segundos.
+                </p>
+              </div>
+            )}
           </div>
         </div>
       )}

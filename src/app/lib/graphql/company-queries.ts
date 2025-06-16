@@ -7,6 +7,7 @@ export const GET_ALL_COMPANIES = gql`
       companyName
       apiKey
       callbackUrl
+      redirectUrl
       status
     }
   }
@@ -19,6 +20,7 @@ export const GET_COMPANY_BY_ID = gql`
       companyName
       apiKey
       callbackUrl
+      redirectUrl
       status
     }
   }

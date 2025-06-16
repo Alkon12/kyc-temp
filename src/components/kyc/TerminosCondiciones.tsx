@@ -17,13 +17,15 @@ interface TerminosCondicionesProps {
   onRechazar: () => void;
   companyName: string;
   firstName: string;
+  redirectUrl: string;
 }
 
 const TerminosCondiciones: React.FC<TerminosCondicionesProps> = ({ 
   onAceptar, 
   onRechazar,
   companyName,
-  firstName 
+  firstName,
+  redirectUrl
 }) => {
   return (
     <div className="container mx-auto max-w-4xl p-4">
@@ -32,7 +34,7 @@ const TerminosCondiciones: React.FC<TerminosCondicionesProps> = ({
           <div className="flex items-center justify-center gap-4">
             <span className="text-3xl">😊</span>
             <CardTitle className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
-              Bienvenido a {companyName}
+              Bienvenido a {companyName} {redirectUrl}
             </CardTitle>
           </div>
           <CardDescription className="text-lg text-muted-foreground">

@@ -9,6 +9,7 @@ export type CompanyEntityProps = {
   apiKey: StringValue
   status: StringValue
   callbackUrl?: StringValue
+  redirectUrl?: StringValue
   createdAt?: DateTimeValue
   updatedAt?: DateTimeValue
 }
@@ -41,6 +42,10 @@ export class CompanyEntity extends AggregateRoot<'CompanyEntity', CompanyEntityP
 
   getCallbackUrl() {
     return this._props.callbackUrl
+  }
+
+  getRedirectUrl() {
+    return this._props.redirectUrl
   }
 
   getCreatedAt() {

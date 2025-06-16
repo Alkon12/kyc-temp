@@ -7,6 +7,7 @@ export const CREATE_COMPANY = gql`
       companyName
       apiKey
       callbackUrl
+      redirectUrl
       status
     }
   }
@@ -19,6 +20,7 @@ export const UPDATE_COMPANY = gql`
       companyName
       apiKey
       callbackUrl
+      redirectUrl
       status
     }
   }

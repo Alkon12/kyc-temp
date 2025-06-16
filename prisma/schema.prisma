@@ -74,6 +74,7 @@ model Company {
   apiKey      String   @unique
   status      String   @default("active")
   callbackUrl String?
+  redirectUrl String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 

@@ -33,6 +33,7 @@ export class CompanyService implements AbstractCompanyService {
       companyName: props.companyName,
       apiKey: props.apiKey,
       callbackUrl: props.callbackUrl,
+      redirectUrl: props.redirectUrl,
       status: new StringValue('active'),
     })
 
@@ -47,6 +48,7 @@ export class CompanyService implements AbstractCompanyService {
       companyName: props.companyName || new StringValue(dto.companyName),
       apiKey: props.apiKey || new StringValue(dto.apiKey),
       callbackUrl: props.callbackUrl ? new StringValue(props.callbackUrl.toDTO()) : dto.callbackUrl ? new StringValue(dto.callbackUrl) : undefined,
+      redirectUrl: props.redirectUrl ? new StringValue(props.redirectUrl.toDTO()) : dto.redirectUrl ? new StringValue(dto.redirectUrl) : undefined,
       status: new StringValue(dto.status),
       id: companyId,
     })
@@ -62,6 +64,7 @@ export class CompanyService implements AbstractCompanyService {
       companyName: new StringValue(dto.companyName),
       apiKey: new StringValue(dto.apiKey),
       callbackUrl: dto.callbackUrl ? new StringValue(dto.callbackUrl) : undefined,
+      redirectUrl: dto.redirectUrl ? new StringValue(dto.redirectUrl) : undefined,
       status,
       id: companyId,
     })

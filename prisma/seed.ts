@@ -59,6 +59,16 @@ export const PERMISSIONS = [
     permissionName: 'user:manage',
     description: 'Manage users',
   },
+  {
+    id: randomUUID(),
+    permissionName: 'company:manage',
+    description: 'Manage company settings',
+  },
+  {
+    id: randomUUID(),
+    permissionName: 'company:create',
+    description: 'Create new companies',
+  },
 ];
 
 export const COMPANIES = [
@@ -68,6 +78,7 @@ export const COMPANIES = [
     apiKey: 'test-api-key-1',
     status: 'active',
     callbackUrl: 'https://webhook.site/test-company',
+    redirectUrl: 'https://testapp.com/kyc-complete',
   },
   {
     id: randomUUID(),
@@ -75,6 +86,7 @@ export const COMPANIES = [
     apiKey: 'test-api-key-2',
     status: 'active',
     callbackUrl: 'https://webhook.site/second-company',
+    redirectUrl: 'https://secondapp.com/verification-done',
   },
 ];
 
@@ -411,11 +423,9 @@ async function main() {
     data: {
       verificationId: kycVerifications[1].id,
       sessionId: 'facetec-session-001',
+      livenessStatus: 'passed',
+      enrollmentStatus: 'success',
       matchLevel: 85.75,
-      livenessScore: 98.50,
-      confidenceScore: 92.00,
-      faceScanSecurityLevel: 'Level5',
-      auditTrailImage: 'https://storage.example.com/audit-trail-001.jpg',
       fullResponse: {
         success: true,
         timestamp: new Date().toISOString(),
@@ -438,11 +448,9 @@ async function main() {
     data: {
       verificationId: kycVerifications[2].id,
       sessionId: 'facetec-session-002',
+      livenessStatus: 'passed',
+      enrollmentStatus: 'success',
       matchLevel: 95.20,
-      livenessScore: 99.10,
-      confidenceScore: 97.30,
-      faceScanSecurityLevel: 'Level5',
-      auditTrailImage: 'https://storage.example.com/audit-trail-002.jpg',
       fullResponse: {
         success: true,
         timestamp: new Date().toISOString(),

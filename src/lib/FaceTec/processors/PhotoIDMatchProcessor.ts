@@ -97,18 +97,18 @@ class PhotoIDMatchProcessor {
     // In v9.2.2+, configure the messages that will be displayed to the User in each of the possible cases.
     // Based on the internal processing and decision logic about how the flow gets advanced, the FaceTec SDK will use the appropriate, configured message.
     FaceTecSDK.FaceTecCustomization.setIDScanUploadMessageOverrides(
-      "Uploading<br/>Encrypted<br/>ID Scan", // Upload of ID front-side has started.
-      "Still Uploading...<br/>Slow Connection", // Upload of ID front-side is still uploading to Server after an extended period of time.
-      "Upload Complete", // Upload of ID front-side to the Server is complete.
-      "Processing<br/>ID Scan", // Upload of ID front-side is complete and we are waiting for the Server to finish processing and respond.
-      "Uploading<br/>Encrypted<br/>Back of ID", // Upload of ID back-side has started.
-      "Still Uploading...<br/>Slow Connection", // Upload of ID back-side is still uploading to Server after an extended period of time.
-      "Upload Complete", // Upload of ID back-side to Server is complete.
-      "Processing<br/>Back of ID", // Upload of ID back-side is complete and we are waiting for the Server to finish processing and respond.
-      "Uploading<br/>Your Confirmed Info", // Upload of User Confirmed Info has started.
-      "Still Uploading...<br/>Slow Connection", // Upload of User Confirmed Info is still uploading to Server after an extended period of time.
-      "Info Saved", // Upload of User Confirmed Info to the Server is complete.
-      "Processing" // Upload of User Confirmed Info is complete and we are waiting for the Server to finish processing and respond.
+      "Subiendo<br/>Documento<br/>Cifrado", // Comienza la subida del frente del documento
+      "Sigue Subiendo...<br/>Conexión Lenta", // La subida del frente del documento sigue en proceso después de un tiempo extendido
+      "Subida Completada", // La subida del frente del documento al servidor está completa
+      "Procesando<br/>Documento", // La subida del frente del documento está completa y estamos esperando que el servidor termine de procesar y responda
+      "Subiendo<br/>Reverso<br/>Cifrado", // Comienza la subida del reverso del documento
+      "Sigue Subiendo...<br/>Conexión Lenta", // La subida del reverso del documento sigue en proceso después de un tiempo extendido
+      "Subida Completada", // La subida del reverso del documento al servidor está completa
+      "Procesando<br/>Reverso", // La subida del reverso del documento está completa y estamos esperando que el servidor termine de procesar y responda
+      "Subiendo<br/>Información Confirmada", // Comienza la subida de la información confirmada por el usuario
+      "Sigue Subiendo...<br/>Conexión Lenta", // La subida de la información confirmada sigue en proceso después de un tiempo extendido
+      "Información Guardada", // La subida de la información confirmada al servidor está completa
+      "Procesando" // La subida de la información confirmada está completa y estamos esperando que el servidor termine de procesar y responda
     );
 
     //
@@ -500,7 +500,7 @@ class PhotoIDMatchProcessor {
           // Device SDK UI flow is now driven by the proceedToNextStep function, which should receive the scanResultBlob from the Server SDK response.
           if (responseJSON.wasProcessed === true && responseJSON.error === false) {
             // Demonstrates dynamically setting the Success Screen Message.
-            FaceTecSDK.FaceTecCustomization.setOverrideResultScreenSuccessMessage("Face Scanned\n3D Liveness Proven");
+            FaceTecSDK.FaceTecCustomization.setOverrideResultScreenSuccessMessage("Rostro Escaneado\nLiveness 3D Verificado");
 
             // In v9.2.0+, simply pass in scanResultBlob to the proceedToNextStep function to advance the User flow.
             // scanResultBlob is a proprietary, encrypted blob that controls the logic for what happens next for the User.
@@ -636,9 +636,9 @@ class PhotoIDMatchProcessor {
           if (responseJSON.wasProcessed === true && responseJSON.error === false) {
 
             // Dynamically set the success message based on whether la verificación fue exitosa o no
-            const successMessage = responseJSON.isMatch
-              ? "Your 3D Face<br/>Matched Your ID"
-              : "Your 3D Face<br/>Did Not Match Your ID";
+              const successMessage = responseJSON.isMatch
+                ? "Your 3D Face<br/>Matched Your ID"
+                : "Your 3D Face<br/>Did Not Match Your ID";
 
             FaceTecSDK.FaceTecCustomization.setOverrideResultScreenSuccessMessage(successMessage);
 

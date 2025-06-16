@@ -22,6 +22,7 @@ export class CompanyFactory {
       apiKey: new StringValue(dto.apiKey),
       status: new StringValue(dto.status),
       callbackUrl: dto.callbackUrl ? new StringValue(dto.callbackUrl) : undefined,
+      redirectUrl: dto.redirectUrl ? new StringValue(dto.redirectUrl) : undefined,
       createdAt: dto.createdAt ? new DateTimeValue(dto.createdAt) : undefined,
       updatedAt: dto.updatedAt ? new DateTimeValue(dto.updatedAt) : undefined,
     })

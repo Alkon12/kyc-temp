@@ -115,6 +115,7 @@ type Company {
   apiKey: String
   status: String!
   callbackUrl: String
+  redirectUrl: String
 }
 
 # Activity log type

@@ -21,6 +21,7 @@ type Company = {
   companyName: string
   apiKey: string
   callbackUrl?: string
+  redirectUrl?: string
   status: string
 }
 
@@ -96,7 +97,8 @@ export default function CompanyManager() {
       variables: {
         input: {
           companyName: data.companyName,
-          callbackUrl: data.callbackUrl || undefined
+          callbackUrl: data.callbackUrl || undefined,
+          redirectUrl: data.redirectUrl || undefined
         }
       }
     })
@@ -110,7 +112,8 @@ export default function CompanyManager() {
         companyId: selectedCompany.id,
         input: {
           companyName: data.companyName,
-          callbackUrl: data.callbackUrl || undefined
+          callbackUrl: data.callbackUrl || undefined,
+          redirectUrl: data.redirectUrl || undefined
         }
       }
     })
@@ -194,6 +197,13 @@ export default function CompanyManager() {
                   <div>
                     <p className="text-sm text-muted-foreground">Callback URL:</p>
                     <p className="text-sm truncate">{company.callbackUrl}</p>
+                  </div>
+                )}
+                
+                {company.redirectUrl && (
+                  <div>
+                    <p className="text-sm text-muted-foreground">Redirect URL:</p>
+                    <p className="text-sm truncate">{company.redirectUrl}</p>
                   </div>
                 )}
                 

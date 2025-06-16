@@ -483,7 +483,7 @@ class LivenessCheckProcessor {
           // Device SDK UI flow is now driven by the proceedToNextStep function, which should receive the scanResultBlob from the Server SDK response.
           if (responseJSON.wasProcessed === true && responseJSON.error === false) {
             // Demonstrates dynamically setting the Success Screen Message.
-            FaceTecSDK.FaceTecCustomization.setOverrideResultScreenSuccessMessage("Face Scanned\n3D Liveness Proven");
+            FaceTecSDK.FaceTecCustomization.setOverrideResultScreenSuccessMessage("Rostro Escaneado\nLiveness 3D Verificado");
 
             // In v9.2.0+, simply pass in scanResultBlob to the proceedToNextStep function to advance the User flow.
             // scanResultBlob is a proprietary, encrypted blob that controls the logic for what happens next for the User.

@@ -42,6 +42,7 @@ export type Company = {
   callbackUrl?: Maybe<Scalars['String']['output']>;
   companyName: Scalars['String']['output'];
   id: Scalars['ID']['output'];
+  redirectUrl?: Maybe<Scalars['String']['output']>;
   status: Scalars['String']['output'];
 };
 
@@ -59,6 +60,7 @@ export type CreateCompanyInput = {
   apiKey?: InputMaybe<Scalars['String']['input']>;
   callbackUrl?: InputMaybe<Scalars['String']['input']>;
   companyName: Scalars['String']['input'];
+  redirectUrl?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type CreateExternalVerificationInput = {
@@ -903,6 +905,7 @@ export type UpdateCompanyInput = {
   apiKey?: InputMaybe<Scalars['String']['input']>;
   callbackUrl?: InputMaybe<Scalars['String']['input']>;
   companyName?: InputMaybe<Scalars['String']['input']>;
+  redirectUrl?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type UpdateFacetecResultInput = {
@@ -1169,6 +1172,7 @@ export type CompanyResolvers<ContextType = any, ParentType extends ResolversPare
   callbackUrl?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   companyName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  redirectUrl?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   status?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };

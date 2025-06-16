@@ -18,6 +18,7 @@ type MutationCreateCompanyArgs = {
     companyName: string
     apiKey?: string
     callbackUrl?: string
+    redirectUrl?: string
   }
 }
 
@@ -27,6 +28,7 @@ type MutationUpdateCompanyArgs = {
     companyName?: string
     apiKey?: string
     callbackUrl?: string
+    redirectUrl?: string
   }
 }
 
@@ -78,7 +80,8 @@ export class CompanyResolvers {
     const args: CreateCompanyArgs = {
       companyName: new StringValue(input.companyName),
       apiKey: new StringValue(apiKey),
-      callbackUrl: input.callbackUrl ? new StringValue(input.callbackUrl) : undefined
+      callbackUrl: input.callbackUrl ? new StringValue(input.callbackUrl) : undefined,
+      redirectUrl: input.redirectUrl ? new StringValue(input.redirectUrl) : undefined
     }
     
     const company = await companyService.create(args)
@@ -100,6 +103,10 @@ export class CompanyResolvers {
     
     if (input.callbackUrl !== undefined) {
       args.callbackUrl = input.callbackUrl ? new StringValue(input.callbackUrl) : undefined
+    }
+    
+    if (input.redirectUrl !== undefined) {
+      args.redirectUrl = input.redirectUrl ? new StringValue(input.redirectUrl) : undefined
     }
     
     const company = await companyService.update(new CompanyId(companyId), args)

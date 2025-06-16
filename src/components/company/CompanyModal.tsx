@@ -17,6 +17,7 @@ const formSchema = z.object({
   }),
   apiKey: z.string().optional(),
   callbackUrl: z.string().url({ message: "Must be a valid URL" }).optional().or(z.literal('')),
+  redirectUrl: z.string().url({ message: "Must be a valid URL" }).optional().or(z.literal('')),
 })
 
 type FormValues = z.infer<typeof formSchema>
@@ -31,6 +32,7 @@ interface CompanyModalProps {
     companyName?: string
     apiKey?: string
     callbackUrl?: string
+    redirectUrl?: string
   }
   title: string
   actionLabel: string
@@ -56,6 +58,7 @@ export default function CompanyModal({
       companyName: initialData?.companyName || '',
       apiKey: initialData?.apiKey || undefined,
       callbackUrl: initialData?.callbackUrl || '',
+      redirectUrl: initialData?.redirectUrl || '',
     },
   })
   
@@ -65,12 +68,14 @@ export default function CompanyModal({
         companyName: initialData.companyName || '',
         apiKey: initialData.apiKey || undefined,
         callbackUrl: initialData.callbackUrl || '',
+        redirectUrl: initialData.redirectUrl || '',
       })
     } else {
       form.reset({
         companyName: '',
         apiKey: undefined,
         callbackUrl: '',
+        redirectUrl: '',
       })
     }
   }, [initialData, form, isOpen])
@@ -169,6 +174,27 @@ export default function CompanyModal({
                         value={field.value || ''}
                       />
                     </FormControl>
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="redirectUrl"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Redirect URL (Optional)</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="https://example.com/kyc-complete" 
+                        disabled={isLoading} 
+                        {...field} 
+                        value={field.value || ''}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      URL donde se redirige al usuario al completar el proceso de KYC
+                    </FormDescription>
                   </FormItem>
                 )}
               />
