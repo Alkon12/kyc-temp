@@ -18,6 +18,8 @@ const headers = [
   'Cache-Control',
   'Content-Range',
   'Range',
+  'x-api-key',
+  'x-company-id'
 ]
 
 const nextConfig = {

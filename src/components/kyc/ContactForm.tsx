@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Card,
   CardContent,
@@ -31,11 +31,13 @@ const UPDATE_VERIFICATION_LINK_STATUS = gql`
 interface ContactFormProps {
   token: string;
   onSubmit?: (email: string, phoneNumber: string) => void;
+  initialEmail?: string;
+  initialPhone?: string;
 }
 
-const ContactForm: React.FC<ContactFormProps> = ({ token, onSubmit }) => {
-  const [email, setEmail] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('');
+const ContactForm: React.FC<ContactFormProps> = ({ token, onSubmit, initialEmail, initialPhone }) => {
+  const [email, setEmail] = useState(initialEmail || '');
+  const [phoneNumber, setPhoneNumber] = useState(initialPhone || '');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [errors, setErrors] = useState<{email?: string; phoneNumber?: string}>({});
@@ -133,6 +135,13 @@ const ContactForm: React.FC<ContactFormProps> = ({ token, onSubmit }) => {
     });
   };
 
+  // Si ya tenemos ambos valores, enviar automáticamente
+  useEffect(() => {
+    if (initialEmail && initialPhone) {
+      handleSubmit(new Event('submit') as any);
+    }
+  }, [initialEmail, initialPhone]);
+
   if (isSubmitted) {
     return (
       <Card className="border-none shadow-lg">
@@ -178,6 +187,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ token, onSubmit }) => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className={errors.email ? "border-red-500" : ""}
+              disabled={!!initialEmail}
             />
             {errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
           </div>
@@ -191,6 +201,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ token, onSubmit }) => {
               value={phoneNumber}
               onChange={(e) => setPhoneNumber(e.target.value)}
               className={errors.phoneNumber ? "border-red-500" : ""}
+              disabled={!!initialPhone}
             />
             {errors.phoneNumber && <p className="text-red-500 text-sm">{errors.phoneNumber}</p>}
           </div>

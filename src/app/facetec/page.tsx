@@ -36,6 +36,8 @@ const GET_VERIFICATION_BY_TOKEN = gql`
         kycPerson {
           firstName
           lastName
+          email
+          phone
         }
       }
     }
@@ -1010,12 +1012,12 @@ const FaceTecContent: React.FC = () => {
       {/* Contact form - shown BEFORE FaceTec for silver and gold tiers */}
       {step === 'contacto' && token && (
         <div className="max-w-md mx-auto">
- 
-            <ContactForm 
-              token={token} 
-              onSubmit={handleContactSubmit} 
-            />
-
+          <ContactForm 
+            token={token} 
+            onSubmit={handleContactSubmit}
+            initialEmail={data.getVerificationLinkByToken.kycVerification?.kycPerson?.email || undefined}
+            initialPhone={data.getVerificationLinkByToken.kycVerification?.kycPerson?.phone || undefined}
+          />
         </div>
       )}
 
