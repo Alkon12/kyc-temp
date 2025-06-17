@@ -688,10 +688,6 @@ const FaceTecContent: React.FC = () => {
     }
   };
 
-  const handleError = (error: string) => {
-    setError(error);
-    console.error('Error en la verificación:', error);
-  };
 
   const handleVerificationComplete = (faceTecSessionId: string, documentImages: string[]) => {
     if (!data?.getVerificationLinkByToken?.verificationId) {
@@ -1005,7 +1001,6 @@ const FaceTecContent: React.FC = () => {
       {/* FaceTec component */}
       <div style={{ display: step === 'verificacion' ? 'block' : 'none' }}>
         <FaceTecComponent
-          onError={handleError}
           ref={faceTecRef}
           shouldStartVerification={step === 'verificacion'}
           onComplete={handleVerificationComplete}

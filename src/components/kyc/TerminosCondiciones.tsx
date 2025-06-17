@@ -34,7 +34,7 @@ const TerminosCondiciones: React.FC<TerminosCondicionesProps> = ({
           <div className="flex items-center justify-center gap-4">
             <span className="text-3xl">😊</span>
             <CardTitle className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
-              Bienvenido a {companyName} {redirectUrl}
+              Bienvenido a {companyName}
             </CardTitle>
           </div>
           <CardDescription className="text-lg text-muted-foreground">
