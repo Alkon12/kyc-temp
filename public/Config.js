@@ -68,7 +68,7 @@ export var Config = (function () {
         defaultCustomization.frameCustomization.borderColor = borderColor;
 
         // Set Overlay Customization
-        defaultCustomization.overlayCustomization.brandingImage = sdkImageDirectory + "FaceTec_your_app_logo.png";
+        defaultCustomization.overlayCustomization.brandingImage = sdkImageDirectory + "logo_grupo.svg";
         defaultCustomization.overlayCustomization.backgroundColor = outerBackgroundColor;
 
         // Set Guidance Customization
