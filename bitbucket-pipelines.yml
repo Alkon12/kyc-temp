@@ -13,7 +13,8 @@ pipelines:
           name: Build Docker image on release
           deployment: Production
           script:
-            - echo PAYLOAD_SECRET="${PAYLOAD_SECRET}" > .env
+            - echo APP_NAME="${APP_NAME}" > .env
+            - echo PAYLOAD_SECRET="${PAYLOAD_SECRET}" >> .env
             - echo DATABASE_URI="${DATABASE_URI}" >> .env
             - echo NEXT_PUBLIC_APP_URL="${NEXT_PUBLIC_APP_URL}" >> .env
             - echo NEXTAUTH_URL"${NEXTAUTH_URL}"  >> .env
@@ -62,7 +63,8 @@ pipelines:
           name: Build Docker image
           deployment: Test
           script:
-            - echo PAYLOAD_SECRET="${PAYLOAD_SECRET}" > .env
+            - echo APP_NAME="${APP_NAME}" > .env
+            - echo PAYLOAD_SECRET="${PAYLOAD_SECRET}" >> .env
             - echo DATABASE_URI="${DATABASE_URI}" >> .env
             - echo NEXT_PUBLIC_APP_URL="${NEXT_PUBLIC_APP_URL}" >> .env
             - echo NEXTAUTH_URL"${NEXTAUTH_URL}"  >> .env
