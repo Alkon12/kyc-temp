@@ -367,7 +367,7 @@ async function main() {
     prisma.kycVerification.create({
       data: {
         companyId: createdCompanies[0].id,
-        status: 'in_progress',
+        status: 'in-progress',
         verificationType: 'gold',
         priority: 2,
         assignedTo: userReviewer.id,
