@@ -38,3 +38,16 @@ next-env.d.ts
 .qodo
 
 certificates
+
+# Firebase credentials and sensitive files
+**/firebase/**/*.json
+**/auth/**/*.json
+**/*firebase-adminsdk*.json
+**/*-firebase-*.json
+
+# General security patterns
+*.key
+*.pem
+*.p12
+*.pfx
+service-account*.json
