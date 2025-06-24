@@ -1,5 +1,5 @@
 "use client"
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, Suspense } from "react";
 import TerminosCondiciones from "@/components/kyc/TerminosCondiciones";
 import FaceTecComponent from "@/components/kyc/FaceTecComponent";
 import RechazoTerminos from "@/components/kyc/RechazoTerminos";
@@ -1072,7 +1072,9 @@ const FaceTecContent: React.FC = () => {
 const FaceTecPage: React.FC = () => {
   return (
     <ApolloProvider client={publicClient}>
-      <FaceTecContent />
+      <Suspense fallback={<LoadingScreen message="Cargando página..." />}>
+        <FaceTecContent />
+      </Suspense>
     </ApolloProvider>
   );
 };

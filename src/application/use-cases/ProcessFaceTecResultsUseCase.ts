@@ -1,6 +1,6 @@
 import { inject, injectable } from 'inversify'
 import { DI } from '@infrastructure'
-import { FaceTecService } from '@domain/faceTec/FaceTecService'
+import type { FaceTecService } from '@domain/faceTec/FaceTecService'
 import { KycVerificationService } from '@service/KycVerificationService'
 import { KycVerificationId } from '@domain/kycVerification/models/KycVerificationId'
 import { KycVerificationStatus } from '@domain/kycVerification/models/KycVerificationStatus'

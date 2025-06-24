@@ -35,7 +35,7 @@ import { CreateFaceTecSessionUseCase } from '@/application/use-cases/CreateFaceT
 import { ProcessFaceTecResultsUseCase } from '@/application/use-cases/ProcessFaceTecResultsUseCase'
 import { AssignManualReviewUseCase } from '@/application/use-cases/AssignManualReviewUseCase'
 import { KycController } from '@/interfaces/controllers/KycController'
-import { FaceTecService } from '@domain/faceTec/FaceTecService'
+import type { FaceTecService } from '@domain/faceTec/FaceTecService'
 import { FaceTecServiceImpl } from '@service/FaceTecService'
 import { MockFaceTecService } from '@service/MockFaceTecService'
 import type VerificationLinkRepository from '@domain/verification-link/VerificationLinkRepository'

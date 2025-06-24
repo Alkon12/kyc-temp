@@ -1,5 +1,5 @@
 import { injectable } from 'inversify'
-import { FaceTecService, FaceTecSessionResult } from '@domain/faceTec/FaceTecService'
+import type { FaceTecService, FaceTecSessionResult } from '@domain/faceTec/FaceTecService'
 
 @injectable()
 export class FaceTecServiceImpl implements FaceTecService {
