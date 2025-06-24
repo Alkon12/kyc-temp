@@ -5,7 +5,7 @@ meta {
 }
 
 post {
-  url: https://localhost:3000/api/v1/kyc
+  url: {{baseUrl}}/api/v1/kyc
   body: json
   auth: bearer
 }
@@ -24,7 +24,11 @@ body:json {
       "email": "dumainealfredo@gmail.com",
       "phone": "5613905890"
     },
-    "requiresDocumentSigning": false
+    "requiresDocumentSigning": true,
+    "documentSigningInfo": {
+      "templateId": "6aeb9207-c1e0-4439-a118-7b0fe03ae9be",
+      "signerEmail": "dumainealfredo@gmail.com"
+    }
   }
 }
 

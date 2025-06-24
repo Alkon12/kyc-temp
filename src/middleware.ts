@@ -12,11 +12,11 @@ export default withAuth(
     response.headers.append('Access-Control-Allow-Methods', 'GET,DELETE,PATCH,POST,PUT,OPTIONS')
     response.headers.append(
       'Access-Control-Allow-Headers',
-      'Authorization, Accept,Origin,DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,X-Auth-Token,X-XSRF-TOKEN,If-Modified-Since,Cache-Control,Content-Type,Content-Range,Range,x-api-key',
+      'Authorization, Accept,Origin,DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,X-Auth-Token,X-XSRF-TOKEN,If-Modified-Since,Cache-Control,Content-Type,Content-Range,Range,x-api-key,X-Forwarded-For,X-Forwarded-Proto,X-Forwarded-Host',
     )
     response.headers.append(
       'Access-Control-Request-Headers',
-      'Authorization, Accept,Origin,DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,X-Auth-Token,X-XSRF-TOKEN,If-Modified-Since,Cache-Control,Content-Type,Content-Range,Range,x-api-key',
+      'Authorization, Accept,Origin,DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,X-Auth-Token,X-XSRF-TOKEN,If-Modified-Since,Cache-Control,Content-Type,Content-Range,Range,x-api-key,X-Forwarded-For,X-Forwarded-Proto,X-Forwarded-Host',
     )
     
     return response
