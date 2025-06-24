@@ -7,10 +7,21 @@ export const GET_KYC_VERIFICATIONS = gql`
     kycVerificationsWithRelations {
       id
       kycPersons {
+        id
         firstName
+        secondName
         lastName
+        secondLastName
+        curp
         email
         phone
+        street
+        colony
+        city
+        dateOfBirth
+        nationality
+        documentNumber
+        documentType
       }
       status
       company {
@@ -40,10 +51,21 @@ export const GET_KYC_VERIFICATION_BY_ID = gql`
     kycVerificationWithRelationsById(id: $id) {
       id
       kycPersons {
+        id
         firstName
+        secondName
         lastName
+        secondLastName
+        curp
         email
         phone
+        street
+        colony
+        city
+        dateOfBirth
+        nationality
+        documentNumber
+        documentType
       }
       status
       company {
@@ -95,10 +117,21 @@ export const UPDATE_KYC_VERIFICATION_STATUS = gql`
 
 // Types for the GraphQL response
 export interface KycPerson {
-  firstName: string
-  lastName: string
+  id: string
+  firstName: string | null
+  secondName: string | null
+  lastName: string | null
+  secondLastName: string | null
+  curp: string | null
   email: string | null
   phone: string | null
+  street: string | null
+  colony: string | null
+  city: string | null
+  dateOfBirth: string | null
+  nationality: string | null
+  documentNumber: string | null
+  documentType: string | null
 }
 
 export interface Company {

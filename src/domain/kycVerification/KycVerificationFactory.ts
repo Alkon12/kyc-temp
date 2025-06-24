@@ -12,6 +12,7 @@ import { UserId } from '@domain/user/models/UserId'
 import { UserFactory } from '@domain/user/UserFactory'
 import { CompanyFactory } from '@domain/company/CompanyFactory'
 import { ExternalVerificationFactory } from '@domain/externalVerification/ExternalVerificationFactory'
+import { KycPersonFactory } from '@domain/kycPerson/KycPersonFactory'
 import { BooleanValue } from '@domain/shared/BooleanValue'
 
 export type KycVerificationArgs = Merge<
@@ -44,6 +45,13 @@ export class KycVerificationFactory {
       assignedUser: dto.assignedUser ? UserFactory.fromDTO(dto.assignedUser) : undefined,
     })
     
+    // Add KYC persons if available
+    if (dto.kycPersons && Array.isArray(dto.kycPersons) && dto.kycPersons.length > 0) {
+      entity.props.kycPersons = dto.kycPersons.map(person => 
+        KycPersonFactory.fromDTO(person)
+      )
+    }
+    
     // Add external verifications if available
     if (dto.externalVerifications && Array.isArray(dto.externalVerifications) && dto.externalVerifications.length > 0) {
       entity.props.externalVerifications = dto.externalVerifications.map(ev => 
@@ -57,7 +65,7 @@ export class KycVerificationFactory {
   static create(args: KycVerificationArgs): KycVerificationEntity {
     return new KycVerificationEntity({
       ...args,
-      id: args.id ? new KycVerificationId(args.id) : new KycVerificationId(),
+      id: args.id ? new KycVerificationId(args.id.toString()) : new KycVerificationId(),
       status: args.status || new KycVerificationStatus('pending'),
       priority: args.priority || new NumberValue(0),
       createdAt: args.createdAt || new DateTimeValue(new Date()),

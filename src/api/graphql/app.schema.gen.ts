@@ -83,7 +83,9 @@ export type CreateFacetecResultInput = {
 };
 
 export type CreateKycPersonInput = {
-  address?: InputMaybe<Scalars['String']['input']>;
+  city?: InputMaybe<Scalars['String']['input']>;
+  colony?: InputMaybe<Scalars['String']['input']>;
+  curp?: InputMaybe<Scalars['String']['input']>;
   dateOfBirth?: InputMaybe<Scalars['String']['input']>;
   documentNumber?: InputMaybe<Scalars['String']['input']>;
   documentType?: InputMaybe<Scalars['String']['input']>;
@@ -92,6 +94,9 @@ export type CreateKycPersonInput = {
   lastName?: InputMaybe<Scalars['String']['input']>;
   nationality?: InputMaybe<Scalars['String']['input']>;
   phone?: InputMaybe<Scalars['String']['input']>;
+  secondLastName?: InputMaybe<Scalars['String']['input']>;
+  secondName?: InputMaybe<Scalars['String']['input']>;
+  street?: InputMaybe<Scalars['String']['input']>;
   verificationId: Scalars['ID']['input'];
 };
 
@@ -262,7 +267,9 @@ export type Group = {
 
 export type KycPerson = {
   __typename?: 'KycPerson';
-  address?: Maybe<Scalars['String']['output']>;
+  city?: Maybe<Scalars['String']['output']>;
+  colony?: Maybe<Scalars['String']['output']>;
+  curp?: Maybe<Scalars['String']['output']>;
   dateOfBirth?: Maybe<Scalars['String']['output']>;
   documentNumber?: Maybe<Scalars['String']['output']>;
   documentType?: Maybe<Scalars['String']['output']>;
@@ -272,11 +279,16 @@ export type KycPerson = {
   lastName?: Maybe<Scalars['String']['output']>;
   nationality?: Maybe<Scalars['String']['output']>;
   phone?: Maybe<Scalars['String']['output']>;
+  secondLastName?: Maybe<Scalars['String']['output']>;
+  secondName?: Maybe<Scalars['String']['output']>;
+  street?: Maybe<Scalars['String']['output']>;
   verificationId: Scalars['ID']['output'];
 };
 
 export type KycPersonInput = {
-  address?: InputMaybe<Scalars['String']['input']>;
+  city?: InputMaybe<Scalars['String']['input']>;
+  colony?: InputMaybe<Scalars['String']['input']>;
+  curp?: InputMaybe<Scalars['String']['input']>;
   dateOfBirth?: InputMaybe<Scalars['String']['input']>;
   documentNumber?: InputMaybe<Scalars['String']['input']>;
   documentType?: InputMaybe<Scalars['String']['input']>;
@@ -285,6 +297,9 @@ export type KycPersonInput = {
   lastName?: InputMaybe<Scalars['String']['input']>;
   nationality?: InputMaybe<Scalars['String']['input']>;
   phone?: InputMaybe<Scalars['String']['input']>;
+  secondLastName?: InputMaybe<Scalars['String']['input']>;
+  secondName?: InputMaybe<Scalars['String']['input']>;
+  street?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type KycVerification = {
@@ -918,7 +933,9 @@ export type UpdateFacetecResultInput = {
 };
 
 export type UpdateKycPersonInput = {
-  address?: InputMaybe<Scalars['String']['input']>;
+  city?: InputMaybe<Scalars['String']['input']>;
+  colony?: InputMaybe<Scalars['String']['input']>;
+  curp?: InputMaybe<Scalars['String']['input']>;
   dateOfBirth?: InputMaybe<Scalars['String']['input']>;
   documentNumber?: InputMaybe<Scalars['String']['input']>;
   documentType?: InputMaybe<Scalars['String']['input']>;
@@ -927,6 +944,9 @@ export type UpdateKycPersonInput = {
   lastName?: InputMaybe<Scalars['String']['input']>;
   nationality?: InputMaybe<Scalars['String']['input']>;
   phone?: InputMaybe<Scalars['String']['input']>;
+  secondLastName?: InputMaybe<Scalars['String']['input']>;
+  secondName?: InputMaybe<Scalars['String']['input']>;
+  street?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type UpdateUserPersonalInfoInput = {
@@ -1331,7 +1351,9 @@ export interface JsonScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes
 }
 
 export type KycPersonResolvers<ContextType = any, ParentType extends ResolversParentTypes['KycPerson'] = ResolversParentTypes['KycPerson']> = {
-  address?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  city?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  colony?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  curp?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   dateOfBirth?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   documentNumber?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   documentType?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -1341,6 +1363,9 @@ export type KycPersonResolvers<ContextType = any, ParentType extends ResolversPa
   lastName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   nationality?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   phone?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  secondLastName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  secondName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  street?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   verificationId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };

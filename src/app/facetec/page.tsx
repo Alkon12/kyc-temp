@@ -35,7 +35,10 @@ const GET_VERIFICATION_BY_TOKEN = gql`
           redirectUrl
         }
         kycPerson {
+          id
           firstName
+          secondName
+          secondLastName
           lastName
           email
           phone
@@ -980,8 +983,10 @@ const FaceTecContent: React.FC = () => {
   const { kycVerification } = data.getVerificationLinkByToken;
   const companyName = kycVerification.company?.companyName || '';
   const firstName = kycVerification.kycPerson?.firstName || '';
+  const secondName = kycVerification.kycPerson?.secondName || '';
+  const secondLastName = kycVerification.kycPerson?.secondLastName || '';
   const lastName = kycVerification.kycPerson?.lastName || '';
-  const fullName = `${firstName} ${lastName}`.trim();
+  const fullName = `${firstName} ${secondName} ${lastName} ${secondLastName}`.trim();
   const verificationType = kycVerification.verificationType || 'bronze';
   const redirectUrl = kycVerification.company?.redirectUrl;
   

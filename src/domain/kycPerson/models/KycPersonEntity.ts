@@ -9,14 +9,19 @@ export type KycPersonEntityProps = {
   id: KycPersonId
   verificationId: KycVerificationId
   firstName?: StringValue
+  secondName?: StringValue
   lastName?: StringValue
+  secondLastName?: StringValue
+  curp?: StringValue
   dateOfBirth?: DateTimeValue
   nationality?: StringValue
   documentNumber?: StringValue
   documentType?: StringValue
   email?: StringValue
   phone?: StringValue
-  address?: StringValue
+  street?: StringValue
+  colony?: StringValue
+  city?: StringValue
   createdAt?: DateTimeValue
   updatedAt?: DateTimeValue
   
@@ -40,8 +45,20 @@ export class KycPersonEntity extends AggregateRoot<'KycPersonEntity', KycPersonE
     return this._props.firstName
   }
 
+  getSecondName() {
+    return this._props.secondName
+  }
+
   getLastName() {
     return this._props.lastName
+  }
+
+  getSecondLastName() {
+    return this._props.secondLastName
+  }
+
+  getCurp() {
+    return this._props.curp
   }
 
   getDateOfBirth() {
@@ -68,8 +85,16 @@ export class KycPersonEntity extends AggregateRoot<'KycPersonEntity', KycPersonE
     return this._props.phone
   }
 
-  getAddress() {
-    return this._props.address
+  getStreet() {
+    return this._props.street
+  }
+
+  getColony() {
+    return this._props.colony
+  }
+
+  getCity() {
+    return this._props.city
   }
 
   getCreatedAt() {
@@ -86,20 +111,34 @@ export class KycPersonEntity extends AggregateRoot<'KycPersonEntity', KycPersonE
 
   getFullName(): string {
     const firstName = this._props.firstName?.toDTO() || '';
+    const secondName = this._props.secondName?.toDTO() || '';
     const lastName = this._props.lastName?.toDTO() || '';
-    return `${firstName} ${lastName}`.trim();
+    const secondLastName = this._props.secondLastName?.toDTO() || '';
+    return `${firstName} ${secondName} ${lastName} ${secondLastName}`.trim().replace(/\s+/g, ' ');
+  }
+
+  getFullAddress(): string {
+    const street = this._props.street?.toDTO() || '';
+    const colony = this._props.colony?.toDTO() || '';
+    const city = this._props.city?.toDTO() || '';
+    return `${street}, ${colony}, ${city}`.replace(/,\s*,/g, ',').replace(/^,\s*|,\s*$/g, '').trim();
   }
   
   updatePersonalInfo(props: {
     firstName?: StringValue
+    secondName?: StringValue
     lastName?: StringValue
+    secondLastName?: StringValue
+    curp?: StringValue
     dateOfBirth?: DateTimeValue
     nationality?: StringValue
     documentNumber?: StringValue
     documentType?: StringValue
     email?: StringValue
     phone?: StringValue
-    address?: StringValue
+    street?: StringValue
+    colony?: StringValue
+    city?: StringValue
   }): void {
     Object.assign(this._props, props)
     this._props.updatedAt = new DateTimeValue(new Date())

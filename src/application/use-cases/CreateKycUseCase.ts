@@ -24,14 +24,19 @@ export interface CreateKycVerificationDto {
   notes?: string
   personInfo?: {
     firstName?: string
+    secondName?: string
     lastName?: string
+    secondLastName?: string
+    curp?: string
     dateOfBirth?: string
     nationality?: string
     documentNumber?: string
     documentType?: string
     email?: string
     phone?: string
-    address?: string
+    street?: string
+    colony?: string
+    city?: string
   }
   assignToUserId?: string
   requiresDocumentSigning?: boolean
@@ -77,14 +82,19 @@ export class CreateKycUseCase {
       const kycPerson = KycPersonFactory.create({
         verificationId: createdVerification.getId(),
         firstName: dto.personInfo.firstName ? new StringValue(dto.personInfo.firstName) : undefined,
+        secondName: dto.personInfo.secondName ? new StringValue(dto.personInfo.secondName) : undefined,
         lastName: dto.personInfo.lastName ? new StringValue(dto.personInfo.lastName) : undefined,
+        secondLastName: dto.personInfo.secondLastName ? new StringValue(dto.personInfo.secondLastName) : undefined,
+        curp: dto.personInfo.curp ? new StringValue(dto.personInfo.curp) : undefined,
         dateOfBirth: dto.personInfo.dateOfBirth ? new DateTimeValue(dto.personInfo.dateOfBirth) : undefined,
         nationality: dto.personInfo.nationality ? new StringValue(dto.personInfo.nationality) : undefined,
         documentNumber: dto.personInfo.documentNumber ? new StringValue(dto.personInfo.documentNumber) : undefined,
         documentType: dto.personInfo.documentType ? new StringValue(dto.personInfo.documentType) : undefined,
         email: dto.personInfo.email ? new StringValue(dto.personInfo.email) : undefined,
         phone: dto.personInfo.phone ? new StringValue(dto.personInfo.phone) : undefined,
-        address: dto.personInfo.address ? new StringValue(dto.personInfo.address) : undefined,
+        street: dto.personInfo.street ? new StringValue(dto.personInfo.street) : undefined,
+        colony: dto.personInfo.colony ? new StringValue(dto.personInfo.colony) : undefined,
+        city: dto.personInfo.city ? new StringValue(dto.personInfo.city) : undefined,
       })
 
       await this.kycPersonRepository.create(kycPerson)

@@ -10,6 +10,7 @@ import { KycVerificationType } from './KycVerificationType'
 import { UserEntity } from '@domain/user/models/UserEntity'
 import { CompanyEntity } from '@domain/company/models/CompanyEntity'
 import { ExternalVerificationEntity } from '@domain/externalVerification/models/ExternalVerificationEntity'
+import { KycPersonEntity } from '@domain/kycPerson/models/KycPersonEntity'
 import { DTO, serialize } from '@domain/kernel/DTO'
 import { BooleanValue } from '@domain/shared/BooleanValue'
 
@@ -30,6 +31,7 @@ export type KycVerificationEntityProps = {
   
   company?: CompanyEntity
   assignedUser?: UserEntity
+  kycPersons?: KycPersonEntity[]
   externalVerifications?: ExternalVerificationEntity[]
 }
 
@@ -42,8 +44,10 @@ export class KycVerificationEntity extends AggregateRoot<'KycVerificationEntity'
     const props = { ...this._props }
     
     const externalVerifications = props.externalVerifications
+    const kycPersons = props.kycPersons
     
     delete props.externalVerifications
+    delete props.kycPersons
     
     const dto = serialize(props) as any
     
@@ -52,6 +56,14 @@ export class KycVerificationEntity extends AggregateRoot<'KycVerificationEntity'
         const evProps = { ...ev.props }
         delete evProps.kycVerification
         return serialize(evProps)
+      })
+    }
+    
+    if (kycPersons && kycPersons.length > 0) {
+      dto.kycPersons = kycPersons.map(person => {
+        const personProps = { ...person.props }
+        delete personProps.kycVerification
+        return serialize(personProps)
       })
     }
     
@@ -120,6 +132,10 @@ export class KycVerificationEntity extends AggregateRoot<'KycVerificationEntity'
 
   getExternalVerifications() {
     return this._props.externalVerifications
+  }
+
+  getKycPersons() {
+    return this._props.kycPersons
   }
 
   updateStatus(status: KycVerificationStatus): void {

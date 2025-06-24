@@ -99,14 +99,19 @@ type KycPerson {
   id: ID!
   verificationId: ID!
   firstName: String
+  secondName: String
   lastName: String
+  secondLastName: String
+  curp: String
   dateOfBirth: String
   nationality: String
   documentNumber: String
   documentType: String
   email: String
   phone: String
-  address: String
+  street: String
+  colony: String
+  city: String
 }
 
 type Company {
@@ -146,14 +151,19 @@ type VerificationWorkflow {
 
 input KycPersonInput {
   firstName: String
+  secondName: String
   lastName: String
+  secondLastName: String
+  curp: String
   dateOfBirth: String
   nationality: String
   documentNumber: String
   documentType: String
   email: String
   phone: String
-  address: String
+  street: String
+  colony: String
+  city: String
 }
 
 input CreateKycVerificationInput {
@@ -171,26 +181,36 @@ input CreateKycVerificationInput {
 input CreateKycPersonInput {
   verificationId: ID!
   firstName: String
+  secondName: String
   lastName: String
+  secondLastName: String
+  curp: String
   dateOfBirth: String
   nationality: String
   documentNumber: String
   documentType: String
   email: String
   phone: String
-  address: String
+  street: String
+  colony: String
+  city: String
 }
 
 input UpdateKycPersonInput {
   firstName: String
+  secondName: String
   lastName: String
+  secondLastName: String
+  curp: String
   dateOfBirth: String
   nationality: String
   documentNumber: String
   documentType: String
   email: String
   phone: String
-  address: String
+  street: String
+  colony: String
+  city: String
 }
 
 # New types for dashboard

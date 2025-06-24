@@ -177,14 +177,19 @@ model KycPerson {
   id             String   @id @default(uuid())
   verificationId String
   firstName      String?
+  secondName     String?
   lastName       String?
+  secondLastName String?
+  curp           String?
   dateOfBirth    DateTime?
   nationality    String?
   documentNumber String?
   documentType   String?
   email          String?
   phone          String?
-  address        String?
+  street         String?
+  colony         String?
+  city           String?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
