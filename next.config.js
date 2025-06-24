@@ -24,7 +24,7 @@ const headers = [
 
 const nextConfig = {
   reactStrictMode: true,
-  output: 'standalone',
+  // output: 'standalone', // Comentado para permitir next start
   eslint: {
     ignoreDuringBuilds: true,
   },

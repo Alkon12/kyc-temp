@@ -15,6 +15,7 @@
     "build": "next build",
     "build-full": "__NEXT_TEST_MODE=1 next build",
     "start": "next start",
+    "start:standalone": "node .next/standalone/server.js",
     "lint": "next lint",
     "find-deadcode": "ts-prune",
     "graphql": "graphql-codegen --config codegen.app.yml",
