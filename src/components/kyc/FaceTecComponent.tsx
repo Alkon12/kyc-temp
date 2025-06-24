@@ -103,7 +103,7 @@ class FaceTecComponentClass extends React.Component<FaceTecComponentProps, FaceT
           }
         } else {
           this.setState({ 
-            status: "Error al inicializar el SDK",
+            status: "Error al inicializar el SDK: ",
             progress: 0
           });
           if (this.props.onError) {

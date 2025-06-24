@@ -592,6 +592,10 @@ const FaceTecContent: React.FC = () => {
         setEnlaceExpirado(true);
         return;
       } else {
+        // Verificar si se deben saltar los términos y condiciones
+        const skipTerms = process.env.NEXT_PUBLIC_SKIP_TERMS_AND_CONDITIONS === 'true';
+        console.log('Skip terms environment variable:', skipTerms);
+        
         // Establecer el paso según el estado del enlace
         if (linkStatus === 'accepted') {
           // Si el enlace está aceptado, verificar si se requiere formulario de contacto
@@ -617,6 +621,10 @@ const FaceTecContent: React.FC = () => {
           setStep('verificacion');
         } else if (linkStatus === 'verification_completed') {
           setStep('completado');
+        } else if (linkStatus === 'active' && skipTerms) {
+          // Si se deben saltar los términos y condiciones, aceptar automáticamente
+          console.log('Saltando términos y condiciones automáticamente...');
+          handleAceptarTerminos();
         }
       }
       
@@ -990,13 +998,6 @@ const FaceTecContent: React.FC = () => {
       >
         <LoadingScreen />
       </div>
-
-      {/* Mensaje de error genérico */}
-      {error && !enlaceExpirado && !isProcessing && (
-        <div className="max-w-4xl mx-auto mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
-          Ha ocurrido un error. Por favor, inténtalo de nuevo más tarde.
-        </div>
-      )}
 
       {/* FaceTec component */}
       <div style={{ display: step === 'verificacion' ? 'block' : 'none' }}>

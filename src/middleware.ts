@@ -12,11 +12,11 @@ export default withAuth(
     response.headers.append('Access-Control-Allow-Methods', 'GET,DELETE,PATCH,POST,PUT,OPTIONS')
     response.headers.append(
       'Access-Control-Allow-Headers',
-      'Authorization, Accept,Origin,DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,X-Auth-Token,X-XSRF-TOKEN,If-Modified-Since,Cache-Control,Content-Type,Content-Range,Range',
+      'Authorization, Accept,Origin,DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,X-Auth-Token,X-XSRF-TOKEN,If-Modified-Since,Cache-Control,Content-Type,Content-Range,Range,x-api-key',
     )
     response.headers.append(
       'Access-Control-Request-Headers',
-      'Authorization, Accept,Origin,DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,X-Auth-Token,X-XSRF-TOKEN,If-Modified-Since,Cache-Control,Content-Type,Content-Range,Range',
+      'Authorization, Accept,Origin,DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,X-Auth-Token,X-XSRF-TOKEN,If-Modified-Since,Cache-Control,Content-Type,Content-Range,Range,x-api-key',
     )
     
     return response
@@ -34,26 +34,16 @@ export default withAuth(
         if (req.method === 'OPTIONS') {
           return true
         }
-        
-        // Rutas públicas - siempre permitir acceso
-        if (req.nextUrl.pathname.startsWith('/api/graphql/public') ||
-            req.nextUrl.pathname.startsWith('/api/graphql') || 
-            req.nextUrl.pathname.startsWith('/api/external/graphql') ||
-            req.nextUrl.pathname.startsWith("/api/auth") ||
-            req.nextUrl.pathname.startsWith("/api/v1/kyc") ||
-            req.nextUrl.pathname.startsWith("/api/v1/documents") ||
-            req.nextUrl.pathname.startsWith("/api/v1/fuzzy") ||
-            req.nextUrl.pathname.startsWith("/api/v1/curp") ||
-            req.nextUrl.pathname.startsWith("/api/v1/lista-nominal") ||
-            req.nextUrl.pathname.startsWith("/api/v1/timestamp") ||
-            req.nextUrl.pathname.startsWith("/api/public/graphql") ||
-            req.nextUrl.pathname.startsWith("/api/facetec") ||
-            req.nextUrl.pathname.startsWith("/facetec")) {
-          return true
+
+        // Rutas protegidas exactamente
+        const protectedPaths = ['/', '/companies', '/settings', '/users', '/verificaciones']
+        const pathname = req.nextUrl.pathname
+        if (protectedPaths.includes(pathname)) {
+          return !!token
         }
-        
-        // Para todas las demás rutas, verificar si hay un token válido
-        return !!token
+
+        // El resto es público
+        return true
       },
     },
   },

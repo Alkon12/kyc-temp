@@ -5,7 +5,7 @@ meta {
 }
 
 post {
-  url: {{baseUrl}}/api/v1/kyc
+  url: https://localhost:3000/api/v1/kyc
   body: json
   auth: bearer
 }
@@ -13,27 +13,18 @@ post {
 headers {
   Content-Type: application/json
   x-api-key: kyc_ccf644b3dbfb4e11be664689c6b2edd5
-  
-  kyc_ccf644b3dbfb4e11be664689c6b2edd5
-  
-  kyc_ccf644b3dbfb4e11be664689c6b2edd5
-  
-  kyc_ccf644b3dbfb4e11be664689c6b2edd5
-  
-  kyc_ccf644b3dbfb4e11be664689c6b2edd5
 }
 
 body:json {
   {
     "verificationType": "gold",
     "personInfo": {
-        "firstName": "Alfredo",
-        "lastName": "Dumanie",
-        "email": "dumainealfredo@gmail.com",
-        "phone": "5613905890"
+      "firstName": "Alfredo",
+      "lastName": "Dumanie",
+      "email": "dumainealfredo@gmail.com",
+      "phone": "5613905890"
     },
     "requiresDocumentSigning": false
-  
   }
 }
 
@@ -58,18 +49,19 @@ docs {
   Este endpoint crea una nueva verificación KYC y devuelve un enlace único para iniciar el proceso de verificación con FaceTec.
   
   ## Campos requeridos
-  - `companyId`: ID de la empresa
-  - `verificationType`: Tipo de verificación (identity, document, etc.)
+  - `verificationType`: Tipo de verificación (gold, silver, etc.)
   - `personInfo`: Información básica de la persona a verificar
     - `firstName`: Nombre
     - `lastName`: Apellido
+    - `email`: Email
+    - `phone`: Teléfono
   
   ## Campos opcionales
+  - `requiresDocumentSigning`: Si requiere firma de documentos (boolean)
   - `externalReferenceId`: ID de referencia externa
   - `priority`: Nivel de prioridad (0-9)
   - `riskLevel`: Nivel de riesgo (low, medium, high)
   - `notes`: Notas adicionales
-  - `assignToUserId`: ID del usuario al que se asignará la verificación
   
   ## Respuesta
   La respuesta incluirá:

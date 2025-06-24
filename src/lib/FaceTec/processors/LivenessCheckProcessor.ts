@@ -4,6 +4,7 @@ import { DI } from '@infrastructure';
 import { FaceTecDocumentService } from '@service/FaceTecDocumentService';
 import FacetecGraphQLAdapter from '../adapters/FacetecGraphQLAdapter';
 import { SoapValidationService } from '@infrastructure/repositories/soap/SoapValidationService';
+import { FaceTecDocumentManager } from '@/app/facetec/services/FaceTecDocumentManager';
 import * as crypto from 'crypto';
 
 declare const FaceTecSDK: any;
@@ -23,6 +24,9 @@ class LivenessCheckProcessor {
   
   // Servicio de validación para sellado de tiempo
   private soapValidationService: SoapValidationService | null = null;
+
+  // Nuevo gestor de documentos
+  private documentManager: FaceTecDocumentManager | null = null;
 
   //
   // DEVELOPER NOTE:  These properties are for demonstration purposes only so the Sample App can get information about what is happening in the processor.
@@ -48,6 +52,12 @@ class LivenessCheckProcessor {
     try {
       const url = new URL(window.location.href);
       this.verificationToken = url.searchParams.get('token') || '';
+      
+      // Inicializar el nuevo gestor de documentos
+      if (this.verificationToken) {
+        this.documentManager = new FaceTecDocumentManager(this.verificationToken);
+        console.log('FaceTecDocumentManager inicializado para LivenessCheckProcessor');
+      }
       
       // Obtener el servicio de documentos y validación del contenedor
       if (container) {
@@ -160,137 +170,99 @@ class LivenessCheckProcessor {
   }
 
   private async saveSelfie() {
-    if (!this.verificationToken) {
-      console.error('No se puede guardar la selfie: token inválido');
-      return;
-    }
-    
-    if (!this.latestSessionResult) {
-      console.error('No hay resultados de escaneo para guardar');
+    if (!this.verificationToken || !this.latestSessionResult || !this.documentManager) {
+      console.error('No se puede guardar la selfie: faltan datos requeridos');
       return;
     }
     
     // Evitar subidas duplicadas
     if (this.selfieUploaded) {
-      console.log('La selfie ya fue subida previamente, omitiendo duplicado...');
+      console.log('LivenessCheckProcessor: La selfie ya fue subida previamente, omitiendo duplicado...');
       return;
     }
     
     try {
-      // Extraer información de los resultados
-      // Asegurarnos de que la imagen esté en formato base64 correcto con el prefijo data:image
-      let selfieImage = this.latestSessionResult.auditTrail[0]; // Primera imagen del audit trail (selfie)
+      // Extraer la selfie del resultado
+      let selfieImage = this.latestSessionResult.auditTrail[0];
       
-      // Si la imagen no tiene el prefijo data:image, añadirlo
-      if (selfieImage && !selfieImage.startsWith('data:image')) {
-        console.log('Añadiendo prefijo data:image/jpeg;base64, a la imagen selfie');
-        selfieImage = `data:image/jpeg;base64,${selfieImage}`;
+      if (!selfieImage) {
+        console.error('No se encontró imagen de selfie en auditTrail');
+        return;
       }
       
       // Marcar como subida para evitar duplicados
       this.selfieUploaded = true;
       
-      // Datos adicionales para análisis
-      const faceTecData: {
-        sessionId: any;
-        status: any;
-        faceScan: boolean;
-        timestampHash?: string;
-        timestampSeal?: any;
-      } = {
-        sessionId: this.latestSessionResult.sessionId,
-        status: this.latestSessionResult.status,
-        faceScan: this.latestSessionResult.faceScan ? true : false // Solo enviamos un flag, no el objeto completo
-      };
-      
-      // Verificar si es una verificación Silver o Gold para aplicar sellado de tiempo
+      // Verificar si es una verificación de alto nivel para aplicar sellado de tiempo
       const isHighLevelVerification = await this.isHighLevelVerification();
       
-      // Si es verificación Silver o Gold, obtener sello de tiempo
-      let timestampData = null;
-      if (isHighLevelVerification) {
-        console.log('Verificación Silver o Gold detectada, aplicando sellado de tiempo...');
-        timestampData = await this.getTimestampSeal(selfieImage);
-        
-        // Si se obtuvo el sello de tiempo, agregarlo a los datos
-        if (timestampData) {
-          faceTecData.timestampHash = timestampData.hash;
-          faceTecData.timestampSeal = timestampData.timestamp;
-          console.log('Sello de tiempo aplicado correctamente');
-        } else {
-          console.warn('No se pudo obtener sello de tiempo, continuando sin él');
+      console.log(`🔄 LivenessCheckProcessor: Guardando selfie ${isHighLevelVerification ? 'con sellado de tiempo' : 'básica'}`);
+      
+      // Usar el nuevo FaceTecDocumentManager
+      const result = await this.documentManager.saveSelfie(
+        selfieImage,
+        this.latestSessionResult,
+        {
+          applyTimestamp: isHighLevelVerification,
+          additionalMetadata: {
+            processor: 'LivenessCheckProcessor',
+            sessionTimestamp: new Date().toISOString(),
+            verificationType: isHighLevelVerification ? 'PREMIUM' : 'BASIC'
+          }
         }
+      );
+      
+      if (result) {
+        console.log('✅ LivenessCheckProcessor: Selfie guardada exitosamente:', result);
+        
+        // Guardar miniatura como respaldo
+        this.saveImageThumbnail(selfieImage);
+      } else {
+        console.error('❌ LivenessCheckProcessor: Error al guardar selfie');
+        this.selfieUploaded = false; // Permitir reintento
+        
+        // Fallback al método antiguo si el nuevo falla
+        await this.saveSelfieOldMethod();
+      }
+    } catch (error) {
+      console.error('❌ LivenessCheckProcessor: Error al guardar selfie:', error);
+      this.selfieUploaded = false; // Permitir reintento
+      
+      // Fallback al método antiguo si hay error
+      await this.saveSelfieOldMethod();
+    }
+  }
+
+  /**
+   * Método de fallback para guardar selfie usando el sistema anterior
+   */
+  private async saveSelfieOldMethod() {
+    console.log('🔄 LivenessCheckProcessor: Usando método de fallback para guardar selfie');
+    
+    if (!this.latestSessionResult) return;
+    
+    try {
+      let selfieImage = this.latestSessionResult.auditTrail[0];
+      
+      if (selfieImage && !selfieImage.startsWith('data:image')) {
+        selfieImage = `data:image/jpeg;base64,${selfieImage}`;
       }
       
-      console.log('Intentando guardar selfie con formato correcto en Paperless...');
+      const faceTecData = {
+        sessionId: this.latestSessionResult.sessionId,
+        status: this.latestSessionResult.status,
+        faceScan: !!this.latestSessionResult.faceScan
+      };
       
-      // Mantener una copia en localStorage como respaldo (pero no descargar automáticamente)
-      this.saveImageThumbnail(selfieImage);
-      
-      // Usar la API para guardar en Paperless primero
-      this.saveDocumentUsingAPI('SELFIE', selfieImage, faceTecData)
-        .then((data) => {
-          console.log('Selfie guardada correctamente en API/Paperless:', data);
-          
-          // Si se guardó en Paperless, no necesitamos guardar localmente
-          if (data && data.data && data.data.filePath && data.data.filePath.includes('paperless')) {
-            console.log('Imagen guardada exitosamente en Paperless:', data.data.filePath);
-          } else {
-            // Si no se guardó en Paperless, guardamos localmente como respaldo
-            console.log('Guardando localmente como respaldo...');
-            this.triggerDownload(selfieImage, 'selfie');
-          }
-        })
-        .catch((error) => {
-          console.error('Error al guardar selfie usando API:', error);
-          // Restablecer el flag en caso de error para permitir reintento
-          this.selfieUploaded = false;
-          
-          // Si falla la API, intentar usar el servicio directo como fallback
-          if (this.faceTecDocumentService) {
-            console.log('Intentando guardar con servicio directo...');
-            // Crear un documento solo para la selfie
-            this.faceTecDocumentService.saveDocumentImage(
-              selfieImage,
-              'SELFIE',
-              this.verificationToken
-            ).then((document) => {
-              if (document) {
-                console.log('Selfie guardada correctamente usando servicio directo');
-                
-                // Guardar datos adicionales
-                this.faceTecDocumentService?.saveOcrData(
-                  document.getId().toDTO(),
-                  faceTecData
-                ).then(() => {
-                  console.log('Datos OCR guardados correctamente');
-                }).catch((error) => {
-                  console.error('Error al guardar datos OCR:', error);
-                });
-              } else {
-                // Si falla el servicio directo, guardamos localmente
-                console.log('No se pudo guardar con servicio directo, guardando localmente...');
-                this.triggerDownload(selfieImage, 'selfie');
-              }
-            }).catch((error) => {
-              console.error('Error al guardar la selfie usando servicio directo:', error);
-              // Si falla el servicio directo, guardamos localmente
-              this.triggerDownload(selfieImage, 'selfie');
-            });
-          } else {
-            // Si no hay servicio, guardamos localmente
-            console.log('No se pudo guardar con API ni servicio directo, guardando localmente...');
-            this.triggerDownload(selfieImage, 'selfie');
-          }
-        });
+      // Intentar con la API antigua
+      await this.saveDocumentUsingAPI('SELFIE', selfieImage, faceTecData);
+      console.log('✅ LivenessCheckProcessor: Selfie guardada con método de fallback');
     } catch (error) {
-      console.error('Error al procesar y guardar la selfie:', error);
-      // Restablecer el flag en caso de error para permitir reintento
-      this.selfieUploaded = false;
+      console.error('❌ LivenessCheckProcessor: Error en método de fallback:', error);
       
-      // En caso de error general, intentamos guardar localmente
-      if (this.latestSessionResult && this.latestSessionResult.auditTrail[0]) {
-        this.triggerDownload(this.latestSessionResult.auditTrail[0], 'selfie_backup');
+      // Último recurso: guardar localmente
+      if (this.latestSessionResult?.auditTrail[0]) {
+        this.triggerDownload(this.latestSessionResult.auditTrail[0], 'selfie_emergency');
       }
     }
   }
