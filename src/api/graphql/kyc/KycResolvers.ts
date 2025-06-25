@@ -253,14 +253,19 @@ export class KycResolvers {
     
     const updateArgs = {
       firstName: input.firstName ? new StringValue(input.firstName) : undefined,
+      secondName: input.secondName ? new StringValue(input.secondName) : undefined,
       lastName: input.lastName ? new StringValue(input.lastName) : undefined,
+      secondLastName: input.secondLastName ? new StringValue(input.secondLastName) : undefined,
+      curp: input.curp ? new StringValue(input.curp) : undefined,
       dateOfBirth: input.dateOfBirth ? new DateTimeValue(new Date(input.dateOfBirth)) : undefined,
       nationality: input.nationality ? new StringValue(input.nationality) : undefined,
       documentNumber: input.documentNumber ? new StringValue(input.documentNumber) : undefined,
       documentType: input.documentType ? new StringValue(input.documentType) : undefined,
       email: input.email ? new StringValue(input.email) : undefined,
       phone: input.phone ? new StringValue(input.phone) : undefined,
-      address: input.address ? new StringValue(input.address) : undefined,
+      street: input.street ? new StringValue(input.street) : undefined,
+      colony: input.colony ? new StringValue(input.colony) : undefined,
+      city: input.city ? new StringValue(input.city) : undefined,
     }
     
     const person = await kycPersonService.update(new KycPersonId(id), updateArgs)

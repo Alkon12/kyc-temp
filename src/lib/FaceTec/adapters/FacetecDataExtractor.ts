@@ -47,7 +47,7 @@ interface DocumentGroup {
 }
 
 interface DocumentData {
-  scannedValues: {
+  userConfirmedValues: {
     groups: DocumentGroup[];
   };
 }
@@ -94,7 +94,7 @@ export class FacetecDataExtractor {
       };
       
       // Extraer datos básicos (grupo userInfo)
-      const userInfoGroup = documentData.scannedValues?.groups?.find(g => g.groupKey === "userInfo");
+      const userInfoGroup = documentData.userConfirmedValues?.groups?.find(g => g.groupKey === "userInfo");
       if (userInfoGroup) {
         personalData.firstName = findFieldValue(userInfoGroup, "firstName") || undefined;
         personalData.middleName = findFieldValue(userInfoGroup, "middleName") || undefined;
@@ -103,7 +103,7 @@ export class FacetecDataExtractor {
       }
       
       // Extraer datos del ID (grupo idInfo)
-      const idInfoGroup = documentData.scannedValues?.groups?.find(g => g.groupKey === "idInfo");
+      const idInfoGroup = documentData.userConfirmedValues?.groups?.find(g => g.groupKey === "idInfo");
       if (idInfoGroup) {
         personalData.idNumber = findFieldValue(idInfoGroup, "idNumber") || undefined;
         personalData.idNumber2 = findFieldValue(idInfoGroup, "idNumber2") || undefined;
@@ -115,17 +115,19 @@ export class FacetecDataExtractor {
       }
       
       // Extraer dirección (grupo addressInfo)
-      const addressGroup = documentData.scannedValues?.groups?.find(g => g.groupKey === "addressInfo");
+      const addressGroup = documentData.userConfirmedValues?.groups?.find(g => g.groupKey === "addressInfo");
       if (addressGroup && addressGroup.fields) {
-        personalData.address = addressGroup.fields.map(f => f.value).join(", ");
+        personalData.address1 = findFieldValue(addressGroup, "address1") || undefined;
+        personalData.address2 = findFieldValue(addressGroup, "address2") || undefined;
+        personalData.address3 = findFieldValue(addressGroup, "address3") || undefined;
       }
       
       // Extraer datos físicos (grupo secondaryUserInfo)
-      const secondaryInfoGroup = documentData.scannedValues?.groups?.find(g => g.groupKey === "secondaryUserInfo");
+      const secondaryInfoGroup = documentData.userConfirmedValues?.groups?.find(g => g.groupKey === "secondaryUserInfo");
       if (secondaryInfoGroup) {
         personalData.sex = findFieldValue(secondaryInfoGroup, "sex") || undefined;
       }
-      
+      console.log("personalData",personalData);
       return personalData;
     } catch (error) {
       console.error('Error al procesar datos de FaceTec:', error);

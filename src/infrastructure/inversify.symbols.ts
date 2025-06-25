@@ -45,6 +45,7 @@ export const DI = {
   CreateFaceTecSessionUseCase: Symbol.for('CreateFaceTecSessionUseCase'),
   ProcessFaceTecResultsUseCase: Symbol.for('ProcessFaceTecResultsUseCase'),
   AssignManualReviewUseCase: Symbol.for('AssignManualReviewUseCase'),
+  UpdateKycPersonFromFaceTecUseCase: Symbol.for('UpdateKycPersonFromFaceTecUseCase'),
   
   // Controladores
   KycController: Symbol.for('KycController'),

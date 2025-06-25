@@ -34,6 +34,7 @@ import { CreateKycUseCase } from '@/application/use-cases/CreateKycUseCase'
 import { CreateFaceTecSessionUseCase } from '@/application/use-cases/CreateFaceTecSessionUseCase'
 import { ProcessFaceTecResultsUseCase } from '@/application/use-cases/ProcessFaceTecResultsUseCase'
 import { AssignManualReviewUseCase } from '@/application/use-cases/AssignManualReviewUseCase'
+import { UpdateKycPersonFromFaceTecUseCase } from '@/application/use-cases/UpdateKycPersonFromFaceTecUseCase'
 import { KycController } from '@/interfaces/controllers/KycController'
 import type { FaceTecService } from '@domain/faceTec/FaceTecService'
 import { FaceTecServiceImpl } from '@service/FaceTecService'
@@ -143,6 +144,7 @@ container.bind<CreateKycUseCase>(DI.CreateKycUseCase).to(CreateKycUseCase)
 container.bind<CreateFaceTecSessionUseCase>(DI.CreateFaceTecSessionUseCase).to(CreateFaceTecSessionUseCase)
 container.bind<ProcessFaceTecResultsUseCase>(DI.ProcessFaceTecResultsUseCase).to(ProcessFaceTecResultsUseCase)
 container.bind<AssignManualReviewUseCase>(DI.AssignManualReviewUseCase).to(AssignManualReviewUseCase)
+container.bind<UpdateKycPersonFromFaceTecUseCase>(DI.UpdateKycPersonFromFaceTecUseCase).to(UpdateKycPersonFromFaceTecUseCase)
 
 // Controladores
 container.bind<KycController>(DI.KycController).to(KycController)

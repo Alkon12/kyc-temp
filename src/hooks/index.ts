@@ -5,4 +5,5 @@ export * from './useFuzzyValidation';
 export * from './useListaNominalValidation';
 export * from './useVerificationStatus';
 export * from './useDocumentSigning';
-export * from './useUserCompany'; 
+export * from './useUserCompany';
+export * from './useKycPersonUpdate'; 

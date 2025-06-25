@@ -5,12 +5,17 @@ import { KycVerificationId } from '@domain/kycVerification/models/KycVerificatio
 export interface CreateKycPersonArgs {
   verificationId: KycVerificationId
   firstName?: StringValue
+  secondName?: StringValue
   lastName?: StringValue
+  secondLastName?: StringValue
+  curp?: StringValue
   dateOfBirth?: DateTimeValue
   nationality?: StringValue
   documentNumber?: StringValue
   documentType?: StringValue
   email?: StringValue
   phone?: StringValue
-  address?: StringValue
+  street?: StringValue
+  colony?: StringValue
+  city?: StringValue
 }

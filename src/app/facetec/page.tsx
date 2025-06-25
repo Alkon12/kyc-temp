@@ -15,6 +15,7 @@ import { useCurpValidation } from '@/hooks/useCurpValidation';
 import { useFuzzyValidation } from '@/hooks/useFuzzyValidation';
 import { useListaNominalValidation } from '@/hooks/useListaNominalValidation';
 import { useVerificationStatus } from '@/hooks/useVerificationStatus';
+import { useKycPersonUpdate } from '@/hooks/useKycPersonUpdate';
 import { Icons } from "@/components/icons";
 
 // Consulta para obtener verificación usando token en lugar del ID
@@ -173,6 +174,13 @@ const FaceTecContent: React.FC = () => {
     validateListaNominalFromPersonalData
   } = useListaNominalValidation();
 
+  // Hook para actualizar KycPerson con datos de FaceTec
+  const {
+    updateKycPersonFromFaceTec,
+    isUpdating: isUpdatingKycPerson,
+    error: kycPersonUpdateError
+  } = useKycPersonUpdate(publicClient);
+
   const [isProcessing, setIsProcessing] = useState(false);
 
   // Configurar el servicio de flujo de verificación con el cliente Apollo
@@ -189,6 +197,9 @@ const FaceTecContent: React.FC = () => {
   const verificationIdFromQuery = data?.getVerificationLinkByToken?.verificationId;
   const verificationTypeFromQuery = data?.getVerificationLinkByToken?.kycVerification?.verificationType;
   
+  // Guardar referencia estable al kycPersonId de la query inicial para evitar confusiones con otras variables 'data'
+  const kycPersonIdFromInitialQuery = data?.getVerificationLinkByToken?.kycVerification?.kycPerson?.id;
+  
   // Depuración para verificar IDs disponibles
   useEffect(() => {
     if (data?.getVerificationLinkByToken) {
@@ -196,6 +207,7 @@ const FaceTecContent: React.FC = () => {
         verificationIdFromLink: data.getVerificationLinkByToken.verificationId,
         verificationLinkId: data.getVerificationLinkByToken.id,
         kycVerificationId: data.getVerificationLinkByToken.kycVerification?.id,
+        kycPersonId: data.getVerificationLinkByToken.kycVerification?.kycPerson?.id,
         redirectUrl: data.getVerificationLinkByToken.kycVerification?.company?.redirectUrl
       });
     }
@@ -229,6 +241,15 @@ const FaceTecContent: React.FC = () => {
     }
   }, [fuzzyValidationError]);
 
+  // Manejar errores de actualización de KycPerson
+  useEffect(() => {
+    if (kycPersonUpdateError) {
+      console.error('Error al actualizar KycPerson:', kycPersonUpdateError);
+      // No establecemos error en la UI porque es una operación opcional
+      // setError(kycPersonUpdateError);
+    }
+  }, [kycPersonUpdateError]);
+
   // Actualizar el estado de procesamiento cuando cualquier validación comienza
   useEffect(() => {
     const isAnyProcessing = isStatusUpdating || 
@@ -240,7 +261,8 @@ const FaceTecContent: React.FC = () => {
                            isListaNominalUpdatingKycStatus ||
                            isFuzzyValidating ||
                            isFuzzySaving ||
-                           isFuzzyUpdatingKycStatus;
+                           isFuzzyUpdatingKycStatus ||
+                           isUpdatingKycPerson;
     
     setIsProcessing(isAnyProcessing);
   }, [
@@ -253,7 +275,8 @@ const FaceTecContent: React.FC = () => {
     isListaNominalUpdatingKycStatus,
     isFuzzyValidating,
     isFuzzySaving,
-    isFuzzyUpdatingKycStatus
+    isFuzzyUpdatingKycStatus,
+    isUpdatingKycPerson
   ]);
 
   // Agregar query para FaceTecResults (no se ejecuta automáticamente)
@@ -290,11 +313,37 @@ const FaceTecContent: React.FC = () => {
             
             // Guardar los datos extraídos en el estado
             if (personalData) {
+              console.log("personalData", personalData);
               // Crear nombre completo desde los datos personales extraídos
               const personalDataFullName = `${personalData.firstName || ''} ${personalData.lastName || ''}`.trim();
               console.log('👤 Nombre completo desde personalData:', personalDataFullName);
               
               setExtractedPersonalData(personalData);
+              
+              // Actualizar KycPerson con los datos extraídos de FaceTec
+              if (kycPersonIdFromInitialQuery) {
+                console.log('🔄 Actualizando KycPerson con datos de FaceTec:', {
+                  kycPersonId: kycPersonIdFromInitialQuery,
+                  personalDataKeys: Object.keys(personalData)
+                });
+                
+                try {
+                  const updateResult = await updateKycPersonFromFaceTec(
+                    kycPersonIdFromInitialQuery,
+                    personalData
+                  );
+                  
+                  if (updateResult.success) {
+                    console.log('✅ KycPerson actualizado exitosamente con datos de FaceTec');
+                  } else {
+                    console.error('❌ Error al actualizar KycPerson:', updateResult.error);
+                  }
+                } catch (kycUpdateError) {
+                  console.error('❌ Error al actualizar KycPerson:', kycUpdateError);
+                }
+              } else {
+                console.warn('⚠️ No se pudo obtener kycPersonId, saltando actualización de KycPerson');
+              }
               
               // Obtener el ID de verificación para ambas validaciones
               const verificationId = latestResult.verificationId || 
