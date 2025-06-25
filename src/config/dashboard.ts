@@ -10,6 +10,11 @@ export const navigationItems = [
     icon: 'fileCheck',
   },
   {
+    name: 'Documentos',
+    href: '/documentos',
+    icon: 'fileText',
+  },
+  {
     name: 'Usuarios',
     href: '/users',
     icon: 'users',

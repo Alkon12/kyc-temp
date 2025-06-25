@@ -11,7 +11,8 @@ import {
   PanelLeft,
   PanelRight,
   Building2,
-  FileCheck
+  FileCheck,
+  FileText
 } from "lucide-react";
 
 export const Icons = {
@@ -26,7 +27,8 @@ export const Icons = {
   panelLeft: PanelLeft,
   panelRight: PanelRight,
   building: Building2,
-  fileCheck: FileCheck
+  fileCheck: FileCheck,
+  fileText: FileText
 };
 
 export type Icon = keyof typeof Icons; 

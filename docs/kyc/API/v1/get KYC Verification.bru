@@ -4,30 +4,19 @@ meta {
   seq: 2
 }
 
-post {
-  url: {{baseUrl}}/api/v1/kyc
+get {
+  url: {{baseUrl}}/api/v1/kyc?id=7122e85b-cd9f-49a8-a3a2-7b1885f624f4
   body: json
   auth: bearer
+}
+
+params:query {
+  id: 7122e85b-cd9f-49a8-a3a2-7b1885f624f4
 }
 
 headers {
   Content-Type: application/json
   x-api-key: kyc_71d79fc23df649a5919a4c4a0d476671
-}
-
-body:json {
-  {
-    "verificationType": "gold",
-    "personInfo": {
-      "firstName": "Alfredo",
-      "secondName": "Ezequiel",
-      "lastName": "Dumanie",
-      "secondLastName": "Montoya",
-      "email": "dumainealfredo@gmail.com",
-      "phone": "5613905890"
-    },
-    "requiresDocumentSigning": false
-  }
 }
 
 vars:pre-request {
